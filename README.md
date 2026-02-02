@@ -33,7 +33,7 @@ git clone https://github.com/burninc0de/helowrite.git
 cd helowrite
 
 # Set up virtual environment
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Fire the engines
@@ -45,7 +45,7 @@ helowrite your_draft.txt
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.8+ (run `python --version` to check)
 - pip (Python package installer)
 
 ### Installation
@@ -53,7 +53,7 @@ helowrite your_draft.txt
 1. **Clone or download** the repository
 2. **Create virtual environment** (recommended):
    ```bash
-   python3 -m venv venv
+   python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 3. **Install dependencies**:
@@ -97,11 +97,6 @@ helowrite mydocument.txt
 
 After activating your virtual environment:
 
-```bash
-pytest
-```
-
-Or run tests directly:
 ```bash
 python -m pytest
 ```
@@ -157,9 +152,12 @@ helowrite/
 │   ├── __init__.py
 │   ├── conftest.py        # Pytest configuration
 │   ├── test_*.py          # Individual test files
+├── venv/                  # Virtual environment (created by user)
+├── helowrite_env/         # Alternative virtual environment
 ├── requirements.txt       # Python dependencies
 ├── pyproject.toml         # Project configuration
-├── run.sh                 # Wrapper script
+├── pytest.ini             # Pytest configuration
+├── run.sh                 # Wrapper script for venv activation
 ├── git_sync_errors.log    # Git sync error log (created as needed)
 ├── AGENTS.md              # Agent instructions (internal)
 ├── LICENSE                # MIT license
