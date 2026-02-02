@@ -1,0 +1,6 @@
+rich>=14.0.0
+textual>=0.80.0
+watchdog>=3.0.0
+pygments>=2.0.0
+pyfiglet>=1.0.0
+pytest>=8.3.0

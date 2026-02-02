@@ -1,0 +1,117 @@
+/* Screen CSS */
+
+/* FileOpenScreen */
+FileOpenScreen {
+    width: 40%;
+    height: 100%;
+    dock: right;
+    align: center middle;
+    background: $surface;
+    padding: 1 1;
+}
+
+#file-open-header {
+    padding-bottom: 1;
+}
+
+#file-tree {
+    height: 1fr;
+    overflow: auto;
+}
+
+/* FindReplaceScreen */
+FindReplaceScreen {
+    align: center middle;
+}
+
+#find-header {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#find-input, #replace-input {
+    margin-bottom: 1;
+}
+
+/* SettingsScreen */
+SettingsScreen {
+    align: center middle;
+}
+
+#settings-container {
+    width: 60;
+    height: auto;
+    background: $surface;
+    border: thick $primary;
+    padding: 1 2;
+}
+
+#settings-header {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+SettingsScreen Label {
+    margin-top: 1;
+    color: $text-muted;
+}
+
+SettingsScreen Input {
+    margin-bottom: 1;
+}
+
+#button-row {
+    margin-top: 1;
+    align: center middle;
+    width: 100%;
+}
+
+#cursor-color-row {
+    width: 100%;
+}
+
+#use-theme-btn {
+    margin-left: 1;
+}
+
+/* AboutScreen */
+AboutScreen {
+    align: center middle;
+}
+
+#about-container {
+    width: 80;
+    height: auto;
+    background: $surface;
+    border: thick $primary;
+    padding: 2 3;
+}
+
+#about-content {
+    text-align: center;
+}
+
+/* SaveAsScreen */
+SaveAsScreen {
+    align: center middle;
+}
+
+#save-container {
+    width: 60;
+    height: auto;
+    background: $surface;
+    border: thick $primary;
+    padding: 1 2;
+}
+
+#save-header {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#filename-input {
+    margin-bottom: 1;
+}

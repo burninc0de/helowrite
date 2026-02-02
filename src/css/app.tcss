@@ -1,0 +1,190 @@
+/* Main App CSS */
+
+/* HeloWrite Dark Theme - Modern dark theme with blue accents */
+.theme-helowrite-dark {
+    --primary: #61dafb;        /* Bright cyan/blue accent */
+    --primary-darken-1: #4fa8d1;
+    --primary-darken-2: #3d8ca6;
+    --primary-lighten-1: #7de3fc;
+    --primary-lighten-2: #9be8fd;
+    
+    --surface: #1a1a2e;        /* Deep dark blue background */
+    --surface-darken-1: #0f0f1a;
+    --surface-darken-2: #0a0a14;
+    --surface-lighten-1: #252540;
+    --surface-lighten-2: #303050;
+    
+    --text: #e6e6fa;           /* Light lavender text */
+    --text-muted: #b8b8d1;     /* Muted lavender */
+    
+    --success: #50fa7b;        /* Bright green */
+    --warning: #f1fa8c;        /* Bright yellow */
+    --error: #ff5555;          /* Bright red */
+    
+    --border: #44475a;         /* Subtle border color */
+    --panel: #282a36;          /* Panel background */
+}
+
+/* HeloWrite Light Theme - Light variant with blue accents */
+.theme-helowrite-light {
+    --primary: #61dafb;        /* Bright cyan/blue accent */
+    --primary-darken-1: #4fa8d1;
+    --primary-darken-2: #3d8ca6;
+    --primary-lighten-1: #7de3fc;
+    --primary-lighten-2: #9be8fd;
+    
+    --surface: #ffffff;        /* Clean white background */
+    --surface-darken-1: #f8f8f8;
+    --surface-darken-2: #f0f0f0;
+    --surface-lighten-1: #fafafa;
+    --surface-lighten-2: #fdfdfd;
+    
+    --text: #1a1a2e;           /* Dark text on light background */
+    --text-muted: #666666;     /* Muted gray text */
+    
+    --success: #28a745;        /* Standard green */
+    --warning: #ffc107;        /* Standard yellow */
+    --error: #dc3545;          /* Standard red */
+    
+    --border: #e0e0e0;         /* Light border color */
+    --panel: #f8f8f8;          /* Light panel background */
+}
+
+/* Kanso Zen - Deep dark theme inspired by Kansō.nvim */
+.theme-kanso-zen {
+    --primary: #8ba4b0;        /* Blue accent from Kansō */
+    --primary-darken-1: #658594;
+    --primary-darken-2: #568b8f;
+    --primary-lighten-1: #9fb5c9;
+    --primary-lighten-2: #b5cbd2;
+    
+    --surface: #090E13;        /* Deep zen background */
+    --surface-darken-1: #1C1E25;
+    --surface-darken-2: #22262D;
+    --surface-lighten-1: #393B44;
+    --surface-lighten-2: #4b4e57;
+    
+    --text: #C5C9C7;           /* Main foreground */
+    --text-muted: #717C7C;     /* Gray for muted text */
+    
+    --success: #76946A;        /* Git green */
+    --warning: #DCA561;        /* Git yellow */
+    --error: #C34043;          /* Git red */
+    
+    --border: #22262D;         /* Zen background border */
+    --panel: #1C1E25;          /* Slightly lighter panel */
+}
+
+/* Kanso Pearl - Bright light theme inspired by Kansō.nvim */
+.theme-kanso-pearl {
+    --primary: #9fb5c9;        /* Blue accent from Kansō pearl */
+    --primary-darken-1: #8ea4a2;
+    --primary-darken-2: #766b90;
+    --primary-lighten-1: #c7d7e0;
+    --primary-lighten-2: #dddddb;
+    
+    --surface: #f2f1ef;        /* Pearl white background */
+    --surface-darken-1: #e2e1df;
+    --surface-darken-2: #dddddb;
+    --surface-lighten-1: #cacac7;
+    --surface-lighten-2: #c9cbd1;
+    
+    --text: #22262D;           /* Dark text on light bg */
+    --text-muted: #545464;     /* Muted dark text */
+    
+    --success: #6e915f;        /* Pearl green */
+    --warning: #de9800;        /* Pearl yellow */
+    --error: #c84053;          /* Pearl red */
+    
+    --border: #e2e1df;         /* Light border */
+    --panel: #dddddb;          /* Panel background */
+}
+
+Screen {
+    background: $surface;
+}
+
+CenteredEditor {
+    align: center middle;
+    height: 1fr;
+    width: 100%;
+    padding-bottom: 0;
+}
+
+CenteredEditor.distraction-free {
+    padding-top: 2;
+}
+
+TextArea {
+    border: round $primary;
+    width: 70%;
+    height: 100%;
+    scrollbar-size: 1 1;
+    scrollbar-color: $surface-lighten-2;
+    scrollbar-color-hover: $surface-lighten-1;
+    scrollbar-background: $surface;
+}
+
+TextArea.distraction-free {
+    border: none;
+}
+
+/* Scrollbar styling for distraction-free (fullscreen) mode */
+TextArea.distraction-free {
+    scrollbar-background: $surface;
+    scrollbar-background-hover: $surface;
+    scrollbar-background-active: $surface;
+    scrollbar-color: $text-muted;
+    scrollbar-color-hover: $border;
+    scrollbar-color-active: $primary-darken-1;
+    scrollbar-size: 1 1;
+}
+
+/* Cursor styling - uses theme color by default */
+.text-area--cursor {
+    background: $primary;
+    color: #ffffff;
+    text-style: bold;
+}
+
+.text-area--cursor-line {
+    background: $primary-lighten-1;
+}
+
+StatusBar {
+    background: $primary-darken-2;
+    color: $text;
+    padding: 0 1;
+    height: 1;
+    margin: 0;
+}
+
+#message-bar {
+    background: $success;
+    color: $text;
+    padding: 0 1;
+    height: 1;
+    margin: 0;
+}
+
+Footer {
+    padding: 0;
+    margin: 0;
+    dock: bottom;
+}
+
+#distraction-word-count {
+    height: 1;
+    text-align: right;
+    padding: 0 2;
+    margin: 1 0;
+    color: $text;
+    background: transparent;
+    opacity: 0;
+    display: none;
+}
+
+#distraction-word-count.visible {
+    display: block;
+    opacity: 0.3;
+}

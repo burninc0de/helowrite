@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""
+Wrapper for HeloWrite.
+This allows running the app directly from the root directory
+while keeping the main logic in the src/ package.
+"""
+
+from src.app import main
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,58 @@
+/* Widget CSS */
+
+StatusBar {
+    background: $primary-darken-2;
+    color: $text;
+    padding: 0 1;
+    height: 1;
+    margin: 0;
+}
+
+CenteredEditor {
+    align: center middle;
+    height: 1fr;
+    width: 100%;
+    padding-bottom: 0;
+}
+
+CenteredEditor.distraction-free {
+    padding-top: 2;
+}
+
+/* Cursor styling - uses theme color by default */
+.text-area--cursor {
+    background: $primary;
+    color: #ffffff;
+    text-style: bold;
+}
+
+.text-area--cursor-line {
+    background: $primary-lighten-1;
+}
+
+/* FileOpenPanel styles */
+FileOpenPanel {
+    width: 30%;
+    height: 100%;
+    background: $surface;
+    padding: 1 1;
+}
+
+#file-open-header-panel {
+    padding-bottom: 1;
+    color: $primary;
+    text-style: bold;
+}
+
+#file-tree-panel {
+    height: 1fr;
+    overflow: auto;
+}
+
+DirectoryTree > .directory-tree--folder {
+    color: $primary;
+}
+
+DirectoryTree > .directory-tree--file {
+    color: $text;
+}
