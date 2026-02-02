@@ -29,8 +29,12 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 
 ```
 # Clone the void
-git clone https://github.com/your-repo/helowrite.git
+git clone https://github.com/burninc0de/helowrite.git
 cd helowrite
+
+# Set up virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Fire the engines
 pip install -e .
