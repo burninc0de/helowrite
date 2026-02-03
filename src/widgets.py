@@ -185,6 +185,8 @@ class HeloWriteTextArea(TextArea):
             if self.app.space_between_paragraphs:
                 # Insert one newline for paragraph break (spacing handled by CSS)
                 self.insert("\n")
+            # Ensure cursor remains visible after newline insertion
+            self.app.call_later(self.scroll_cursor_visible)
             return True  # Prevent default handling
         # For other keys, let Textual handle them normally
         return False
