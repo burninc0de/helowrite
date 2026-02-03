@@ -796,7 +796,7 @@ class HeloWrite(App):
             self.show_message("No file open")
             return
 
-        self._feedback("Git sync started...", show_in_distraction_free=False)
+        self.notify("Git sync started...", severity="information", timeout=1)
         self.run_worker(self._async_git_sync())
 
     async def _async_git_sync(self):
@@ -918,7 +918,7 @@ class HeloWrite(App):
                 await run_subprocess(cmd, file_dir)
             except subprocess.CalledProcessError as e:
                 if "nothing to commit" in e.stdout or "nothing to commit" in e.stderr:
-                    self._feedback("No changes to commit")
+                    self._feedback("No changes to commit", timeout=2)
                     return  # Skip push
                 else:
                     raise
@@ -939,7 +939,7 @@ class HeloWrite(App):
                 else:
                     raise
 
-            self._feedback(f"Git sync completed for {file_name}")
+            self._feedback(f"Git sync completed for {file_name}", timeout=2)
         except subprocess.CalledProcessError as e:
             error_details = (
                 e.stderr.strip()
@@ -947,7 +947,7 @@ class HeloWrite(App):
                 or f"Command failed with return code {e.returncode}"
             )
             if "up to date" in error_details:
-                self._feedback("Git sync completed (already up to date)")
+                self._feedback("Git sync completed (already up to date)", timeout=2)
             else:
                 error_msg = "Git sync failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
                 with open(log_file, "a") as f:
