@@ -182,8 +182,9 @@ class HeloWriteTextArea(TextArea):
     def on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
         if event.key == "enter":
-            # Insert one newline for paragraph break (spacing handled by CSS)
-            self.insert("\n")
+            if self.app.space_between_paragraphs:
+                # Insert one newline for paragraph break (spacing handled by CSS)
+                self.insert("\n")
             return True  # Prevent default handling
         # For other keys, let Textual handle them normally
         return False

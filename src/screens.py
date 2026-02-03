@@ -185,6 +185,8 @@ class SettingsScreen(ModalScreen):
                 yield Input(id="width-input", classes="setting-input")
                 yield Static(" %", classes="setting-value")
             with Horizontal(classes="setting-row"):
+                yield Checkbox("Space between paragraphs", id="space-between-paragraphs-checkbox")
+            with Horizontal(classes="setting-row"):
                 yield Static("Cursor color:", classes="setting-label")
                 yield Input(id="cursor-color-input", classes="setting-input")
                 yield Static(" (hex #RRGGBB or 't')", classes="setting-value")
@@ -212,6 +214,7 @@ class SettingsScreen(ModalScreen):
             "#show-scrollbar-checkbox", Checkbox
         ).value = app.scrollbar_enabled
         self.query_one("#width-input", Input).value = str(app.editor_width)
+        self.query_one("#space-between-paragraphs-checkbox", Checkbox).value = app.config.get_space_between_paragraphs()
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
         self.query_one(
             "#vault-path-input", Input
@@ -248,6 +251,7 @@ class SettingsScreen(ModalScreen):
             ).value
             auto_save_enabled = self.query_one("#auto-save-checkbox", Checkbox).value
             width_str = self.query_one("#width-input", Input).value.strip()
+            space_between_paragraphs = self.query_one("#space-between-paragraphs-checkbox", Checkbox).value
             cursor_color = self.query_one("#cursor-color-input", Input).value.strip()
             vault_path = self.query_one("#vault-path-input", Input).value.strip()
             auto_save_interval_str = self.query_one(
@@ -290,6 +294,7 @@ class SettingsScreen(ModalScreen):
             app.config.set_show_word_count_distraction_free(show_word_count)
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
+            app.config.set_space_between_paragraphs(space_between_paragraphs)
             app.config.set_cursor_color(cursor_color)
             app.config.set_obsidian_vault_path(vault_path)
             app.config.set_auto_save_interval(auto_save_interval)
@@ -297,6 +302,7 @@ class SettingsScreen(ModalScreen):
 
             # Update app settings
             app.editor_width = width
+            app.space_between_paragraphs = space_between_paragraphs
             app.cursor_color = cursor_color
 
             # Apply auto-save

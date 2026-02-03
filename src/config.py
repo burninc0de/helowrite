@@ -99,6 +99,17 @@ class Config:
         config["cursor_color"] = color
         self._save_config(config)
 
+    def get_space_between_paragraphs(self) -> bool:
+        """Return whether to insert space between paragraphs on Enter."""
+        config = self._load_config()
+        return config.get("space_between_paragraphs", "1") == "1"
+
+    def set_space_between_paragraphs(self, enabled: bool):
+        """Persist space between paragraphs preference."""
+        config = self._load_config()
+        config["space_between_paragraphs"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_open_last_file(self) -> bool:
         """Return whether to open the last file on startup."""
         config = self._load_config()

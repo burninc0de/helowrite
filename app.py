@@ -187,6 +187,9 @@ class HeloWrite(App):
         # Scrollbar setting
         self.scrollbar_enabled = self.config.get_scrollbar_enabled()
 
+        # Space between paragraphs setting
+        self.space_between_paragraphs = self.config.get_space_between_paragraphs()
+
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
