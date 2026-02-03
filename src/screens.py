@@ -259,7 +259,9 @@ class SettingsScreen(ModalScreen):
             auto_save_interval_str = self.query_one(
                 "#auto-save-interval-input", Input
             ).value.strip()
-            scrollbar_enabled = self.query_one("#show-scrollbar-checkbox", Checkbox).value
+            scrollbar_enabled = self.query_one(
+                "#show-scrollbar-checkbox", Checkbox
+            ).value
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
