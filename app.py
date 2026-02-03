@@ -796,7 +796,7 @@ class HeloWrite(App):
             self.show_message("No file open")
             return
 
-        self.notify("Git sync started...", severity="information", timeout=1)
+        self._feedback("Git sync started...", timeout=1)
         self.run_worker(self._async_git_sync())
 
     async def _async_git_sync(self):
