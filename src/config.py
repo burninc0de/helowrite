@@ -88,17 +88,6 @@ class Config:
         config["show_word_count_distraction_free"] = "1" if enabled else "0"
         self._save_config(config)
 
-    def get_line_height(self) -> float:
-        """Get line height, defaulting to 1.5."""
-        config = self._load_config()
-        return float(config.get("line_height", 1.5))
-
-    def set_line_height(self, height: float):
-        """Save line height."""
-        config = self._load_config()
-        config["line_height"] = str(height)
-        self._save_config(config)
-
     def get_cursor_color(self) -> str:
         """Get cursor color, defaulting to 'theme' to use theme color."""
         config = self._load_config()

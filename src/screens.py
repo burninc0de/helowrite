@@ -185,10 +185,6 @@ class SettingsScreen(ModalScreen):
                 yield Input(id="width-input", classes="setting-input")
                 yield Static(" %", classes="setting-value")
             with Horizontal(classes="setting-row"):
-                yield Static("Line height:", classes="setting-label")
-                yield Input(id="line-height-input", classes="setting-input")
-                yield Static(" em", classes="setting-value")
-            with Horizontal(classes="setting-row"):
                 yield Static("Cursor color:", classes="setting-label")
                 yield Input(id="cursor-color-input", classes="setting-input")
                 yield Static(" (hex #RRGGBB or 't')", classes="setting-value")
@@ -216,7 +212,6 @@ class SettingsScreen(ModalScreen):
             "#show-scrollbar-checkbox", Checkbox
         ).value = app.scrollbar_enabled
         self.query_one("#width-input", Input).value = str(app.editor_width)
-        self.query_one("#line-height-input", Input).value = str(app.line_height)
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
         self.query_one(
             "#vault-path-input", Input
@@ -253,7 +248,6 @@ class SettingsScreen(ModalScreen):
             ).value
             auto_save_enabled = self.query_one("#auto-save-checkbox", Checkbox).value
             width_str = self.query_one("#width-input", Input).value.strip()
-            line_height_str = self.query_one("#line-height-input", Input).value.strip()
             cursor_color = self.query_one("#cursor-color-input", Input).value.strip()
             vault_path = self.query_one("#vault-path-input", Input).value.strip()
             auto_save_interval_str = self.query_one(
@@ -265,7 +259,6 @@ class SettingsScreen(ModalScreen):
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
-            line_height = float(line_height_str) if line_height_str else app.line_height
             auto_save_interval = (
                 int(auto_save_interval_str) if auto_save_interval_str else 5
             )
@@ -273,9 +266,6 @@ class SettingsScreen(ModalScreen):
             # Validate ranges
             if not (10 <= width <= 90):
                 app.show_message("Width must be between 10-90%")
-                return
-            if not (1.0 <= line_height <= 2.0):
-                app.show_message("Line height must be between 1.0-2.0")
                 return
             if auto_save_interval not in [1, 5, 10]:
                 app.show_message("Auto-save interval must be 1, 5, or 10 minutes")
@@ -300,7 +290,6 @@ class SettingsScreen(ModalScreen):
             app.config.set_show_word_count_distraction_free(show_word_count)
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
-            app.config.set_line_height(line_height)
             app.config.set_cursor_color(cursor_color)
             app.config.set_obsidian_vault_path(vault_path)
             app.config.set_auto_save_interval(auto_save_interval)
@@ -308,7 +297,6 @@ class SettingsScreen(ModalScreen):
 
             # Update app settings
             app.editor_width = width
-            app.line_height = line_height
             app.cursor_color = cursor_color
 
             # Apply auto-save

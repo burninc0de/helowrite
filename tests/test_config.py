@@ -26,7 +26,6 @@ def test_config_uses_custom_directory(temp_config_dir: Path) -> None:
         ("set_editor_width", 55, "editor_width=55"),
         ("set_bottom_padding", 2, "bottom_padding=2"),
         ("set_distraction_top_padding", 3, "distraction_top_padding=3"),
-        ("set_line_height", 1.8, "line_height=1.8"),
         ("set_cursor_color", "#ffffff", "cursor_color=#ffffff"),
         ("set_open_last_file", True, "open_last_file=1"),
     ],

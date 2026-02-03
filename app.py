@@ -178,7 +178,6 @@ class HeloWrite(App):
         self._word_count_timer: Optional[Timer] = None
         # Load editor settings
         self.editor_width = self.config.get_editor_width()
-        self.line_height = self.config.get_line_height()
         self.cursor_color = self.config.get_cursor_color()
         # Auto-save settings
         self.auto_save_enabled = self.config.get_auto_save_enabled()
@@ -255,7 +254,6 @@ class HeloWrite(App):
 
         editor = self.query_one("#editor", HeloWriteTextArea)
         editor.focus()
-        editor.styles.line_height = self.line_height
 
         # Check if we should open the last file (when no CLI arg provided)
         if not self.file_path and self.config.get_open_last_file():
@@ -378,9 +376,6 @@ class HeloWrite(App):
 
         # Apply width
         editor.styles.width = f"{self.editor_width}%"
-
-        # Apply line height
-        editor.styles.line_height = self.line_height
 
         # Apply distraction-free top padding if in distraction-free mode
         if self.distraction_free:
