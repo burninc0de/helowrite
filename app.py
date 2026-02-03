@@ -476,12 +476,14 @@ class HeloWrite(App):
             self._original_text = text
             self.is_dirty = False
             self.update_status()
-            self.show_message(f"Saved: {self.file_path}")
+            self._feedback(
+                f"Saved: {self.file_path}", distraction_free_message="Saved", timeout=2
+            )
             # Save cursor position for potential auto-restore
             cursor_pos = editor.cursor_location
             self.config.set_last_cursor_position(cursor_pos)
         except Exception as e:
-            self.show_message(f"Error saving file: {e}")
+            self._feedback(f"Error saving file: {e}", severity="error")
 
     async def action_quit(self):
         """Quit the application."""
@@ -771,8 +773,10 @@ class HeloWrite(App):
             self.file_path.write_text(text)
             self.is_dirty = False
             self.update_status()
-            self.show_message(
-                f"Auto-saved at {datetime.datetime.now().strftime('%H:%M:%S')}"
+            self._feedback(
+                f"Auto-saved at {datetime.datetime.now().strftime('%H:%M:%S')}",
+                timeout=2,
+                show_in_distraction_free=False,
             )
         except Exception as e:
             self.show_message(f"Auto-save failed: {e}")
@@ -783,10 +787,12 @@ class HeloWrite(App):
         severity: str = "information",
         timeout: int = 5,
         show_in_distraction_free: bool = True,
+        distraction_free_message: Optional[str] = None,
     ):
         """Show feedback via notification in distraction-free mode, message bar otherwise."""
         if self.distraction_free and show_in_distraction_free:
-            self.notify(message, severity=severity, timeout=timeout)
+            msg = distraction_free_message if distraction_free_message else message
+            self.notify(msg, severity=severity, timeout=timeout)
         elif not self.distraction_free:
             self.show_message(message)
 
