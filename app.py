@@ -41,6 +41,7 @@ class HeloWrite(App):
         Binding("alt+d", "create_daily_note", "Create Daily Note"),
         Binding("f11", "toggle_distraction_free", "Distraction Free Mode"),
         Binding("f12", "about", "About"),
+        Binding("alt+g", "git_sync", "Git Sync"),
     ]
 
     def get_system_commands(self, screen):
@@ -51,7 +52,7 @@ class HeloWrite(App):
             ):
                 yield cmd
         yield SystemCommand(
-            "Git Sync", "Add, commit, and push the current file", self.git_sync
+            "Git Sync", "Add, commit, and push the current file", self.action_git_sync
         )
         yield SystemCommand(
             "Change to Vault",
@@ -772,8 +773,8 @@ class HeloWrite(App):
         elif not self.distraction_free:
             self.show_message(message)
 
-    def git_sync(self):
-        """Add, commit, and push the current file."""
+    def action_git_sync(self):
+        """Add, commit, and push the current file (Alt+G)."""
         if not self.file_path:
             self.show_message("No file open")
             return
