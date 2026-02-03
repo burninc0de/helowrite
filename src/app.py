@@ -179,7 +179,6 @@ CenteredEditor {
         self.editor_width = self.config.get_editor_width()
         self.bottom_padding = self.config.get_bottom_padding()
         self.distraction_top_padding = self.config.get_distraction_top_padding()
-        self.line_height = self.config.get_line_height()
         self.cursor_color = self.config.get_cursor_color()
         # Auto-save settings
         self.auto_save_enabled = self.config.get_auto_save_enabled()
@@ -247,7 +246,6 @@ CenteredEditor {
 
         editor = self.query_one("#editor", HeloWriteTextArea)
         editor.focus()
-        editor.styles.line_height = self.line_height
 
         # Check if we should open the last file (when no CLI arg provided)
         if not self.file_path and self.config.get_open_last_file():
@@ -373,9 +371,6 @@ CenteredEditor {
 
         # Apply padding
         centered_editor.styles.padding_bottom = self.bottom_padding
-
-        # Apply line height
-        editor.styles.line_height = self.line_height
 
         # Apply distraction-free top padding if in distraction-free mode
         if self.distraction_free:
