@@ -23,7 +23,7 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 ## Operational Essentials
 - **Pure Focus**: F11 toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
-- **Git Sync** (The Staging Area): Use the Command Palette (Ctrl+P) to trigger a surgical Git workflow. It stashes, pulls, stages the current file, commits, and pushes—all without leaving the editor.
+- **Git Sync** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to trigger a surgical Git workflow. It stashes, pulls, stages the current file, commits, and pushes—all without leaving the editor.
 
 ## Quick Start
 
@@ -108,10 +108,11 @@ python -m pytest
 - `Ctrl+O` - Open file panel (toggle)
 - `Ctrl+N` - Create new file
 - `Ctrl+F` - Find/Replace (toggle)
-- `Ctrl+P` - Command palette (Git Sync, etc.)
+- `Ctrl+P` - Command palette
 - `Alt+Left/Right` - Decrease/Increase editor width (Option+Left/Right on macOS)
 - `Alt+A` - Select all text (Option+A on macOS)
 - `Alt+D` - Create daily note (Option+D on macOS)
+- `Alt+G` - Git sync current file (Option+G on macOS)
 - `F1` - Show help
 - `F3` - Open settings
 - `F5` - Open recent files
