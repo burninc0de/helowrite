@@ -360,7 +360,6 @@ class AboutScreen(ModalScreen):
 A distraction-free writing environment for the terminal.
 Designed for focused composition with minimal UI and keyboard-driven workflow.
 
-• Syntax highlighting for code and prose
 • Persistent themes and customizable editor settings
 • Distraction-free mode for immersive writing
 • Git integration and auto-save
