@@ -27,6 +27,18 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 
 ## Quick Start
 
+### Quick Test Drive (No Setup Required)
+
+Want to try HeloWrite instantly without any installation?
+
+```bash
+uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
+```
+
+This downloads and runs HeloWrite directly from the repository. Requires [UV](https://astral.sh/uv) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh`).
+
+### For Development/Full Installation
+
 ```
 # Clone the void
 git clone https://github.com/burninc0de/helowrite.git
