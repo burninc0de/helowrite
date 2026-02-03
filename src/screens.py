@@ -175,6 +175,8 @@ class SettingsScreen(ModalScreen):
             with Horizontal(classes="setting-row"):
                 yield Checkbox(" Enable auto-save", id="auto-save-checkbox")
             with Horizontal(classes="setting-row"):
+                yield Checkbox(" Show scrollbar", id="show-scrollbar-checkbox")
+            with Horizontal(classes="setting-row"):
                 yield Static("Auto-save interval:", classes="setting-label")
                 yield Input(id="auto-save-interval-input", classes="setting-input")
                 yield Static(" minutes (1, 5, or 10)", classes="setting-value")
@@ -210,6 +212,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#auto-save-checkbox", Checkbox
         ).value = app.config.get_auto_save_enabled()
+        self.query_one(
+            "#show-scrollbar-checkbox", Checkbox
+        ).value = app.scrollbar_enabled
         self.query_one("#width-input", Input).value = str(app.editor_width)
         self.query_one("#line-height-input", Input).value = str(app.line_height)
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
@@ -254,6 +259,7 @@ class SettingsScreen(ModalScreen):
             auto_save_interval_str = self.query_one(
                 "#auto-save-interval-input", Input
             ).value.strip()
+            scrollbar_enabled = self.query_one("#show-scrollbar-checkbox", Checkbox).value
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
@@ -296,6 +302,7 @@ class SettingsScreen(ModalScreen):
             app.config.set_cursor_color(cursor_color)
             app.config.set_obsidian_vault_path(vault_path)
             app.config.set_auto_save_interval(auto_save_interval)
+            app.config.set_scrollbar_enabled(scrollbar_enabled)
 
             # Update app settings
             app.editor_width = width
@@ -309,6 +316,9 @@ class SettingsScreen(ModalScreen):
                 app.start_auto_save()
             else:
                 app.stop_auto_save()
+
+            # Update scrollbar setting
+            app.scrollbar_enabled = scrollbar_enabled
 
             # Apply settings
             app.apply_editor_settings()

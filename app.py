@@ -185,6 +185,9 @@ class HeloWrite(App):
         self.auto_save_interval = self.config.get_auto_save_interval()
         self.auto_save_timer = None
 
+        # Scrollbar setting
+        self.scrollbar_enabled = self.config.get_scrollbar_enabled()
+
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
@@ -391,6 +394,12 @@ class HeloWrite(App):
                 word_count_widget.remove_class("visible")
         else:
             centered_editor.styles.padding_top = 0
+
+        # Apply scrollbar visibility
+        try:
+            editor.styles.scrollbar_visibility = "visible" if self.scrollbar_enabled else "hidden"
+        except Exception:
+            pass
 
     def apply_cursor_color(self):
         """Apply cursor color styling dynamically."""
@@ -700,7 +709,7 @@ class HeloWrite(App):
             centered.styles.padding_left = 0
             centered.styles.padding_right = 0
             try:
-                editor.styles.scrollbar_visibility = "visible"
+                editor.styles.scrollbar_visibility = "visible" if self.scrollbar_enabled else "hidden"
             except Exception:
                 pass
             if announce:

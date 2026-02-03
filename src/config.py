@@ -211,6 +211,17 @@ class Config:
         config["auto_save_interval"] = str(interval)
         self._save_config(config)
 
+    def get_scrollbar_enabled(self) -> bool:
+        """Return whether scrollbar is enabled."""
+        config = self._load_config()
+        return config.get("scrollbar_enabled", "0") == "1"
+
+    def set_scrollbar_enabled(self, enabled: bool):
+        """Persist scrollbar enabled preference."""
+        config = self._load_config()
+        config["scrollbar_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def _load_config(self) -> dict[str, str]:
         """Load config from file."""
         if self.config_file.exists():
