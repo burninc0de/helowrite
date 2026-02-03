@@ -185,7 +185,9 @@ class SettingsScreen(ModalScreen):
                 yield Input(id="width-input", classes="setting-input")
                 yield Static(" %", classes="setting-value")
             with Horizontal(classes="setting-row"):
-                yield Checkbox("Space between paragraphs", id="space-between-paragraphs-checkbox")
+                yield Checkbox(
+                    "Space between paragraphs", id="space-between-paragraphs-checkbox"
+                )
             with Horizontal(classes="setting-row"):
                 yield Static("Cursor color:", classes="setting-label")
                 yield Input(id="cursor-color-input", classes="setting-input")
@@ -214,7 +216,9 @@ class SettingsScreen(ModalScreen):
             "#show-scrollbar-checkbox", Checkbox
         ).value = app.scrollbar_enabled
         self.query_one("#width-input", Input).value = str(app.editor_width)
-        self.query_one("#space-between-paragraphs-checkbox", Checkbox).value = app.config.get_space_between_paragraphs()
+        self.query_one(
+            "#space-between-paragraphs-checkbox", Checkbox
+        ).value = app.config.get_space_between_paragraphs()
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
         self.query_one(
             "#vault-path-input", Input
@@ -251,7 +255,9 @@ class SettingsScreen(ModalScreen):
             ).value
             auto_save_enabled = self.query_one("#auto-save-checkbox", Checkbox).value
             width_str = self.query_one("#width-input", Input).value.strip()
-            space_between_paragraphs = self.query_one("#space-between-paragraphs-checkbox", Checkbox).value
+            space_between_paragraphs = self.query_one(
+                "#space-between-paragraphs-checkbox", Checkbox
+            ).value
             cursor_color = self.query_one("#cursor-color-input", Input).value.strip()
             vault_path = self.query_one("#vault-path-input", Input).value.strip()
             auto_save_interval_str = self.query_one(

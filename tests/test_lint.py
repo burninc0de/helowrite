@@ -1,4 +1,5 @@
 """Linting and formatting tests."""
+
 from __future__ import annotations
 
 import subprocess
@@ -14,7 +15,9 @@ def test_ruff_check():
         text=True,
         cwd=Path(__file__).parent.parent,
     )
-    assert result.returncode == 0, f"Ruff check failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, (
+        f"Ruff check failed:\n{result.stdout}\n{result.stderr}"
+    )
 
 
 def test_ruff_format():
@@ -25,4 +28,6 @@ def test_ruff_format():
         text=True,
         cwd=Path(__file__).parent.parent,
     )
-    assert result.returncode == 0, f"Ruff format check failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, (
+        f"Ruff format check failed:\n{result.stdout}\n{result.stderr}"
+    )

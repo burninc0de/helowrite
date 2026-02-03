@@ -23,7 +23,7 @@ class AppReloader(FileSystemEventHandler):
 
     def on_modified(self, event):
         """Called when a file is modified."""
-        if event.src_path.endswith('.py'):
+        if event.src_path.endswith(".py"):
             print(f"\n🔄 File changed: {event.src_path}")
             self.restart_app()
 
@@ -54,13 +54,12 @@ class AppReloader(FileSystemEventHandler):
         # Start new process
         print("🚀 Starting HeloWrite...")
         try:
-            self.process = subprocess.Popen([
-                sys.executable, self.app_path
-            ] + sys.argv[2:],
+            self.process = subprocess.Popen(
+                [sys.executable, self.app_path] + sys.argv[2:],
                 stdout=sys.stdout,
                 stderr=sys.stderr,
-                stdin=sys.stdin
-                , start_new_session=True
+                stdin=sys.stdin,
+                start_new_session=True,
             )
         except Exception as e:
             print(f"❌ Failed to start app: {e}")

@@ -247,10 +247,10 @@ class HeloWrite(App):
         # Load saved theme now that UI is ready
         theme = self.config.get_theme()
         # Ensure theme is valid, default to helowrite-dark if not
-        valid_themes = {'helowrite-dark', 'helowrite-light', 'kanso-zen', 'kanso-pearl'}
+        valid_themes = {"helowrite-dark", "helowrite-light", "kanso-zen", "kanso-pearl"}
         if theme not in valid_themes:
-            theme = 'helowrite-dark'
-            self.config.set_theme('helowrite-dark')
+            theme = "helowrite-dark"
+            self.config.set_theme("helowrite-dark")
         self.theme = theme
         # Force refresh to ensure theme colors are applied to Screen background
         self.screen.refresh()
@@ -395,7 +395,9 @@ class HeloWrite(App):
 
         # Apply scrollbar visibility
         try:
-            editor.styles.scrollbar_visibility = "visible" if self.scrollbar_enabled else "hidden"
+            editor.styles.scrollbar_visibility = (
+                "visible" if self.scrollbar_enabled else "hidden"
+            )
         except Exception:
             pass
 
@@ -707,7 +709,9 @@ class HeloWrite(App):
             centered.styles.padding_left = 0
             centered.styles.padding_right = 0
             try:
-                editor.styles.scrollbar_visibility = "visible" if self.scrollbar_enabled else "hidden"
+                editor.styles.scrollbar_visibility = (
+                    "visible" if self.scrollbar_enabled else "hidden"
+                )
             except Exception:
                 pass
             if announce:
@@ -773,7 +777,13 @@ class HeloWrite(App):
         except Exception as e:
             self.show_message(f"Auto-save failed: {e}")
 
-    def _feedback(self, message: str, severity: str = "information", timeout: int = 5, show_in_distraction_free: bool = True):
+    def _feedback(
+        self,
+        message: str,
+        severity: str = "information",
+        timeout: int = 5,
+        show_in_distraction_free: bool = True,
+    ):
         """Show feedback via notification in distraction-free mode, message bar otherwise."""
         if self.distraction_free and show_in_distraction_free:
             self.notify(message, severity=severity, timeout=timeout)
@@ -847,11 +857,17 @@ class HeloWrite(App):
                         # Get remotes
                         remote_cmd = ["git", "remote"]
                         remote_result = await run_subprocess(remote_cmd, file_dir)
-                        remotes = remote_result.stdout.strip().split('\n')
+                        remotes = remote_result.stdout.strip().split("\n")
 
-                        if 'origin' in remotes:
+                        if "origin" in remotes:
                             # Set upstream and retry pull
-                            upstream_cmd = ["git", "branch", "--set-upstream-to", f"origin/{current_branch}", current_branch]
+                            upstream_cmd = [
+                                "git",
+                                "branch",
+                                "--set-upstream-to",
+                                f"origin/{current_branch}",
+                                current_branch,
+                            ]
                             await run_subprocess(upstream_cmd, file_dir)
 
                             # Retry pull

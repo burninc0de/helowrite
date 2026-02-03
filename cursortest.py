@@ -61,26 +61,26 @@ class CursorTestApp(App):
     def compose(self) -> ComposeResult:
         """Create the UI."""
         yield Static(
-            "✓ SUCCESS! Cursor customization is working!\n" +
-            "The cursor should be bright green with a purple line highlight.\n" +
-            "Move the cursor around to see the effect.\n" +
-            "Press Ctrl+Q to quit",
-            id="info"
+            "✓ SUCCESS! Cursor customization is working!\n"
+            + "The cursor should be bright green with a purple line highlight.\n"
+            + "Move the cursor around to see the effect.\n"
+            + "Press Ctrl+Q to quit",
+            id="info",
         )
         yield Header()
         with Container():
             yield TextArea(
-                "Try moving the cursor around and typing!\n\n" +
-                "Working CSS classes discovered:\n" +
-                "✓ .text-area--cursor (green cursor cell)\n" +
-                "✓ .text-area--cursor-line (purple line highlight)\n" +
-                "✓ .text-area--cursor-gutter (gutter highlight, if line numbers shown)\n\n" +
-                "You can customize:\n" +
-                "- background: cursor/line background color\n" +
-                "- color: cursor text color\n" +
-                "- text-style: bold, italic, underline, etc.\n\n" +
-                "These classes are the key to cursor customization in Textual!",
-                id="editor"
+                "Try moving the cursor around and typing!\n\n"
+                + "Working CSS classes discovered:\n"
+                + "✓ .text-area--cursor (green cursor cell)\n"
+                + "✓ .text-area--cursor-line (purple line highlight)\n"
+                + "✓ .text-area--cursor-gutter (gutter highlight, if line numbers shown)\n\n"
+                + "You can customize:\n"
+                + "- background: cursor/line background color\n"
+                + "- color: cursor text color\n"
+                + "- text-style: bold, italic, underline, etc.\n\n"
+                + "These classes are the key to cursor customization in Textual!",
+                id="editor",
             )
         yield Footer()
 
