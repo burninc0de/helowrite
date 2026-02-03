@@ -765,13 +765,20 @@ class HeloWrite(App):
         except Exception as e:
             self.show_message(f"Auto-save failed: {e}")
 
+    def _feedback(self, message: str, severity: str = "information", timeout: int = 5, show_in_distraction_free: bool = True):
+        """Show feedback via notification in distraction-free mode, message bar otherwise."""
+        if self.distraction_free and show_in_distraction_free:
+            self.notify(message, severity=severity, timeout=timeout)
+        elif not self.distraction_free:
+            self.show_message(message)
+
     def git_sync(self):
         """Add, commit, and push the current file."""
         if not self.file_path:
             self.show_message("No file open")
             return
 
-        self.show_message("Git sync started...")
+        self._feedback("Git sync started...", show_in_distraction_free=False)
         self.run_worker(self._async_git_sync())
 
     async def _async_git_sync(self):
@@ -860,7 +867,7 @@ class HeloWrite(App):
                 else:
                     # If stash pop fails due to conflicts, abort the sync
                     error_msg = "Git sync aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self.show_message(error_msg)
+                    self._feedback(error_msg, severity="error", timeout=10)
                     # Try to abort any ongoing rebase/merge
                     try:
                         abort_cmd = ["git", "rebase", "--abort"]
@@ -887,7 +894,7 @@ class HeloWrite(App):
                 await run_subprocess(cmd, file_dir)
             except subprocess.CalledProcessError as e:
                 if "nothing to commit" in e.stdout or "nothing to commit" in e.stderr:
-                    self.show_message("No changes to commit")
+                    self._feedback("No changes to commit")
                     return  # Skip push
                 else:
                     raise
@@ -908,7 +915,7 @@ class HeloWrite(App):
                 else:
                     raise
 
-            self.show_message(f"Git sync completed for {file_name}")
+            self._feedback(f"Git sync completed for {file_name}")
         except subprocess.CalledProcessError as e:
             error_details = (
                 e.stderr.strip()
@@ -916,17 +923,17 @@ class HeloWrite(App):
                 or f"Command failed with return code {e.returncode}"
             )
             if "up to date" in error_details:
-                self.show_message("Git sync completed (already up to date)")
+                self._feedback("Git sync completed (already up to date)")
             else:
                 error_msg = "Git sync failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
                 with open(log_file, "a") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
-                self.show_message(error_msg)
+                self._feedback(error_msg, severity="error", timeout=10)
         except Exception as e:
             error_msg = f"Error: {str(e)}"
             with open(log_file, "a") as f:
                 f.write(error_msg + "\n")
-            self.show_message(error_msg)
+            self._feedback(error_msg, severity="error", timeout=10)
 
 
 if __name__ == "__main__":
