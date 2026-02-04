@@ -214,7 +214,7 @@ class SettingsScreen(ModalScreen):
         ).value = app.config.get_auto_save_enabled()
         self.query_one(
             "#show-scrollbar-checkbox", Checkbox
-        ).value = app.scrollbar_enabled
+        ).value = app.config.get_scrollbar_enabled()
         self.query_one("#width-input", Input).value = str(app.editor_width)
         self.query_one(
             "#space-between-paragraphs-checkbox", Checkbox
