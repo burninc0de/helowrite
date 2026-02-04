@@ -46,7 +46,7 @@ cd helowrite
 
 # Set up virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: source venv/scripts/activate
 
 # Fire the engines
 pip install -e .
