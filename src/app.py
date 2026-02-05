@@ -185,6 +185,18 @@ CenteredEditor {
         self.auto_save_interval = self.config.get_auto_save_interval()
         self.auto_save_timer: Optional[Timer] = None
 
+        # Scrollbar setting
+        try:
+            self.scrollbar_enabled = self.config.get_scrollbar_enabled()
+        except Exception:
+            self.scrollbar_enabled = False  # Default to hidden
+
+        # Space between paragraphs setting
+        try:
+            self.space_between_paragraphs = self.config.get_space_between_paragraphs()
+        except Exception:
+            self.space_between_paragraphs = True  # Default to enabled
+
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
@@ -384,6 +396,14 @@ CenteredEditor {
                 word_count_widget.remove_class("visible")
         else:
             centered_editor.styles.padding_top = 0
+
+        # Apply scrollbar visibility
+        try:
+            editor.styles.scrollbar_visibility = (
+                "visible" if self.scrollbar_enabled else "hidden"
+            )
+        except Exception:
+            pass
 
     def apply_cursor_color(self):
         """Apply cursor color styling dynamically."""
@@ -693,7 +713,9 @@ CenteredEditor {
             centered.styles.padding_left = 0
             centered.styles.padding_right = 0
             try:
-                editor.styles.scrollbar_visibility = "visible"
+                editor.styles.scrollbar_visibility = (
+                    "visible" if self.scrollbar_enabled else "hidden"
+                )
             except Exception:
                 pass
             if announce:
