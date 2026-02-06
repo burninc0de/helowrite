@@ -51,7 +51,10 @@ class HeloWrite(App):
             ):
                 yield cmd
         yield SystemCommand(
-            "Git Sync", "Add, commit, and push the current file", self.git_sync
+            "Git Push", "Push current file changes to remote", self.git_push
+        )
+        yield SystemCommand(
+            "Git Pull", "Pull remote changes and update editor", self.git_pull
         )
         yield SystemCommand(
             "Change to Vault",
@@ -484,6 +487,10 @@ CenteredEditor {
             # Save cursor position for potential auto-restore
             cursor_pos = editor.cursor_location
             self.config.set_last_cursor_position(cursor_pos)
+            # Add to recent files
+            self.config.add_recent_file(str(self.file_path))
+            # Update last file path for open last file on startup
+            self.config.set_last_file_path(str(self.file_path))
         except Exception as e:
             self.show_message(f"Error saving file: {e}")
 
@@ -781,17 +788,26 @@ CenteredEditor {
         except Exception as e:
             self.show_message(f"Auto-save failed: {e}")
 
-    def git_sync(self):
-        """Add, commit, and push the current file."""
+    def git_push(self):
+        """Push current file changes to remote."""
         if not self.file_path:
             self.show_message("No file open")
             return
 
-        self.show_message("Git sync started...")
-        self.run_worker(self._async_git_sync())
+        self.show_message("Git push started...")
+        self.run_worker(self._async_git_push())
 
-    async def _async_git_sync(self):
-        """Async part of git sync."""
+    def git_pull(self):
+        """Pull remote changes and update editor."""
+        if not self.file_path:
+            self.show_message("No file open")
+            return
+
+        self.show_message("Git pull started...")
+        self.run_worker(self._async_git_pull())
+
+    async def _async_git_push(self):
+        """Async part of git push."""
         import asyncio
         import os
         import subprocess
@@ -814,6 +830,120 @@ CenteredEditor {
             # Stash any unstaged changes
             current_cmd = "git stash push"
             cmd = ["git", "stash", "push", "-m", "auto-stash before sync"]
+            try:
+                await run_subprocess(cmd, file_dir)
+            except subprocess.CalledProcessError as e:
+                if (
+                    "No local changes to save" in e.stdout
+                    or "No local changes to save" in e.stderr
+                ):
+                    pass  # No changes to stash, continue
+                else:
+                    raise
+
+            # Pop the stash
+            current_cmd = "git stash pop"
+            cmd = ["git", "stash", "pop"]
+            try:
+                await run_subprocess(cmd, file_dir)
+            except subprocess.CalledProcessError as e:
+                if "No stash entries found" in e.stderr:
+                    pass  # No stash to pop, continue
+                else:
+                    # If stash pop fails due to conflicts, abort the push
+                    error_msg = "Git push aborted: conflicts detected when restoring stashed changes. Please resolve manually."
+                    self.show_message(error_msg)
+                    # Try to abort any ongoing rebase/merge
+                    try:
+                        abort_cmd = ["git", "rebase", "--abort"]
+                        await run_subprocess(abort_cmd, file_dir)
+                    except subprocess.CalledProcessError:
+                        pass  # Ignore if no rebase to abort
+                    try:
+                        abort_cmd = ["git", "merge", "--abort"]
+                        await run_subprocess(abort_cmd, file_dir)
+                    except subprocess.CalledProcessError:
+                        pass  # Ignore if no merge to abort
+                    return
+
+            # git add
+            current_cmd = "git add"
+            cmd = ["git", "add", file_name]
+            await run_subprocess(cmd, file_dir)
+
+            # git commit
+            current_cmd = "git commit"
+            commit_msg = f"Update {file_name}"
+            cmd = ["git", "commit", "-m", commit_msg]
+            try:
+                await run_subprocess(cmd, file_dir)
+            except subprocess.CalledProcessError as e:
+                if "nothing to commit" in e.stdout or "nothing to commit" in e.stderr:
+                    self.show_message("No changes to commit")
+                    return  # Skip push
+                else:
+                    raise
+
+            # git push
+            current_cmd = "git push"
+            cmd = ["git", "push"]
+            try:
+                await run_subprocess(cmd, file_dir)
+            except subprocess.CalledProcessError as e:
+                if (
+                    "Everything up-to-date" in e.stdout
+                    or "Everything up-to-date" in e.stderr
+                    or "up to date" in e.stdout
+                    or "up to date" in e.stderr
+                ):
+                    pass  # Already pushed, continue
+                else:
+                    raise
+
+            self.show_message(f"Git push completed for {file_name}")
+        except subprocess.CalledProcessError as e:
+            error_details = (
+                e.stderr.strip()
+                or e.stdout.strip()
+                or f"Command failed with return code {e.returncode}"
+            )
+            if "up to date" in error_details:
+                self.show_message("Git push completed (already up to date)")
+            else:
+                error_msg = "Git push failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
+                with open(log_file, "a") as f:
+                    f.write(f"Command '{current_cmd}' failed: {error_details}\n")
+                self.show_message(error_msg)
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            with open(log_file, "a") as f:
+                f.write(error_msg + "\n")
+            self.show_message(error_msg)
+
+    async def _async_git_pull(self):
+        """Async part of git pull."""
+        import asyncio
+        import os
+        import subprocess
+
+        file_dir = str(self.file_path.parent)
+        file_name = str(self.file_path.name)
+        log_file = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "git_sync_errors.log",
+        )
+
+        async def run_subprocess(cmd, cwd):
+            return await asyncio.to_thread(
+                subprocess.run, cmd, cwd=cwd, capture_output=True, text=True, check=True
+            )
+
+        try:
+            current_cmd = None
+
+            # Stash any unstaged changes
+            current_cmd = "git stash push"
+            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
             try:
                 await run_subprocess(cmd, file_dir)
             except subprocess.CalledProcessError as e:
@@ -881,8 +1011,8 @@ CenteredEditor {
                 if "No stash entries found" in e.stderr:
                     pass  # No stash to pop, continue
                 else:
-                    # If stash pop fails due to conflicts, abort the sync
-                    error_msg = "Git sync aborted: conflicts detected when restoring stashed changes. Please resolve manually."
+                    # If stash pop fails due to conflicts, abort the pull
+                    error_msg = "Git pull aborted: conflicts detected when restoring stashed changes. Please resolve manually."
                     self.show_message(error_msg)
                     # Try to abort any ongoing rebase/merge
                     try:
@@ -897,41 +1027,10 @@ CenteredEditor {
                         pass  # Ignore if no merge to abort
                     return
 
-            # git add
-            current_cmd = "git add"
-            cmd = ["git", "add", file_name]
-            await run_subprocess(cmd, file_dir)
+            # Reload file content in editor after successful pull
+            self.reload_file_content()
 
-            # git commit
-            current_cmd = "git commit"
-            commit_msg = f"Update {file_name}"
-            cmd = ["git", "commit", "-m", commit_msg]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if "nothing to commit" in e.stdout or "nothing to commit" in e.stderr:
-                    self.show_message("No changes to commit")
-                    return  # Skip push
-                else:
-                    raise
-
-            # git push
-            current_cmd = "git push"
-            cmd = ["git", "push"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "Everything up-to-date" in e.stdout
-                    or "Everything up-to-date" in e.stderr
-                    or "up to date" in e.stdout
-                    or "up to date" in e.stderr
-                ):
-                    pass  # Already pushed, continue
-                else:
-                    raise
-
-            self.show_message(f"Git sync completed for {file_name}")
+            self.show_message(f"Git pull completed for {file_name}")
         except subprocess.CalledProcessError as e:
             error_details = (
                 e.stderr.strip()
@@ -939,9 +1038,9 @@ CenteredEditor {
                 or f"Command failed with return code {e.returncode}"
             )
             if "up to date" in error_details:
-                self.show_message("Git sync completed (already up to date)")
+                self.show_message("Git pull completed (already up to date)")
             else:
-                error_msg = "Git sync failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
+                error_msg = "Git pull failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
                 with open(log_file, "a") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self.show_message(error_msg)
@@ -950,6 +1049,29 @@ CenteredEditor {
             with open(log_file, "a") as f:
                 f.write(error_msg + "\n")
             self.show_message(error_msg)
+
+    def reload_file_content(self):
+        """Reload the current file content into the editor after git pull."""
+        if not self.file_path or not self.file_path.exists():
+            return
+        try:
+            content = self.file_path.read_text(encoding="utf-8")
+            if content != self._original_text:
+                editor = self.query_one("#editor", HeloWriteTextArea)
+                # Save current cursor position
+                saved_cursor = editor.cursor_location
+                # Load new content
+                editor.load_text(content)
+                # Restore cursor position, clamped to new content bounds
+                lines = content.split("\n")
+                valid_line = max(0, min(saved_cursor[0], len(lines) - 1))
+                valid_col = max(0, min(saved_cursor[1], len(lines[valid_line])))
+                editor.cursor_location = (valid_line, valid_col)
+                self._original_text = content
+                self.is_dirty = False
+                self.update_status()
+        except Exception as e:
+            self.show_message(f"Error reloading file after pull: {e}")
 
 
 def main():

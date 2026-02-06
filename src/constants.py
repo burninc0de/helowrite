@@ -11,7 +11,8 @@ Keybindings:
 - Ctrl+N: New file
 - Ctrl+F: Find/Replace (toggle)
 - Ctrl+P: Command palette
-- Alt+G: Git sync current file (Option+G on macOS)
+- Alt+G: Git push current file (Option+G on macOS)
+- Alt+H: Git pull current file (Option+H on macOS)
 - Alt+Left/Right: Decrease/Increase editor width (Option+Left/Right on macOS)
 - Alt+A: Select all text (Option+A on macOS)
 - Alt+D: Create daily note (Option+D on macOS)
