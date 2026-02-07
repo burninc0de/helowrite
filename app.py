@@ -810,7 +810,6 @@ class HeloWrite(App):
             self.show_message("No file open")
             return
 
-        self._feedback("Git push started...", timeout=1)
         self.run_worker(self._async_git_push())
 
     def action_git_pull(self):
@@ -819,7 +818,6 @@ class HeloWrite(App):
             self.show_message("No file open")
             return
 
-        self._feedback("Git pull started...", timeout=1)
         self.run_worker(self._async_git_pull())
 
     async def _async_git_push(self):
