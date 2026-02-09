@@ -107,11 +107,20 @@ helowrite mydocument.txt
 
 ### Testing
 
-After activating your virtual environment:
+1. Install development dependencies (includes `pytest-asyncio`):
+   ```bash
+   pip install -e .[dev]
+   ```
 
-```bash
-python -m pytest
-```
+2. Run the full test suite:
+   ```bash
+   pytest
+   ```
+
+3. Run specific interaction tests:
+   ```bash
+   pytest tests/test_settings_interaction.py
+   ```
 
 ## Keyboard Shortcuts (The Muscle Memory)
 
@@ -165,7 +174,9 @@ helowrite/
 ├── tests/                 # Test suite
 │   ├── __init__.py
 │   ├── conftest.py        # Pytest configuration
-│   ├── test_*.py          # Individual test files
+│   ├── test_app.py        # Integration tests
+│   ├── test_settings_interaction.py # UI interaction tests
+│   └── test_*.py          # Unit tests
 ├── venv/                  # Virtual environment (created by user)
 ├── helowrite_env/         # Alternative virtual environment
 ├── requirements.txt       # Python dependencies
@@ -174,6 +185,7 @@ helowrite/
 ├── run.sh                 # Wrapper script for venv activation
 ├── git_sync_errors.log    # Git operation error log (created as needed)
 ├── AGENTS.md              # Agent instructions (internal)
+├── CONTRIBUTING.md        # Contribution guidelines
 ├── LICENSE                # MIT license
 ├── README.md              # This file
 └── .gitignore             # Git ignore patterns
