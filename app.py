@@ -965,7 +965,16 @@ class HeloWrite(App):
             if "up to date" in error_details:
                 self._feedback("Git push completed (already up to date)", timeout=2)
             else:
-                error_msg = "Git push failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
+                # Check for specific error that requires pulling first
+                if (
+                    "Updates were rejected because the remote contains work"
+                    in error_details
+                ):
+                    error_msg = "Git push failed: remote has changes you don't have. Try pulling first with Alt+H, then push again."
+                elif "no upstream branch" in error_details:
+                    error_msg = "Git push failed: no upstream branch set. Try pulling first with Alt+H to set it up."
+                else:
+                    error_msg = "Git push failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
                 with open(log_file, "a") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self._feedback(error_msg, severity="error", timeout=10)
