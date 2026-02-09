@@ -241,9 +241,6 @@ class FileOpenPanel(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        yield Static(
-            "📁 Select a file to open (Esc to cancel)", id="file-open-header-panel"
-        )
         tree = DirectoryTree("./", id="file-tree-panel")
 
         # Use Nerd Font icons if available, otherwise fall back to emojis
