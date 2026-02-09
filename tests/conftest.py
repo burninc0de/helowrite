@@ -15,12 +15,12 @@ def temp_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
 
     config_dir = tmp_path / "helowrite-config"
     config_dir.mkdir()
-    previous = os.environ.get("ELOSCRIBE_CONFIG_DIR")
-    os.environ["ELOSCRIBE_CONFIG_DIR"] = str(config_dir)
+    previous = os.environ.get("HELOWWRITE_CONFIG_DIR")
+    os.environ["HELOWWRITE_CONFIG_DIR"] = str(config_dir)
     try:
         yield config_dir
     finally:
         if previous is None:
-            os.environ.pop("ELOSCRIBE_CONFIG_DIR", None)
+            os.environ.pop("HELOWWRITE_CONFIG_DIR", None)
         else:
-            os.environ["ELOSCRIBE_CONFIG_DIR"] = previous
+            os.environ["HELOWWRITE_CONFIG_DIR"] = previous
