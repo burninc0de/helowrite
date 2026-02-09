@@ -23,6 +23,7 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 ## Operational Essentials
 - **Pure Focus**: F11 toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
+- **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor.
 
 ## Quick Start
@@ -126,11 +127,12 @@ helowrite mydocument.txt
 
 - `Ctrl+S` - Save file
 - `Ctrl+Q` - Quit application
-- `Ctrl+O` - Open file panel (toggle)
+- `Ctrl+O` - Open file panel (toggle, auto-focuses for keyboard navigation)
 - `Ctrl+N` - Create new file
 - `Ctrl+F` - Find/Replace (toggle)
 - `Ctrl+P` - Command palette
 - `Alt+Left/Right` - Decrease/Increase editor width (Option+Left/Right on macOS)
+- `Alt+Up/Down` - Navigate directory up/down with history (Option+Up/Down on macOS)
 - `Alt+A` - Select all text (Option+A on macOS)
 - `Alt+D` - Create daily note (Option+D on macOS)
 - `Alt+G` - Git push current file (Option+G on macOS)
