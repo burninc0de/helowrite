@@ -522,6 +522,9 @@ class HeloWrite(App):
         editor = centered.query_one("#editor")
         # Mount the panel before the editor so it appears on the left
         centered.mount(FileOpenPanel(id="file-open-panel"), before=editor)
+        # Auto-focus the file tree
+        tree = self.query_one("#file-tree-panel")
+        tree.focus()
 
     def action_new(self):
         """Create a new empty file."""
