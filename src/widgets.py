@@ -229,11 +229,13 @@ class FileOpenPanel(Vertical):
     #file-tree-panel {
         height: 1fr;
         overflow: auto;
-                    scrollbar-size: 1 1;
+        /* hide the horizontal scrollbar (0 = disabled) and keep a slim vertical one */
+        scrollbar-size-horizontal: 0;
+        scrollbar-size-vertical: 1;
         scrollbar-color: $surface-lighten-2;
         scrollbar-color-hover: $surface-lighten-1;
         scrollbar-background: $surface;
-        overflow_x:hidden;
+
     }
 
     DirectoryTree > .directory-tree--folder {
