@@ -1088,9 +1088,14 @@ class HeloWrite(App):
             )
 
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the application."""
     import sys
 
     file_path = sys.argv[1] if len(sys.argv) > 1 else None
     app = HeloWrite(file_path)
     app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -54,7 +54,7 @@ test = [
 ]
 
 [project.scripts]
-helowrite = "src.app:main"
+helowrite = "app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
