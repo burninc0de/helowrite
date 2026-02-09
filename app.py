@@ -43,6 +43,8 @@ class HeloWrite(App):
         Binding("f12", "about", "About"),
         Binding("alt+g", "git_push", "Git Push"),
         Binding("alt+h", "git_pull", "Git Pull"),
+        Binding("alt+up", "change_to_parent_dir", "Change to Parent Directory"),
+        Binding("alt+down", "change_to_child_dir", "Change to Child Directory"),
     ]
 
     def get_system_commands(self, screen):
@@ -193,6 +195,9 @@ class HeloWrite(App):
 
         # Space between paragraphs setting
         self.space_between_paragraphs = self.config.get_space_between_paragraphs()
+
+        # Directory navigation stack
+        self.dir_stack = []
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -819,6 +824,40 @@ class HeloWrite(App):
             return
 
         self.run_worker(self._async_git_pull())
+
+    def action_change_to_parent_dir(self):
+        """Change working directory to parent directory (Alt+Up)."""
+        current_dir = os.getcwd()
+        parent_dir = os.path.dirname(current_dir)
+        if parent_dir != current_dir:
+            self.dir_stack.append(current_dir)
+            os.chdir(parent_dir)
+            self.show_message(f"Changed directory to: {parent_dir}")
+            # Refresh file manager if open
+            try:
+                panel = self.query_one("#file-open-panel")
+                tree = panel.query_one("#file-tree-panel")
+                tree.reload()
+            except Exception:
+                pass
+        else:
+            self.show_message("Already at root directory")
+
+    def action_change_to_child_dir(self):
+        """Change working directory back to previous directory (Alt+Down)."""
+        if self.dir_stack:
+            target_dir = self.dir_stack.pop()
+            os.chdir(target_dir)
+            self.show_message(f"Changed directory to: {target_dir}")
+            # Refresh file manager if open
+            try:
+                panel = self.query_one("#file-open-panel")
+                tree = panel.query_one("#file-tree-panel")
+                tree.reload()
+            except Exception:
+                pass
+        else:
+            self.show_message("No previous directory to go back to")
 
     async def _async_git_push(self):
         """Async part of git push."""
