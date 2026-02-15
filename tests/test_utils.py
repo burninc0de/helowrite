@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.utils import detect_language
+from utils import detect_language
 
 
 def test_detect_language_returns_text_when_no_path():

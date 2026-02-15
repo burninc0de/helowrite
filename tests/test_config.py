@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.config import Config
+from config import Config
 
 
 def read_raw_config(config_dir: Path) -> str:

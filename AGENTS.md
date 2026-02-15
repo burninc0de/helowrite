@@ -23,13 +23,13 @@ HeloWrite is a fast, terminal-based text editor built with Python and Textual. I
 source helowrite_env/bin/activate
 
 # Then run commands
-python dev.py app.py [filename.txt]
+python dev.py src/app.py [filename.txt]
 
 # Run without hot reload
-python app.py [filename.txt]
+python src/app.py [filename.txt]
 
 # Alternative: use the wrapper script which handles venv activation
-./run.sh python dev.py app.py [filename.txt]
+./run.sh python dev.py src/app.py [filename.txt]
 ```
 
 ### Testing
@@ -66,8 +66,8 @@ from rich.console import Console
 from textual.app import App
 
 # 3. Local imports (grouped by directory)
-from src.config import Config
-from src.utils import detect_language
+from config import Config
+from utils import detect_language
 ```
 
 ### Class and Function Structure

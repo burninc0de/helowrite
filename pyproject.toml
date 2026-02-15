@@ -56,9 +56,10 @@ test = [
 [project.scripts]
 helowrite = "app:main"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+[tool.setuptools]
+py-modules = ["app", "config", "constants", "screens", "utils", "widgets"]
+package-dir = {"" = "src"}
+packages = ["css"]
 
 [tool.ruff]
 line-length = 88
@@ -87,12 +88,12 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.mypy]
-mypy_path = "src"
 strict = false
 ignore_missing_imports = true
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
+exclude = "tests/"
 
 [[tool.mypy.overrides]]
 module = "textual.*"

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.widgets import StatusBar
+from widgets import StatusBar
 
 
 class _StubApp:

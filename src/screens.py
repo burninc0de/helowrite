@@ -10,8 +10,8 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Checkbox, DirectoryTree, Input, Static
 
-from src.utils import detect_language
-from src.widgets import HeloWriteTextArea
+from utils import detect_language
+from widgets import HeloWriteTextArea
 
 
 class FileOpenScreen(ModalScreen):

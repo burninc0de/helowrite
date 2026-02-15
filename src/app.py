@@ -10,17 +10,17 @@ from textual.theme import Theme
 from textual.timer import Timer
 from textual.widgets import Footer, Header, Static, TextArea
 
-from src.config import Config
-from src.constants import HELP_TEXT
-from src.screens import (
+from config import Config
+from constants import HELP_TEXT
+from screens import (
     AboutScreen,
     QuitConfirmScreen,
     RecentFilesScreen,
     SaveAsScreen,
     SettingsScreen,
 )
-from src.utils import detect_language
-from src.widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
+from utils import detect_language
+from widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
 
 
 class HeloWrite(App):

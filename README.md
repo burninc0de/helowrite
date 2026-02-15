@@ -87,7 +87,7 @@ This installs HeloWrite in editable mode and creates the `helowrite` command in 
 ### Running
 
 ```bash
-python app.py [filename.txt]
+python src/app.py [filename.txt]
 ```
 
 Or if installed as package:
@@ -98,7 +98,7 @@ helowrite [filename.txt]
 
 For example:
 ```bash
-python app.py mydocument.txt
+python src/app.py mydocument.txt
 ```
 
 Or:

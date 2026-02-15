@@ -7,7 +7,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DirectoryTree, Static, TextArea
 
-from src.utils import detect_language, has_nerd_fonts
+from utils import detect_language, has_nerd_fonts
 
 
 class StatusBar(Static):

@@ -23,7 +23,7 @@ Thank you for your interest in contributing to HeloWrite! This document provides
 
 4. **Run the application**:
    ```bash
-   python app.py [filename]
+   python src/app.py [filename]
    ```
 
 5. **Run tests**:
@@ -65,7 +65,7 @@ HeloWrite is built with:
 - **Python 3.8+**: Core language
 
 Key components:
-- `app.py`: Main application class
+- `src/app.py`: Main application class
 - `src/config.py`: Configuration management
 - `src/widgets.py`: Custom UI widgets
 - `src/screens.py`: Dialog screens
