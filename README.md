@@ -96,7 +96,7 @@ HeloWrite operates on a singular philosophical axis: **Writing is not Formatting
 - **Bold/Italics?** I barely knew them.
 - **Rich Text?** Not on my watch.
 
-HeloWrite is for the raw output phase. It is a digital typewriter with an infinite roll of paper and no "Format" menu to hide behind. You're here to face the screen, not decorate it.
+HeloWrite is for the raw output phase. It is a digital typewriter with an infinite roll of paper and no "Format" menu to hide behind. You're here to face the void, not decorate it.
 
 ## Keyboard Shortcuts (The Muscle Memory)
 
