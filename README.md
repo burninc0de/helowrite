@@ -123,6 +123,18 @@ helowrite mydocument.txt
    pytest tests/test_settings_interaction.py
    ```
 
+## What About Formatting?
+
+There is none. There never will be.
+
+HeloWrite operates on a singular philosophical axis: **Writing is not Formatting**. The moment you stop to bold a word, change a typeface, or fiddle with a header, you have stopped scraping words out of your skull and started designing. Which is fine, but let's not call that "writing". Most "word processors" are actually layout engines that treat your prose like a secondary concern. Not HeloWrite.
+
+- **Markdown?** Only as plain text.
+- **Bold/Italics?** I barely knew them.
+- **Rich Text?** Not on my watch.
+
+HeloWrite is for the raw output phase. It is a digital typewriter with an infinite roll of paper and no "Format" menu to hide behind. You're here to face the screen, not decorate it.
+
 ## Keyboard Shortcuts (The Muscle Memory)
 
 - `Ctrl+S` - Save file
