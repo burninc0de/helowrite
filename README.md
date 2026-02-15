@@ -158,7 +158,6 @@ HeloWrite is built using:
 
 ```
 helowrite/
-├── app.py                 # Main application entry point
 ├── dev.py                 # Development server with hot reload
 ├── src/                   # Source code package
 │   ├── __init__.py
