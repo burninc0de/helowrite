@@ -20,6 +20,7 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 - **0.5s Startup**: From Enter to blinking cursor in 500ms.
 - **The Void**: High-contrast, minimalist UI designed to stop flashlighting your retinas.
 - **Git-First Workflow**: Don't just "sync"—stage, commit, and push your notes only when they're worth keeping.
+
 ## Operational Essentials
 - **Pure Focus**: F11 toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
@@ -28,82 +29,44 @@ Most modern writing tools are browser-based resource hogs that treat your words 
 
 ## Quick Start
 
-### Quick Test Drive (No Setup Required)
-
-Want to try HeloWrite instantly without any installation?
+### One-Liner (No Setup Required)
 
 ```bash
 uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
 ```
 
-This downloads and runs HeloWrite directly from the repository. Requires [UV](https://astral.sh/uv) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh`).
+Requires [UV](https://astral.sh/uv) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
-### For Development/Full Installation
+### Full Installation
 
-```
+```bash
 # Clone the void
 git clone https://github.com/burninc0de/helowrite.git
 cd helowrite
 
-# Set up virtual environment
+# Set up environment
 python -m venv venv
-source venv/bin/activate  # On Windows: source venv/scripts/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Fire the engines
+# Install & run
 pip install -e .
 helowrite your_draft.txt
 ```
 
-## Getting Started
+**Requirements**: Python 3.8+
 
-### Prerequisites
+### Development
 
-- Python 3.8+ (run `python --version` to check)
-- pip (Python package installer)
-
-### Installation
-
-1. **Clone or download** the repository
-2. **Create virtual environment** (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-#### Alternative: Install as package (creates `helowrite` command)
-
-For a more convenient installation that creates a `helowrite` command:
+Run with hot reload during development:
 
 ```bash
-pip install -e .
+python dev.py src/app.py [filename.txt]
 ```
 
-This installs HeloWrite in editable mode and creates the `helowrite` command in your virtual environment.
-
-### Running
+Or run without hot reload:
 
 ```bash
 python src/app.py [filename.txt]
-```
-
-Or if installed as package:
-
-```bash
-helowrite [filename.txt]
-```
-
-For example:
-```bash
-python src/app.py mydocument.txt
-```
-
-Or:
-```bash
-helowrite mydocument.txt
 ```
 
 ### Testing
