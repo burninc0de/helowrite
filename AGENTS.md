@@ -32,6 +32,21 @@ python src/app.py [filename.txt]
 ./run.sh python dev.py src/app.py [filename.txt]
 ```
 
+### Running the TUI (⚠️ CRITICAL WARNING ⚠️)
+
+**NEVER run the TUI directly without a timeout.** It blocks on stdin and will hang forever, killing the agent process.
+
+⚠️ **Agent Containment Procedures**
+
+NEVER run the TUI directly. It is a one-way trip for automated processes. The TUI consumes stdin and will not release you. You will hang until the heat death of the server.
+
+If you must peek into the void, use a tether:
+
+```bash
+# Safety tether (3s timeout)
+timeout 3 python src/app.py test.txt || echo "TUI launched (or timed out)"
+```
+
 ### Testing
 ```bash
 # Install dev dependencies
