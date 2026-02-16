@@ -13,6 +13,9 @@
 
 No bloat. No bullshit.
 
+https://user-images.githubusercontent.com/44199273/550551511-049bdbd0-9244-48af-9b1d-5e81aa4f3c85.mp4
+
+
 ## Why HeloWrite?
 
 Most modern writing tools are browser-based resource hogs that treat your words like secondary data. HeloWrite treats prose with the same rigor developers treat code.
