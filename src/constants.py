@@ -13,6 +13,7 @@ Keybindings:
 - Ctrl+P: Command palette
 - Alt+G: Git push current file (Option+G on macOS)
 - Alt+H: Git pull current file (Option+H on macOS)
+- Alt+J: Git pull vault repository (Option+J on macOS)
 - Alt+Left/Right: Decrease/Increase editor width (Option+Left/Right on macOS)
 - Alt+A: Select all text (Option+A on macOS)
 - Alt+D: Create daily note (Option+D on macOS)

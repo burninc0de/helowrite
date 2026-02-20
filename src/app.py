@@ -43,6 +43,7 @@ class HeloWrite(App):
         Binding("f12", "about", "About"),
         Binding("alt+g", "git_push", "Git Push"),
         Binding("alt+h", "git_pull", "Git Pull"),
+        Binding("alt+j", "git_pull_vault", "Git Pull Vault"),
         Binding("alt+up", "change_to_parent_dir", "Change to Parent Directory"),
         Binding("alt+down", "change_to_child_dir", "Change to Child Directory"),
     ]
@@ -59,6 +60,11 @@ class HeloWrite(App):
         )
         yield SystemCommand(
             "Git Pull", "Pull remote changes and update editor", self.action_git_pull
+        )
+        yield SystemCommand(
+            "Git Pull Vault",
+            "Pull remote changes to vault repository",
+            self.action_git_pull_vault,
         )
         yield SystemCommand(
             "Change to Vault",
@@ -828,6 +834,19 @@ class HeloWrite(App):
 
         self.run_worker(self._async_git_pull())
 
+    def action_git_pull_vault(self):
+        """Pull remote changes to vault repository (Alt+J)."""
+        vault_path = self.config.get_obsidian_vault_path()
+        if not vault_path:
+            self.show_message("Please set Obsidian vault path in settings (F3)")
+            return
+
+        if not os.path.exists(vault_path):
+            self.show_message("Vault path does not exist")
+            return
+
+        self.run_worker(self._async_git_pull_vault(vault_path))
+
     def action_change_to_parent_dir(self):
         """Change working directory to parent directory (Alt+Up)."""
         current_dir = os.getcwd()
@@ -1104,6 +1123,128 @@ class HeloWrite(App):
                 self._feedback("Git pull completed (already up to date)", timeout=2)
             else:
                 error_msg = "Git pull failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
+                with open(log_file, "a") as f:
+                    f.write(f"Command '{current_cmd}' failed: {error_details}\n")
+                self._feedback(error_msg, severity="error", timeout=10)
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            with open(log_file, "a") as f:
+                f.write(error_msg + "\n")
+            self._feedback(error_msg, severity="error", timeout=10)
+
+    async def _async_git_pull_vault(self, vault_path: str):
+        """Async part of git pull for vault."""
+        import asyncio
+        import subprocess
+
+        log_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "git_sync_errors.log"
+        )
+
+        async def run_subprocess(cmd, cwd):
+            return await asyncio.to_thread(
+                subprocess.run, cmd, cwd=cwd, capture_output=True, text=True, check=True
+            )
+
+        try:
+            current_cmd = None
+
+            current_cmd = "git stash push"
+            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
+            try:
+                await run_subprocess(cmd, vault_path)
+            except subprocess.CalledProcessError as e:
+                if (
+                    "No local changes to save" in e.stdout
+                    or "No local changes to save" in e.stderr
+                ):
+                    pass
+                else:
+                    raise
+
+            current_cmd = "git pull"
+            cmd = ["git", "pull"]
+            try:
+                await run_subprocess(cmd, vault_path)
+            except subprocess.CalledProcessError as e:
+                if (
+                    "Already up to date" in e.stdout
+                    or "Already up to date" in e.stderr
+                    or "up to date" in e.stdout
+                    or "up to date" in e.stderr
+                ):
+                    pass
+                elif "There is no tracking information" in e.stderr:
+                    try:
+                        branch_cmd = ["git", "branch", "--show-current"]
+                        branch_result = await run_subprocess(branch_cmd, vault_path)
+                        current_branch = branch_result.stdout.strip()
+
+                        remote_cmd = ["git", "remote"]
+                        remote_result = await run_subprocess(remote_cmd, vault_path)
+                        remotes = remote_result.stdout.strip().split("\n")
+
+                        if "origin" in remotes:
+                            upstream_cmd = [
+                                "git",
+                                "branch",
+                                "--set-upstream-to",
+                                f"origin/{current_branch}",
+                                current_branch,
+                            ]
+                            await run_subprocess(upstream_cmd, vault_path)
+
+                            cmd = ["git", "pull"]
+                            await run_subprocess(cmd, vault_path)
+                        else:
+                            raise
+                    except subprocess.CalledProcessError:
+                        raise
+                else:
+                    raise
+
+            current_cmd = "git stash pop"
+            cmd = ["git", "stash", "pop"]
+            try:
+                await run_subprocess(cmd, vault_path)
+            except subprocess.CalledProcessError as e:
+                if "No stash entries found" in e.stderr:
+                    pass
+                else:
+                    error_msg = "Git pull vault aborted: conflicts detected when restoring stashed changes. Please resolve manually."
+                    self._feedback(error_msg, severity="error", timeout=10)
+                    try:
+                        abort_cmd = ["git", "rebase", "--abort"]
+                        await run_subprocess(abort_cmd, vault_path)
+                    except subprocess.CalledProcessError:
+                        pass
+                    try:
+                        abort_cmd = ["git", "merge", "--abort"]
+                        await run_subprocess(abort_cmd, vault_path)
+                    except subprocess.CalledProcessError:
+                        pass
+                    return
+
+            try:
+                panel = self.query_one("#file-open-panel")
+                tree = panel.query_one("#file-tree-panel")
+                tree.reload()
+            except Exception:
+                pass
+
+            self._feedback("Git pull completed for vault", timeout=2)
+        except subprocess.CalledProcessError as e:
+            error_details = (
+                e.stderr.strip()
+                or e.stdout.strip()
+                or f"Command failed with return code {e.returncode}"
+            )
+            if "up to date" in error_details:
+                self._feedback(
+                    "Git pull vault completed (already up to date)", timeout=2
+                )
+            else:
+                error_msg = "Git pull vault failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
                 with open(log_file, "a") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self._feedback(error_msg, severity="error", timeout=10)
