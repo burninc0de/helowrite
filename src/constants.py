@@ -17,6 +17,7 @@ Keybindings:
 - Alt+Left/Right: Decrease/Increase editor width (Option+Left/Right on macOS)
 - Alt+A: Select all text (Option+A on macOS)
 - Alt+D: Create daily note (Option+D on macOS)
+- Alt+I: Toggle insert newline on Enter (Option+I on macOS)
 - F1: Toggle help (press again to return)
 - F3: Settings
 - F5: Recent files

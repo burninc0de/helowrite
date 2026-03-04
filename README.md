@@ -113,6 +113,7 @@ HeloWrite is for the raw output phase. It is a digital typewriter with an infini
 - `Alt+Up/Down` - Navigate directory up/down with history (Option+Up/Down on macOS)
 - `Alt+A` - Select all text (Option+A on macOS)
 - `Alt+D` - Create daily note (Option+D on macOS)
+- `Alt+I` - Toggle insert newline on Enter (Option+I on macOS)
 - `Alt+G` - Git push current file (Option+G on macOS, based on opened file's directory)
 - `Alt+H` - Git pull current file (Option+H on macOS, based on opened file's directory)
 - `Alt+J` - Git pull vault repository (Option+J on macOS, based on vault path in settings)
