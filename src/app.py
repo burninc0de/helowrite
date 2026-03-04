@@ -46,6 +46,7 @@ class HeloWrite(App):
         Binding("alt+j", "git_pull_vault", "Git Pull Vault"),
         Binding("alt+up", "change_to_parent_dir", "Change to Parent Directory"),
         Binding("alt+down", "change_to_child_dir", "Change to Child Directory"),
+        Binding("alt+i", "toggle_insert_newline", "Toggle Insert Newline"),
     ]
 
     def get_system_commands(self, screen):
@@ -769,6 +770,13 @@ class HeloWrite(App):
         """Select all text in the editor."""
         editor = self.query_one("#editor", HeloWriteTextArea)
         editor.select_all()
+
+    def action_toggle_insert_newline(self):
+        """Toggle insert newline (space between paragraphs) on Enter key."""
+        self.space_between_paragraphs = not self.space_between_paragraphs
+        self.config.set_space_between_paragraphs(self.space_between_paragraphs)
+        status = "enabled" if self.space_between_paragraphs else "disabled"
+        self.show_message(f"Insert newline: {status}")
 
     def start_auto_save(self):
         """Start the auto-save timer."""
