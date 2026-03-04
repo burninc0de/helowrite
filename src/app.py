@@ -11,9 +11,9 @@ from textual.timer import Timer
 from textual.widgets import Footer, Header, Static, TextArea
 
 from config import Config
-from constants import HELP_TEXT
 from screens import (
     AboutScreen,
+    HelpScreen,
     QuitConfirmScreen,
     RecentFilesScreen,
     SaveAsScreen,
@@ -656,20 +656,8 @@ class HeloWrite(App):
             self.show_message(f"Error changing directory: {e}")
 
     def action_toggle_help(self):
-        """Toggle help view on F1: show help or restore original content."""
-        editor = self.query_one("#editor", HeloWriteTextArea)
-        # If we're currently showing help, restore original content
-        if getattr(self, "_in_help_mode", False) and hasattr(self, "_original_text"):
-            editor.load_text(self._original_text)
-            self._in_help_mode = False
-            self.show_message("Returned to editing")
-            return
-
-        # Otherwise, save current content and show help
-        self._original_text = editor.text
-        editor.load_text(HELP_TEXT)
-        self._in_help_mode = True
-        self.show_message("Press F1 again to return to editing...")
+        """Show help screen in a modal."""
+        self.push_screen(HelpScreen())
 
     def action_toggle_distraction_free(self):
         """Toggle distraction-free mode (F11)."""

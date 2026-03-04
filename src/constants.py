@@ -2,7 +2,6 @@
 
 # Help text shown when F1 is pressed
 HELP_TEXT = """HeloWrite Help:
-HeloWrite is a simple terminal text editor.
 
 Keybindings:
 - Ctrl+S: Save
@@ -18,7 +17,7 @@ Keybindings:
 - Alt+A: Select all text (Option+A on macOS)
 - Alt+D: Create daily note (Option+D on macOS)
 - Alt+I: Toggle insert newline on Enter (Option+I on macOS)
-- F1: Toggle help (press again to return)
+- F1: Show help
 - F3: Settings
 - F5: Recent files
 - F11: Toggle distraction-free mode
@@ -29,5 +28,4 @@ Navigation:
 - Home/End: Jump to start/end of line
 - Page Up/Down: Scroll by page
 
-Press F1 again to return to editing...
-"""
+Press Escape to close..."""
