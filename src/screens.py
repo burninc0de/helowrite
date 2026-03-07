@@ -197,15 +197,12 @@ class SettingsScreen(ModalScreen):
             with Horizontal(classes="setting-row"):
                 yield Static("Cursor color:", classes="setting-label")
                 yield Input(id="cursor-color-input", classes="setting-input")
-                yield Static(" (hex #RRGGBB or 't')", classes="setting-value")
             with Horizontal(classes="setting-row"):
                 yield Static("Default working directory:", classes="setting-label")
                 yield Input(id="working-dir-input", classes="setting-input")
-                yield Static(" (leave empty for cwd)", classes="setting-value")
             with Horizontal(classes="setting-row"):
                 yield Static("Obsidian vault path:", classes="setting-label")
                 yield Input(id="vault-path-input", classes="setting-input")
-                yield Static(" (path to vault)", classes="setting-value")
             yield Static(
                 "Enter: save | Esc: cancel | Tab: navigate", id="settings-footer"
             )
