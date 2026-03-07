@@ -218,6 +218,14 @@ class HeloWrite(App):
 
     def on_mount(self) -> None:
         """Called when the app is mounted."""
+        # Change to default working directory if configured
+        default_dir = self.config.get_default_working_directory()
+        if default_dir and os.path.isdir(default_dir):
+            try:
+                os.chdir(default_dir)
+            except Exception:
+                pass
+
         # Register our custom themes
         helowrite_theme = Theme(
             name="helowrite-dark",

@@ -248,7 +248,13 @@ class FileOpenPanel(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        tree = DirectoryTree("./", id="file-tree-panel")
+        from config import Config
+
+        config = Config()
+        default_dir = config.get_default_working_directory()
+        tree_path = default_dir if default_dir else "./"
+
+        tree = DirectoryTree(tree_path, id="file-tree-panel")
 
         # Use Nerd Font icons if available, otherwise fall back to emojis
         if has_nerd_fonts():

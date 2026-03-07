@@ -45,11 +45,17 @@ class FileOpenScreen(ModalScreen):
     """
 
     def compose(self) -> ComposeResult:
+        from config import Config
+
+        config = Config()
+        default_dir = config.get_default_working_directory()
+        tree_path = default_dir if default_dir else "./"
+
         with Vertical():
             yield Static(
                 "Select a file to open (press Escape to cancel)", id="file-open-header"
             )
-            yield DirectoryTree("./", id="file-tree")
+            yield DirectoryTree(tree_path, id="file-tree")
 
     def on_directory_tree_file_selected(
         self, event: DirectoryTree.FileSelected
@@ -193,6 +199,10 @@ class SettingsScreen(ModalScreen):
                 yield Input(id="cursor-color-input", classes="setting-input")
                 yield Static(" (hex #RRGGBB or 't')", classes="setting-value")
             with Horizontal(classes="setting-row"):
+                yield Static("Default working directory:", classes="setting-label")
+                yield Input(id="working-dir-input", classes="setting-input")
+                yield Static(" (leave empty for cwd)", classes="setting-value")
+            with Horizontal(classes="setting-row"):
                 yield Static("Obsidian vault path:", classes="setting-label")
                 yield Input(id="vault-path-input", classes="setting-input")
                 yield Static(" (path to vault)", classes="setting-value")
@@ -226,6 +236,9 @@ class SettingsScreen(ModalScreen):
         self.query_one("#auto-save-interval-input", Input).value = str(
             app.config.get_auto_save_interval()
         )
+        self.query_one(
+            "#working-dir-input", Input
+        ).value = app.config.get_default_working_directory()
 
         # Focus first focusable widget
         self.query_one("#open-last-file-checkbox", Checkbox).focus()
@@ -266,6 +279,7 @@ class SettingsScreen(ModalScreen):
             scrollbar_enabled = self.query_one(
                 "#show-scrollbar-checkbox", Checkbox
             ).value
+            working_dir = self.query_one("#working-dir-input", Input).value.strip()
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
@@ -295,6 +309,13 @@ class SettingsScreen(ModalScreen):
                 app.show_message("Vault path must be an existing directory")
                 return
 
+            # Validate working directory if provided
+            if working_dir and not (
+                os.path.exists(working_dir) and os.path.isdir(working_dir)
+            ):
+                app.show_message("Working directory must be an existing directory")
+                return
+
             # Save to config
             app.config.set_open_last_file(open_last_file)
             app.config.set_show_word_count_distraction_free(show_word_count)
@@ -305,6 +326,7 @@ class SettingsScreen(ModalScreen):
             app.config.set_obsidian_vault_path(vault_path)
             app.config.set_auto_save_interval(auto_save_interval)
             app.config.set_scrollbar_enabled(scrollbar_enabled)
+            app.config.set_default_working_directory(working_dir)
 
             # Update app settings
             app.editor_width = width

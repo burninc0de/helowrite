@@ -222,6 +222,20 @@ class Config:
         config["scrollbar_enabled"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_default_working_directory(self) -> str:
+        """Get the default working directory, defaulting to empty (current dir)."""
+        config = self._load_config()
+        return config.get("default_working_directory", "")
+
+    def set_default_working_directory(self, path: str):
+        """Save the default working directory. Path must exist and be a directory."""
+        if path and not (os.path.exists(path) and os.path.isdir(path)):
+            raise ValueError("Working directory must be an existing directory")
+
+        config = self._load_config()
+        config["default_working_directory"] = path
+        self._save_config(config)
+
     def _load_config(self) -> dict[str, str]:
         """Load config from file."""
         if self.config_file.exists():
