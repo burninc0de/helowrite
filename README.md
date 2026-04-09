@@ -40,7 +40,42 @@ uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
 
 Requires [UV](https://astral.sh/uv) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
-### Full Installation
+### Persistent CLI Install (Recommended)
+
+If you want `helowrite` to work in every new terminal without activating a virtual environment, install with `pipx`:
+
+Install `pipx` first (if you do not already have it):
+
+```bash
+# Arch Linux
+sudo pacman -S python-pipx
+
+# macOS (Homebrew)
+brew install pipx
+
+# Debian/Ubuntu
+sudo apt install pipx
+
+# Fedora
+sudo dnf install pipx
+
+# Generic fallback
+python -m pip install --user pipx
+python -m pipx ensurepath
+```
+
+Then install HeloWrite:
+
+```bash
+pipx install "git+https://github.com/burninc0de/helowrite.git"
+helowrite your_draft.txt
+```
+
+This creates an isolated environment and exposes the `helowrite` command globally in your user PATH.
+
+### Development Install (Editable Source Checkout)
+
+Use this if you want to hack on HeloWrite itself. This install is intentionally tied to your virtual environment.
 
 ```bash
 # Clone the void
@@ -56,7 +91,24 @@ pip install -e .
 helowrite your_draft.txt
 ```
 
+Important: because this is a venv-local editable install, `helowrite` is available only while that venv is active.
+When you open a new terminal, run:
+
+```bash
+cd helowrite
+source venv/bin/activate
+helowrite your_draft.txt
+```
+
+If you'd rather avoid re-activating a venv in each shell, use the recommended `pipx` install above.
+
 **Requirements**: Python 3.8+
+
+### Troubleshooting: `helowrite: command not found`
+
+- If you installed with `pip install -e .` inside a venv, reactivate that venv in each new terminal.
+- If you installed with `pipx` but the command is still missing, ensure `~/.local/bin` is on your PATH.
+- You can run `pipx ensurepath`, then restart your shell.
 
 ### Development
 
