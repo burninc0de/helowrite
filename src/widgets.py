@@ -177,7 +177,7 @@ class HeloWriteTextArea(TextArea):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.language = "text"
+        self.language = None
 
     def on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
@@ -280,7 +280,7 @@ class FileOpenPanel(Vertical):
             try:
                 content = file_path.read_text()
                 editor = app.query_one("#editor", HeloWriteTextArea)
-                editor.language = app.language
+                editor.language = None if app.language == "text" else app.language
                 editor.load_text(content)
                 app._original_text = content
                 app.show_message(f"Loaded: {file_path}")

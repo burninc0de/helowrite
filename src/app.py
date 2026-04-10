@@ -43,6 +43,7 @@ class HeloWrite(App):
         Binding("f5", "recent_files", "Recent Files"),
         Binding("alt+d", "create_daily_note", "Create Daily Note"),
         Binding("alt+enter", "toggle_distraction_free", "Distraction Free Mode"),
+        Binding("f11", "toggle_distraction_free", "Distraction Free Mode"),
         Binding("f12", "about", "About"),
         Binding("alt+g", "git_push", "Git Push"),
         Binding("alt+h", "git_pull", "Git Pull"),
@@ -300,7 +301,7 @@ class HeloWrite(App):
 
         # Set language based on file extension
         self.language = detect_language(self.file_path)
-        editor.language = self.language
+        editor.language = None if self.language == "text" else self.language
 
         # Load file if provided
         if self.file_path and self.file_path.exists():
@@ -636,7 +637,7 @@ class HeloWrite(App):
         try:
             content = file_path_obj.read_text()
             editor = self.query_one("#editor", HeloWriteTextArea)
-            editor.language = self.language
+            editor.language = None if self.language == "text" else self.language
             editor.load_text(content)
             self._original_text = content
             self.show_message(f"Loaded: {file_path}")
