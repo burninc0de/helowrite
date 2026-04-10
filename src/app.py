@@ -65,7 +65,7 @@ class HeloWrite(App):
         Binding("ctrl+q", "quit", "Quit"),
         Binding("ctrl+o", "open", "Open"),
         Binding("ctrl+n", "new", "New"),
-        Binding("ctrl+f", "find", "Find/Replace", priority=True),
+        Binding("ctrl+f", "find", "Find", priority=True),
         Binding("alt+left", "decrease_width", "Decrease Width"),
         Binding("alt+right", "increase_width", "Increase Width"),
         Binding("alt+a", "select_all", "Select All"),
