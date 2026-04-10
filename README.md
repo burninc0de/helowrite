@@ -9,20 +9,25 @@
                                              
 ```
 
-**The Tactical Blade for Prose**. HeloWrite is a distraction-free, terminal-based writing environment built for speed, paranoia, and deep focus. It’s not an "app"—it’s a void.
+**The Tactical Blade for Prose**. HeloWrite is a distraction-free, terminal-based writing environment built for speed, paranoia, and deep focus. It's not an "app"—it's a void.
 
 No bloat. No bullshit.
 
 https://user-images.githubusercontent.com/44199273/624cdd83-cbda-4c8e-978c-2464e43bb497.mp4
 
-
 ## Why HeloWrite?
 
-Most modern writing tools are browser-based resource hogs that treat your words like secondary data. HeloWrite treats prose with the same rigor developers treat code.
+HeloWrite is a digital typewriter with an infinite roll of paper and no "Format" menu to hide behind.
+
+It has one job: help you scrape words out of your skull.
+
+HeloWrite treats prose with the same rigor developers treat code, but without the steep learning curve. Terminal-native, standard keybinds, clean aesthetics.
+
+Writing is hard. Everything else is secondary.
 
 - **0.5s Startup**: From Enter to blinking cursor in 500ms.
 - **The Void**: High-contrast, minimalist UI designed to stop flashlighting your retinas.
-- **Git-First Workflow**: Don't just "sync"—stage, commit, and push your notes only when they're worth keeping.
+- **Git-First Workflow**: Don't just "sync"—stage, commit, and push your work only when it is worth keeping.
 
 ## Operational Essentials
 - **Pure Focus**: F11 toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
@@ -140,18 +145,6 @@ python src/app.py [filename.txt]
    ```bash
    pytest tests/test_settings_interaction.py
    ```
-
-## What About Formatting?
-
-There is none. There never will be.
-
-HeloWrite operates on a singular philosophical axis: **Writing is not Formatting**. The moment you stop to bold a word, change a typeface, or fiddle with a header, you have stopped scraping words out of your skull and started designing. Which is fine, but let's not call that "writing". Most "word processors" are actually layout engines that treat your prose like a secondary concern. Not HeloWrite.
-
-- **Markdown?** Only as plain text.
-- **Bold/Italics?** I barely knew them.
-- **Rich Text?** Not on my watch.
-
-HeloWrite is for the raw output phase. It is a digital typewriter with an infinite roll of paper and no "Format" menu to hide behind. You're here to face the void, not decorate it.
 
 ## Keyboard Shortcuts (The Muscle Memory)
 
