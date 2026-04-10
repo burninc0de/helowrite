@@ -30,7 +30,7 @@ Writing is hard. Everything else is secondary.
 - **Git-First Workflow**: Don't just "sync"—stage, commit, and push your work only when it is worth keeping.
 
 ## Operational Essentials
-- **Pure Focus**: Alt+Enter (or F11 on Linux) toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
+- **Pure Focus**: Alt+Enter (Option+Enter on macOS) toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
 - **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.

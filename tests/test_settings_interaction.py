@@ -75,18 +75,18 @@ async def test_settings_toggle_scrollbar(temp_config_dir: Path):
 
 @pytest.mark.asyncio
 async def test_distraction_free_toggle(temp_config_dir: Path):
-    """Test toggling distraction free mode via shortcut (F11)."""
+    """Test toggling distraction free mode via shortcut (Alt+Enter)."""
     app = HeloWrite()
     async with app.run_test() as pilot:
         assert not app.distraction_free
 
         # Toggle On
-        await pilot.press("f11")
+        await pilot.press("alt+enter")
         assert app.distraction_free
         assert app.query_one("#editor").has_class("distraction-free")
 
         # Toggle Off
-        await pilot.press("f11")
+        await pilot.press("alt+enter")
         assert not app.distraction_free
         assert not app.query_one("#editor").has_class("distraction-free")
 
