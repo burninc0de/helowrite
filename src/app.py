@@ -42,7 +42,7 @@ class HeloWrite(App):
         Binding("f3", "settings", "Settings"),
         Binding("f5", "recent_files", "Recent Files"),
         Binding("alt+d", "create_daily_note", "Create Daily Note"),
-        Binding("f11", "toggle_distraction_free", "Distraction Free Mode"),
+        Binding("alt+enter", "toggle_distraction_free", "Distraction Free Mode"),
         Binding("f12", "about", "About"),
         Binding("alt+g", "git_push", "Git Push"),
         Binding("alt+h", "git_pull", "Git Pull"),
