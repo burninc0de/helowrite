@@ -14,10 +14,12 @@ from config import Config
 from screens import (
     AboutScreen,
     HelpScreen,
+    PomodoroTimerScreen,
     QuitConfirmScreen,
     RecentFilesScreen,
     SaveAsScreen,
     SettingsScreen,
+    TimerCompleteScreen,
 )
 from utils import detect_language
 from widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
@@ -47,6 +49,7 @@ class HeloWrite(App):
         Binding("alt+up", "change_to_parent_dir", "Change to Parent Directory"),
         Binding("alt+down", "change_to_child_dir", "Change to Child Directory"),
         Binding("alt+i", "toggle_insert_newline", "Toggle Insert Newline"),
+        Binding("ctrl+t", "pomodoro_timer", "Pomodoro Timer"),
     ]
 
     def get_system_commands(self, screen):
@@ -773,6 +776,24 @@ class HeloWrite(App):
         self.config.set_space_between_paragraphs(self.space_between_paragraphs)
         status = "enabled" if self.space_between_paragraphs else "disabled"
         self.show_message(f"Insert newline: {status}")
+
+    def action_pomodoro_timer(self):
+        """Launch the Pomodoro timer modal (Ctrl+T)."""
+        self.push_screen(PomodoroTimerScreen())
+
+    def start_timer(self, seconds: int, total_seconds: int):
+        """Start the countdown timer."""
+
+        def on_timer_complete():
+            self.push_screen(TimerCompleteScreen())
+
+        def tick(remaining: int) -> None:
+            if remaining > 0:
+                self.set_timer(1.0, lambda r=remaining - 1: tick(r))
+            else:
+                on_timer_complete()
+
+        tick(total_seconds)
 
     def start_auto_save(self):
         """Start the auto-save timer."""

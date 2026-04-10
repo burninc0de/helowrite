@@ -34,6 +34,7 @@ Writing is hard. Everything else is secondary.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
 - **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.
+- **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message.
 
 ## Quick Start
 
@@ -154,6 +155,7 @@ python src/app.py [filename.txt]
 - `Ctrl+N` - Create new file
 - `Ctrl+F` - Find/Replace (toggle)
 - `Ctrl+P` - Command palette
+- `Ctrl+T` - Pomodoro timer
 - `Alt+Left/Right` - Decrease/Increase editor width (Option+Left/Right on macOS)
 - `Alt+Up/Down` - Navigate directory up/down with history (Option+Up/Down on macOS)
 - `Alt+A` - Select all text (Option+A on macOS)

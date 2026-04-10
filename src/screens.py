@@ -701,3 +701,144 @@ class RecentFilesScreen(ModalScreen):
             self.app.pop_screen()
         except Exception:
             pass
+
+
+class PomodoroTimerScreen(ModalScreen):
+    """Modal for entering Pomodoro timer duration."""
+
+    DEFAULT_CSS = """
+    PomodoroTimerScreen {
+        align: center middle;
+    }
+
+    #timer-container {
+        width: 50;
+        height: auto;
+        background: transparent;
+        border: thick $primary;
+        padding: 1 2;
+    }
+
+    #timer-header {
+        text-align: center;
+        text-style: bold;
+        margin-bottom: 1;
+    }
+
+    #time-input {
+        margin-bottom: 1;
+    }
+
+    #timer-footer {
+        text-align: center;
+        color: $text-muted;
+        text-style: dim;
+        margin-top: 1;
+    }
+
+    #timer-hint {
+        text-align: center;
+        color: $primary;
+        margin-top: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        from textual.widgets import Input
+
+        with Vertical(id="timer-container"):
+            yield Static(" Pomodoro Timer ", id="timer-header")
+            yield Input(placeholder="Enter minutes (e.g., 25)", id="time-input")
+            yield Static("Enter: start | Esc: cancel", id="timer-footer")
+            yield Static("Enter time in minutes", id="timer-hint")
+
+    def on_mount(self):
+        """Focus the input field on mount."""
+        self.query_one("#time-input", Input).focus()
+
+    def on_key(self, event):
+        """Handle key presses."""
+        if event.key == "escape":
+            self.app.pop_screen()
+        elif event.key == "enter":
+            self.start_timer()
+
+    def start_timer(self):
+        """Parse input and start the timer."""
+        import re
+
+        app = cast(Any, self.app)
+        input_widget = self.query_one("#time-input", Input)
+        time_str = input_widget.value.strip()
+
+        if not time_str:
+            app.show_message("Please enter time in minutes")
+            return
+
+        match = re.match(r"^(\d+)$", time_str)
+        if not match:
+            app.show_message("Please enter a valid number (e.g., 25)")
+            return
+
+        minutes = int(match.group(1))
+        if minutes <= 0 or minutes > 1440:
+            app.show_message("Time must be between 1 and 1440 minutes")
+            return
+
+        total_seconds = minutes * 60
+
+        self.app.pop_screen()
+        app.start_timer(minutes, total_seconds)
+
+    def run_timer(self, minutes: int):
+        """Deprecated - timer now runs via app."""
+        pass
+
+
+class TimerCompleteScreen(ModalScreen):
+    """Screen shown when the timer completes."""
+
+    DEFAULT_CSS = """
+    TimerCompleteScreen {
+        align: center middle;
+    }
+
+    #complete-container {
+        width: 50;
+        height: auto;
+        background: transparent;
+        border: thick $primary;
+        padding: 2 3;
+    }
+
+    #complete-header {
+        text-align: center;
+        text-style: bold;
+        margin-bottom: 1;
+    }
+
+    #complete-message {
+        text-align: center;
+        margin-bottom: 1;
+    }
+
+    #complete-footer {
+        text-align: center;
+        color: $text-muted;
+        text-style: dim;
+        margin-top: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="complete-container"):
+            yield Static(" Time's Up! ", id="complete-header")
+            yield Static("Great work! Take a break.", id="complete-message")
+            yield Static("Press any key or Escape to close", id="complete-footer")
+
+    def on_key(self, event):
+        """Handle key presses to close."""
+        if event.key == "escape":
+            self.app.pop_screen()
+        else:
+            self.app.pop_screen()
