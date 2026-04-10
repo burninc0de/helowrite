@@ -817,6 +817,7 @@ class HeloWrite(App):
         """Start the countdown timer."""
 
         total_seconds = minutes * 60
+        self.show_message(f"Timer set for {minutes} minutes")
 
         def on_timer_complete():
             try:
