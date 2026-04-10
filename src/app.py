@@ -785,6 +785,50 @@ class HeloWrite(App):
         """Start the countdown timer."""
 
         def on_timer_complete():
+            try:
+                import subprocess
+                import shutil
+                from pathlib import Path
+
+                sound_path = Path(__file__).parent / "bell.wav"
+                if not sound_path.exists():
+                    self.push_screen(TimerCompleteScreen())
+                    return
+
+                # Try multiple audio backends in order
+                backends = [
+                    ["paplay"],  # Linux PulseAudio
+                    ["aplay"],  # Linux ALSA
+                    ["afplay"],  # macOS
+                    [
+                        "powershell",
+                        "-c",
+                        "(New-Object System.Media.SoundPlayer).PlaySync()",
+                    ],
+                ]
+
+                for backend in backends:
+                    if shutil.which(backend[0]):
+                        if backend[0] == "powershell":
+                            # Windows - use .NET to play
+                            subprocess.run(
+                                [
+                                    "powershell",
+                                    "-c",
+                                    f"(New-Object System.Media.SoundPlayer '{sound_path}').PlaySync()",
+                                ],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                            )
+                        else:
+                            subprocess.Popen(
+                                backend + [str(sound_path)],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                            )
+                        break
+            except Exception as e:
+                pass
             self.push_screen(TimerCompleteScreen())
 
         def tick(remaining: int) -> None:
