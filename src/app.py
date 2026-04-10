@@ -182,6 +182,36 @@ class HeloWrite(App):
         display: block;
         opacity: 0.3;
     }
+
+    /* Command Palette - make it narrower and centered */
+    CommandPalette {
+        align: center middle;
+    }
+
+    CommandPalette > Vertical {
+        width: 60%;
+        max-width: 80;
+    }
+
+    /* Command Palette thin scrollbar */
+    CommandPalette CommandList {
+        scrollbar-size: 1 1;
+        scrollbar-color: $surface-lighten-2;
+        scrollbar-color-hover: $surface-lighten-1;
+        scrollbar-background: $surface;
+    }
+
+    CommandPalette ScrollableContainer {
+        scrollbar-size: 1 1;
+    }
+
+    /* KeyPanel (Keys help) thin scrollbar */
+    KeyPanel {
+        scrollbar-size: 1 1;
+        scrollbar-color: $surface-lighten-2;
+        scrollbar-color-hover: $surface-lighten-1;
+        scrollbar-background: $surface;
+    }
     """
 
     def __init__(self, file_path: Optional[str] = None):
