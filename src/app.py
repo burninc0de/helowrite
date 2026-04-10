@@ -789,8 +789,8 @@ class HeloWrite(App):
 
         def on_timer_complete():
             try:
-                import subprocess
                 import shutil
+                import subprocess
                 from pathlib import Path
 
                 sound_path = Path(__file__).parent / "bell.wav"
@@ -834,7 +834,7 @@ class HeloWrite(App):
                                 stderr=subprocess.DEVNULL,
                             )
                         break
-            except Exception as e:
+            except Exception:
                 pass
             self.push_screen(TimerCompleteScreen())
 
