@@ -361,12 +361,13 @@ class HeloWrite(App):
 
         # Load saved theme now that UI is ready
         theme = self.config.get_theme()
-        # Ensure theme is valid, default to helowrite-dark if not
-        valid_themes = {"helowrite-dark", "helowrite-light", "kanso-zen", "kanso-pearl"}
-        if theme not in valid_themes:
+        # Check against all available themes (including built-in and custom)
+        available_themes = set(self.available_themes.keys())
+        if theme not in available_themes:
             theme = "helowrite-dark"
             self.config.set_theme("helowrite-dark")
         self.theme = theme
+        self._theme_initialized = True
         # Force refresh to ensure theme colors are applied to Screen background
         self.screen.refresh()
 
@@ -439,8 +440,9 @@ class HeloWrite(App):
 
     def watch_theme(self, old_theme: str, new_theme: str) -> None:
         """Called when the theme changes - save it to config."""
-        if old_theme != new_theme:
+        if old_theme != new_theme and getattr(self, "_theme_initialized", False):
             self.config.set_theme(new_theme)
+            self.notify(f"Theme changed to {new_theme}", severity="information")
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
