@@ -7,6 +7,7 @@ from typing import Optional
 from rich.console import Console
 from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
+from textual.command import CommandPalette
 from textual.theme import Theme
 from textual.timer import Timer
 from textual.widgets import Footer, Header, Static, TextArea
@@ -24,6 +25,36 @@ from screens import (
 )
 from utils import detect_language
 from widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
+
+
+class HeloWriteCommandPalette(CommandPalette):
+    """Custom command palette with nerd font search icon."""
+
+    DEFAULT_CSS = """
+    HeloWriteCommandPalette SearchIcon {
+        color: $primary;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        """Compose the command palette with custom icon."""
+        from textual.command import CommandInput, CommandList, SearchIcon
+        from textual.containers import Horizontal, Vertical
+        from textual.widgets import Button, LoadingIndicator
+
+        with Vertical(id="--container"):
+            with Horizontal(id="--input"):
+                # Use nerd font magnifying glass (\uf002)
+                # Fallback to emoji if nerd font not available
+                search_icon = SearchIcon()
+                search_icon.icon = "\uf002"  # Nerd Font 'nf-fa-search'
+                yield search_icon
+                yield CommandInput(placeholder=self._placeholder, select_on_focus=False)
+                if not self.run_on_select:
+                    yield Button("\u25b6")
+            with Vertical(id="--results"):
+                yield CommandList()
+                yield LoadingIndicator()
 
 
 class HeloWrite(App):
@@ -55,12 +86,15 @@ class HeloWrite(App):
     ]
 
     def get_system_commands(self, screen):
+        # Collect parent commands into a dict for easy lookup
+        parent_commands = {}
         for cmd in super().get_system_commands(screen):
-            # Filter out textual-light and textual-dark theme commands from command palette
             if cmd.title not in ["Minimize", "Maximize", "Screenshot"] and not (
                 cmd.title.startswith("Switch to textual-")
             ):
-                yield cmd
+                parent_commands[cmd.title] = cmd
+
+        # Yield in exact desired order
         yield SystemCommand(
             "Git Push", "Push current file changes to remote", self.action_git_push
         )
@@ -77,6 +111,28 @@ class HeloWrite(App):
             "Change working directory to Obsidian vault",
             self.action_change_to_vault,
         )
+
+        # Keys
+        if "Keys" in parent_commands:
+            yield parent_commands["Keys"]
+
+        # Pomodoro Timer
+        yield SystemCommand(
+            "Pomodoro Timer", "Start a focus timer", self.action_pomodoro_timer
+        )
+
+        # Settings
+        yield SystemCommand(
+            "Settings", "Open application settings", self.action_settings
+        )
+
+        # Theme
+        if "Theme" in parent_commands:
+            yield parent_commands["Theme"]
+
+        # Quit (last)
+        if "Quit" in parent_commands:
+            yield parent_commands["Quit"]
 
     DEFAULT_CSS = """Screen {
     background: $surface;
@@ -808,6 +864,22 @@ class HeloWrite(App):
         self.config.set_space_between_paragraphs(self.space_between_paragraphs)
         status = "enabled" if self.space_between_paragraphs else "disabled"
         self.show_message(f"Insert newline: {status}")
+
+    def action_command_palette(self) -> None:
+        """Show the custom command palette with nerd font icon."""
+        if self.use_command_palette and not HeloWriteCommandPalette.is_open(self):
+            self.push_screen(HeloWriteCommandPalette(id="--command-palette"))
+
+    def search_themes(self) -> None:
+        """Show a fuzzy search command palette containing all registered themes."""
+        from textual.theme import ThemeProvider
+
+        self.push_screen(
+            HeloWriteCommandPalette(
+                providers=[ThemeProvider],
+                placeholder="Search for themes…",
+            )
+        )
 
     def action_pomodoro_timer(self):
         """Launch the Pomodoro timer modal (Ctrl+T)."""
