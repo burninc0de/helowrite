@@ -785,10 +785,8 @@ class PomodoroTimerScreen(ModalScreen):
             app.show_message("Time must be between 1 and 1440 minutes")
             return
 
-        total_seconds = minutes * 60
-
         self.app.pop_screen()
-        app.start_timer(minutes, total_seconds)
+        app.start_timer(minutes)
 
     def run_timer(self, minutes: int):
         """Deprecated - timer now runs via app."""

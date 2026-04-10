@@ -1,5 +1,6 @@
 import datetime
 import os
+import platform
 from pathlib import Path
 from typing import Optional
 
@@ -781,8 +782,10 @@ class HeloWrite(App):
         """Launch the Pomodoro timer modal (Ctrl+T)."""
         self.push_screen(PomodoroTimerScreen())
 
-    def start_timer(self, seconds: int, total_seconds: int):
+    def start_timer(self, minutes: int):
         """Start the countdown timer."""
+
+        total_seconds = minutes * 60
 
         def on_timer_complete():
             try:
@@ -795,17 +798,21 @@ class HeloWrite(App):
                     self.push_screen(TimerCompleteScreen())
                     return
 
-                # Try multiple audio backends in order
-                backends = [
-                    ["paplay"],  # Linux PulseAudio
-                    ["aplay"],  # Linux ALSA
-                    ["afplay"],  # macOS
-                    [
-                        "powershell",
-                        "-c",
-                        "(New-Object System.Media.SoundPlayer).PlaySync()",
-                    ],
-                ]
+                # Prioritize native backend first to avoid cross-platform binaries
+                # shadowing each other (e.g., paplay installed on macOS).
+                system = platform.system().lower()
+                if system == "darwin":
+                    backends = [["afplay"], ["paplay"], ["aplay"]]
+                elif system == "windows":
+                    backends = [
+                        [
+                            "powershell",
+                            "-c",
+                            "(New-Object System.Media.SoundPlayer).PlaySync()",
+                        ]
+                    ]
+                else:
+                    backends = [["paplay"], ["aplay"], ["afplay"]]
 
                 for backend in backends:
                     if shutil.which(backend[0]):
