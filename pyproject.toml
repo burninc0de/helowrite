@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "helowrite"
-version = "0.1.0"
+version = "0.8.1"
 description = "A fast, terminal-based text editor built with Python and Textual"
 readme = "README.md"
 license = {file = "LICENSE"}
