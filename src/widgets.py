@@ -5,6 +5,7 @@ from typing import Optional
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
+from textual.geometry import Size
 from textual.widgets import DirectoryTree, Static, TextArea
 
 from utils import detect_language, has_nerd_fonts
@@ -176,8 +177,25 @@ class HeloWriteTextArea(TextArea):
     """
 
     def __init__(self, **kwargs):
+        self.typewriter_bottom_slack_lines = 0
         super().__init__(**kwargs)
         self.language = None
+
+    def set_typewriter_bottom_slack(self, lines: int) -> None:
+        """Set extra virtual lines at EOF for typewriter centering."""
+        safe_lines = max(0, int(lines))
+        if self.typewriter_bottom_slack_lines == safe_lines:
+            return
+        self.typewriter_bottom_slack_lines = safe_lines
+        self._refresh_size()
+
+    def _refresh_size(self) -> None:
+        """Refresh size and append optional virtual EOF slack lines."""
+        super()._refresh_size()
+        slack_lines = getattr(self, "typewriter_bottom_slack_lines", 0)
+        if slack_lines > 0:
+            width, height = self.virtual_size
+            self.virtual_size = Size(width, height + slack_lines)
 
     def on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
@@ -185,9 +203,14 @@ class HeloWriteTextArea(TextArea):
             if self.app.space_between_paragraphs:
                 # Insert one newline for paragraph break (spacing handled by CSS)
                 self.insert("\n")
-            # Ensure cursor remains visible after newline insertion
-            self.app.call_later(self.scroll_cursor_visible)
+            # Recenter after every input in typewriter mode.
+            if self.app.typewriter_mode:
+                self.app.call_later(lambda: self.app._apply_typewriter_position("key_input"))
+            else:
+                self.app.call_later(self.scroll_cursor_visible)
             return True  # Prevent default handling
+        if self.app.typewriter_mode:
+            self.app.call_later(lambda: self.app._apply_typewriter_position("key_input"))
         # For other keys, let Textual handle them normally
         return False
 

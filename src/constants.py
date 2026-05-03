@@ -17,6 +17,8 @@ Keybindings:
 - Alt+A: Select all text (Option+A on macOS)
 - Alt+D: Create daily note (Option+D on macOS)
 - Alt+I: Toggle insert newline on Enter (Option+I on macOS)
+- Alt+T: Toggle typewriter mode (Option+T on macOS)
+- Ctrl+Shift+T: Toggle typewriter mode (terminal support varies)
 - F1: Show help
 - F3: Settings
 - F5: Recent files

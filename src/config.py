@@ -236,6 +236,17 @@ class Config:
         config["default_working_directory"] = path
         self._save_config(config)
 
+    def get_typewriter_mode(self) -> bool:
+        """Return whether typewriter mode is enabled."""
+        config = self._load_config()
+        return config.get("typewriter_mode", "0") == "1"
+
+    def set_typewriter_mode(self, enabled: bool):
+        """Persist typewriter mode preference."""
+        config = self._load_config()
+        config["typewriter_mode"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def _load_config(self) -> dict[str, str]:
         """Load config from file."""
         if self.config_file.exists():
