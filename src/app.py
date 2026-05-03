@@ -475,7 +475,6 @@ class HeloWrite(App):
 
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
-        editor = self.query_one("#editor", TextArea)
         if self.typewriter_mode:
             self._apply_typewriter_position("selection_changed")
         self.update_status()
@@ -487,7 +486,9 @@ class HeloWrite(App):
             if not self.typewriter_mode:
                 editor.set_typewriter_bottom_slack(0)
                 return
-            view_height = max(editor.scrollable_content_region.height, editor.size.height)
+            view_height = max(
+                editor.scrollable_content_region.height, editor.size.height
+            )
             extra_lines = max(0, view_height // 2)
             editor.set_typewriter_bottom_slack(extra_lines)
         except Exception:
@@ -502,11 +503,16 @@ class HeloWrite(App):
                 self._write_typewriter_debug("top_padding", "disabled")
                 return
             editor = self.query_one("#editor", HeloWriteTextArea)
-            view_height = max(editor.scrollable_content_region.height, editor.size.height)
+            view_height = max(
+                editor.scrollable_content_region.height, editor.size.height
+            )
             offset_lines = view_height // 2
             centered.styles.padding_top = offset_lines
             self.refresh()  # Force layout refresh
-            self._write_typewriter_debug("top_padding", f"set padding={offset_lines}, view={view_height}, actual_padding={centered.styles.padding_top}")
+            self._write_typewriter_debug(
+                "top_padding",
+                f"set padding={offset_lines}, view={view_height}, actual_padding={centered.styles.padding_top}",
+            )
         except Exception as e:
             self._write_typewriter_debug("top_padding", f"error={e}")
 
@@ -517,7 +523,9 @@ class HeloWrite(App):
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
             cursor_row, cursor_col = editor.cursor_location
-            view_height = max(editor.scrollable_content_region.height, editor.size.height)
+            view_height = max(
+                editor.scrollable_content_region.height, editor.size.height
+            )
             line_count = len(editor.text.split("\n"))
             line = (
                 f"{datetime.datetime.now().isoformat(timespec='milliseconds')}"
@@ -879,9 +887,11 @@ class HeloWrite(App):
             self._write_typewriter_debug("toggle", "before padding")
             self._set_typewriter_top_padding()
             self._write_typewriter_debug("toggle", "after padding")
+
             # Schedule scroll after padding is applied
             def do_center():
                 self._apply_typewriter_position("toggle_scheduled")
+
             self.call_later(do_center)
 
     def _apply_distraction_free_ui(self, announce: bool = True):

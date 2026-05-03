@@ -205,12 +205,16 @@ class HeloWriteTextArea(TextArea):
                 self.insert("\n")
             # Recenter after every input in typewriter mode.
             if self.app.typewriter_mode:
-                self.app.call_later(lambda: self.app._apply_typewriter_position("key_input"))
+                self.app.call_later(
+                    lambda: self.app._apply_typewriter_position("key_input")
+                )
             else:
                 self.app.call_later(self.scroll_cursor_visible)
             return True  # Prevent default handling
         if self.app.typewriter_mode:
-            self.app.call_later(lambda: self.app._apply_typewriter_position("key_input"))
+            self.app.call_later(
+                lambda: self.app._apply_typewriter_position("key_input")
+            )
         # For other keys, let Textual handle them normally
         return False
 
