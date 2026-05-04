@@ -80,6 +80,12 @@ helowrite
 
 This creates an isolated environment and exposes the `helowrite` command globally in your user PATH.
 
+To upgrade to the latest version:
+
+```bash
+pipx upgrade helowrite
+```
+
 ### Development Install (Editable Source Checkout)
 
 Use this if you want to hack on HeloWrite itself. This install is intentionally tied to your virtual environment.
