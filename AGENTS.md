@@ -27,9 +27,6 @@ python dev.py src/app.py [filename.txt]
 
 # Run without hot reload
 python src/app.py [filename.txt]
-
-# Alternative: use the wrapper script which handles venv activation
-./run.sh python dev.py src/app.py [filename.txt]
 ```
 
 ### Running the TUI (⚠️ CRITICAL WARNING ⚠️)
@@ -238,7 +235,6 @@ helowrite/
 ├── requirements.txt       # Python dependencies
 ├── pyproject.toml         # Project configuration
 ├── pytest.ini             # Pytest configuration
-├── run.sh                 # Wrapper script
 ├── README.md              # Project documentation
 ├── CONTRIBUTING.md        # Contribution guidelines
 ├── LICENSE                # MIT license

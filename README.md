@@ -75,7 +75,7 @@ Then install HeloWrite:
 
 ```bash
 pipx install "git+https://github.com/burninc0de/helowrite.git"
-helowrite your_draft.txt
+helowrite
 ```
 
 This creates an isolated environment and exposes the `helowrite` command globally in your user PATH.
@@ -95,7 +95,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install & run
 pip install -e .
-helowrite your_draft.txt
+helowrite 
 ```
 
 Important: because this is a venv-local editable install, `helowrite` is available only while that venv is active.
@@ -104,7 +104,7 @@ When you open a new terminal, run:
 ```bash
 cd helowrite
 source venv/bin/activate
-helowrite your_draft.txt
+helowrite
 ```
 
 If you'd rather avoid re-activating a venv in each shell, use the recommended `pipx` install above.
@@ -208,11 +208,9 @@ helowrite/
 │   ├── test_settings_interaction.py # UI interaction tests
 │   └── test_*.py          # Unit tests
 ├── venv/                  # Virtual environment (created by user)
-├── helowrite_env/         # Alternative virtual environment
 ├── requirements.txt       # Python dependencies
 ├── pyproject.toml         # Project configuration
 ├── pytest.ini             # Pytest configuration
-├── run.sh                 # Wrapper script for venv activation
 ├── git_sync_errors.log    # Git operation error log (created as needed)
 ├── AGENTS.md              # Agent instructions (internal)
 ├── CONTRIBUTING.md        # Contribution guidelines
