@@ -1,5 +1,6 @@
 """Custom widgets for HeloWrite."""
 
+import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -171,6 +172,11 @@ class HeloWriteTextArea(TextArea):
         text-style: bold;
     }
 
+    .typewriter-hidden .text-area--cursor,
+    .typewriter-hidden .text-area--cursor-line {
+        opacity: 0;
+    }
+
     .text-area--cursor-line {
         background: $primary-lighten-1;
     }
@@ -178,6 +184,9 @@ class HeloWriteTextArea(TextArea):
 
     def __init__(self, **kwargs):
         self.typewriter_bottom_slack_lines = 0
+        self._typewriter_adjusting = False
+        self._typewriter_center_scheduled = False
+        self._typewriter_debug_enabled = False
         super().__init__(**kwargs)
         self.language = None
 
@@ -189,13 +198,123 @@ class HeloWriteTextArea(TextArea):
         self.typewriter_bottom_slack_lines = safe_lines
         self._refresh_size()
 
+    def _can_center_typewriter(self) -> bool:
+        return (
+            getattr(self.app, "typewriter_mode", False)
+            and not self._typewriter_adjusting
+        )
+
+    def _clear_typewriter_hidden(self) -> None:
+        self.remove_class("typewriter-hidden")
+
+    def _schedule_typewriter_center(self) -> None:
+        if not self._typewriter_center_scheduled:
+            self._typewriter_center_scheduled = True
+            self.call_after_refresh(self._center_cursor_typewriter)
+
+    def scroll_cursor_visible(self, *args, **kwargs):  # type: ignore[override]
+        """Override to implement typewriter-mode centering.
+
+        Calls super() first (ensures cursor visible and registers its deferred
+        scroll A), then registers our centering B via call_after_refresh.
+        Since call_after_refresh is FIFO, B fires after A and wins.
+        This must be deferred because _refresh_size() (which updates max_scroll_y)
+        runs *after* _watch_selection in edit(), so synchronous scroll_y assignment
+        is always clamped to 0 while virtual_size is stale.
+        """
+        if not self._can_center_typewriter():
+            self._clear_typewriter_hidden()
+            return super().scroll_cursor_visible(*args, **kwargs)
+        vp = self.scrollable_content_region.height
+        if vp == 0:
+            self._clear_typewriter_hidden()
+            return super().scroll_cursor_visible(*args, **kwargs)
+        target_scroll_y = self._get_typewriter_target_scroll_y()
+        if abs(float(self.scroll_y) - target_scroll_y) < 1e-6:
+            self._clear_typewriter_hidden()
+            return None
+        self.add_class("typewriter-hidden")
+        self._write_typewriter_debug("hide")
+        self._schedule_typewriter_center()
+        return None
+
+    def _get_typewriter_target_scroll_y(self) -> float:
+        self._recompute_cursor_offset()
+        _, vy = self._cursor_offset
+        vp = self.scrollable_content_region.height
+        half = vp // 2
+        if getattr(self.app, "distraction_free", False):
+            show_word_count = False
+            config = getattr(self.app, "config", None)
+            if config and hasattr(config, "get_show_word_count_distraction_free"):
+                show_word_count = config.get_show_word_count_distraction_free()
+            if show_word_count:
+                half = max(half - 1, 0)
+            else:
+                half = max(half - 2, 0)
+        return float(max(0, min(vy - half, self.max_scroll_y)))
+
+    def _center_cursor_typewriter(self) -> None:
+        """Apply typewriter centering after virtual_size has been updated."""
+        self._typewriter_center_scheduled = False
+        if not self._can_center_typewriter():
+            self._clear_typewriter_hidden()
+            return
+        self._typewriter_adjusting = True
+        try:
+            vp = self.scrollable_content_region.height
+            if vp == 0:
+                self._clear_typewriter_hidden()
+                return
+            target_scroll_y = self._get_typewriter_target_scroll_y()
+            if abs(float(self.scroll_y) - target_scroll_y) < 1e-6:
+                self._clear_typewriter_hidden()
+                self._write_typewriter_debug("reveal_noop")
+                return
+            self._write_typewriter_debug("center_start")
+            self.scroll_y = target_scroll_y
+            self._clear_typewriter_hidden()
+            self._write_typewriter_debug("reveal")
+            self._write_typewriter_debug("center_end")
+        finally:
+            self._typewriter_adjusting = False
+
+    def _write_typewriter_debug(self, source: str) -> None:
+        if not getattr(self.app, "typewriter_mode", False):
+            return
+        if not getattr(self, "_typewriter_debug_enabled", False):
+            return
+        try:
+            path = getattr(self.app, "_typewriter_log_path", None)
+            if path is None:
+                return
+            path.parent.mkdir(parents=True, exist_ok=True)
+            cursor_row, cursor_col = self.cursor_location
+            vp = self.scrollable_content_region.height
+            scroll_y = getattr(self, "scroll_y", "?")
+            max_scroll_y = getattr(self, "max_scroll_y", "?")
+            line = (
+                f"{datetime.datetime.now().isoformat(timespec='milliseconds')}"
+                f" source={source}"
+                f" cursor=({cursor_row},{cursor_col})"
+                f" scroll_y={scroll_y}"
+                f" max_scroll_y={max_scroll_y}"
+                f" view_height={vp}\n"
+            )
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(line)
+        except Exception:
+            pass
+
     def _refresh_size(self) -> None:
         """Refresh size and append optional virtual EOF slack lines."""
         super()._refresh_size()
-        slack_lines = getattr(self, "typewriter_bottom_slack_lines", 0)
-        if slack_lines > 0:
-            width, height = self.virtual_size
-            self.virtual_size = Size(width, height + slack_lines)
+        if getattr(self.app, "typewriter_mode", False):
+            vp = self.scrollable_content_region.height
+            if vp > 0:
+                width, height = self.virtual_size
+                extra = vp // 2 + self.typewriter_bottom_slack_lines
+                self.virtual_size = Size(width, height + extra)
 
     def on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
@@ -203,18 +322,20 @@ class HeloWriteTextArea(TextArea):
             if self.app.space_between_paragraphs:
                 # Insert one newline for paragraph break (spacing handled by CSS)
                 self.insert("\n")
-            # Recenter after every input in typewriter mode.
             if self.app.typewriter_mode:
-                self.app.call_later(
-                    lambda: self.app._apply_typewriter_position("key_input")
-                )
+                self.add_class("typewriter-hidden")
+                self._write_typewriter_debug("hide_key_enter")
+                self._schedule_typewriter_center()
             else:
-                self.app.call_later(self.scroll_cursor_visible)
+                self.call_after_refresh(self.scroll_cursor_visible)
             return True  # Prevent default handling
-        if self.app.typewriter_mode:
-            self.app.call_later(
-                lambda: self.app._apply_typewriter_position("key_input")
-            )
+
+        if self.app.typewriter_mode and event.key in ("up", "down"):
+            self.add_class("typewriter-hidden")
+            self._write_typewriter_debug(f"hide_key_{event.key}")
+            self._schedule_typewriter_center()
+            return False
+
         # For other keys, let Textual handle them normally
         return False
 

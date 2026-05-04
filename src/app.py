@@ -475,89 +475,7 @@ class HeloWrite(App):
 
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
-        if self.typewriter_mode:
-            self._apply_typewriter_position("selection_changed")
         self.update_status()
-
-    def _set_typewriter_bottom_padding(self) -> None:
-        """Create extra scroll room near EOF so cursor can stay centered."""
-        try:
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            if not self.typewriter_mode:
-                editor.set_typewriter_bottom_slack(0)
-                return
-            view_height = max(
-                editor.scrollable_content_region.height, editor.size.height
-            )
-            extra_lines = max(0, view_height // 2)
-            editor.set_typewriter_bottom_slack(extra_lines)
-        except Exception:
-            pass
-
-    def _set_typewriter_top_padding(self) -> None:
-        """Set top padding to offset cursor to center on activation."""
-        try:
-            centered = self.query_one(CenteredEditor)
-            if not self.typewriter_mode:
-                centered.styles.padding_top = 0
-                self._write_typewriter_debug("top_padding", "disabled")
-                return
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            view_height = max(
-                editor.scrollable_content_region.height, editor.size.height
-            )
-            offset_lines = view_height // 2
-            centered.styles.padding_top = offset_lines
-            self.refresh()  # Force layout refresh
-            self._write_typewriter_debug(
-                "top_padding",
-                f"set padding={offset_lines}, view={view_height}, actual_padding={centered.styles.padding_top}",
-            )
-        except Exception as e:
-            self._write_typewriter_debug("top_padding", f"error={e}")
-
-    def _write_typewriter_debug(self, source: str, note: str = "") -> None:
-        """Append typewriter cursor/scroll state to a debug log file."""
-        if not self.typewriter_mode:
-            return
-        try:
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            cursor_row, cursor_col = editor.cursor_location
-            view_height = max(
-                editor.scrollable_content_region.height, editor.size.height
-            )
-            line_count = len(editor.text.split("\n"))
-            line = (
-                f"{datetime.datetime.now().isoformat(timespec='milliseconds')}"
-                f" source={source}"
-                f" note={note}"
-                f" cursor=({cursor_row},{cursor_col})"
-                f" scroll_y={editor.scroll_y}"
-                f" max_scroll_y={getattr(editor, 'max_scroll_y', '?')}"
-                f" view_height={view_height}"
-                f" lines={line_count}\n"
-            )
-            self._typewriter_log_path.parent.mkdir(parents=True, exist_ok=True)
-            with self._typewriter_log_path.open("a", encoding="utf-8") as handle:
-                handle.write(line)
-        except Exception:
-            pass
-
-    def _apply_typewriter_position(self, source: str) -> None:
-        """Keep cursor visually centered while typewriter mode is active."""
-        if not self.typewriter_mode or self._typewriter_adjusting:
-            return
-        self._typewriter_adjusting = True
-        try:
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            self._set_typewriter_bottom_padding()
-            # Use TextArea's wrap-aware cursor centering so long wrapped lines stay centered.
-            editor.scroll_cursor_visible(center=True, animate=False)
-            self._write_typewriter_debug(source, "scroll_cursor_visible(center=True)")
-            self._typewriter_adjusting = False
-        except Exception as exc:
-            self._write_typewriter_debug(source, f"error={exc}")
-            self._typewriter_adjusting = False
 
     def update_status(self):
         """Update the status bar with current information."""
@@ -607,8 +525,12 @@ class HeloWrite(App):
         except Exception:
             pass
 
-        # Keep bottom scroll slack in sync with mode/layout changes.
-        self._set_typewriter_bottom_padding()
+        # Keep typewriter layout synced if the mode is active.
+        if self.typewriter_mode:
+            try:
+                editor._refresh_size()
+            except Exception:
+                pass
 
     def apply_cursor_color(self):
         """Apply cursor color styling dynamically."""
@@ -876,23 +798,22 @@ class HeloWrite(App):
                 "Typewriter mode enabled (Ctrl+Shift+T or Alt+T to disable)",
                 distraction_free_message="Typewriter on",
             )
-            self._write_typewriter_debug("toggle", "enabled")
         else:
             self._feedback(
                 "Typewriter mode disabled (Ctrl+Shift+T or Alt+T to enable)",
                 distraction_free_message="Typewriter off",
             )
-        self._set_typewriter_bottom_padding()
-        if self.typewriter_mode:
-            self._write_typewriter_debug("toggle", "before padding")
-            self._set_typewriter_top_padding()
-            self._write_typewriter_debug("toggle", "after padding")
-
-            # Schedule scroll after padding is applied
-            def do_center():
-                self._apply_typewriter_position("toggle_scheduled")
-
-            self.call_later(do_center)
+        try:
+            centered = self.query_one(CenteredEditor)
+            centered.styles.padding_top = 0
+        except Exception:
+            pass
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor._refresh_size()
+            editor.scroll_cursor_visible()
+        except Exception:
+            pass
 
     def _apply_distraction_free_ui(self, announce: bool = True):
         """Apply UI changes for current `self.distraction_free` state.
