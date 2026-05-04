@@ -95,3 +95,151 @@ async def test_app_save_file(tmp_path: Path, temp_config_dir: Path):
         
         # Clean exit
         await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_typewriter_scroll_visible_is_idempotent(temp_config_dir: Path):
+    """Ensure repeated visibility updates do not retrigger typewriter centering."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        app.typewriter_mode = True
+
+        await pilot.pause()
+
+        view_height = editor.scrollable_content_region.height
+        editor._last_typewriter_center_state = {
+            "cursor": editor.cursor_location,
+            "scroll_y": float(editor.scroll_y),
+            "target": float(editor.scroll_y),
+            "max_scroll_y": float(editor.max_scroll_y),
+            "view_height": int(view_height),
+        }
+        editor._typewriter_recently_preserved = False
+
+        initial_scroll = float(editor.scroll_y)
+
+        editor.scroll_cursor_visible()
+        assert not editor._typewriter_center_scheduled
+        assert not editor.has_class("typewriter-hidden")
+        assert float(editor.scroll_y) == initial_scroll
+
+        await pilot.pause()
+
+        editor.scroll_cursor_visible()
+        assert not editor._typewriter_center_scheduled
+        assert float(editor.scroll_y) == initial_scroll
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_typewriter_same_line_typing_no_hide_when_scroll_unchanged(
+    temp_config_dir: Path,
+):
+    """Ensure cursor-column movement doesn't hide cursor when center target is unchanged."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        app.typewriter_mode = True
+
+        await pilot.pause()
+
+        initial_scroll = float(editor.scroll_y)
+        view_height = editor.scrollable_content_region.height
+
+        editor._last_typewriter_center_state = {
+            "cursor": (editor.cursor_location[0], max(editor.cursor_location[1] - 1, 0)),
+            "scroll_y": initial_scroll,
+            "target": initial_scroll,
+            "max_scroll_y": float(editor.max_scroll_y),
+            "view_height": int(view_height),
+        }
+
+        original_get_target = editor._get_typewriter_target_scroll_y
+        editor._get_typewriter_target_scroll_y = lambda: initial_scroll
+        try:
+            editor.scroll_cursor_visible()
+        finally:
+            editor._get_typewriter_target_scroll_y = original_get_target
+
+        assert not editor._typewriter_center_scheduled
+        assert not editor.has_class("typewriter-hidden")
+        assert float(editor.scroll_y) == initial_scroll
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_typewriter_skips_invalid_preserved_scroll_on_transient_geometry(
+    temp_config_dir: Path,
+):
+    """Do not restore preserved scroll when current max_scroll_y is temporarily smaller."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        app.typewriter_mode = True
+
+        await pilot.pause()
+
+        initial_scroll = float(editor.scroll_y)
+        view_height = editor.scrollable_content_region.height
+        editor._last_typewriter_center_state = {
+            "cursor": editor.cursor_location,
+            "scroll_y": float(editor.max_scroll_y) + 1.0,
+            "target": float(editor.max_scroll_y) + 1.0,
+            "max_scroll_y": float(editor.max_scroll_y) + 1.0,
+            "view_height": int(view_height),
+        }
+
+        editor.scroll_cursor_visible()
+
+        assert float(editor.scroll_y) == initial_scroll
+        assert not editor._typewriter_center_scheduled
+        assert not editor.has_class("typewriter-hidden")
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_typewriter_enter_advances_single_line(temp_config_dir: Path):
+    """Enter should advance one line, not two, in typewriter mode."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        app.typewriter_mode = True
+        app.space_between_paragraphs = False
+
+        await pilot.pause()
+
+        start_row, _ = editor.cursor_location
+        await pilot.press("enter")
+        await pilot.pause()
+        end_row, _ = editor.cursor_location
+
+        assert end_row == start_row + 1
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_typewriter_enter_advances_double_line_with_paragraph_spacing(
+    temp_config_dir: Path,
+):
+    """Enter should advance two lines when paragraph spacing mode is enabled."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        app.typewriter_mode = True
+        app.space_between_paragraphs = True
+
+        await pilot.pause()
+
+        start_row, _ = editor.cursor_location
+        await pilot.press("enter")
+        await pilot.pause()
+        end_row, _ = editor.cursor_location
+
+        assert end_row == start_row + 2
+
+        await pilot.press("ctrl+q")
