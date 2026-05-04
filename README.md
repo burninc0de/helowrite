@@ -35,7 +35,7 @@ Writing is hard. Everything else is secondary.
 - **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message. Sound credit: [nahmandub on freesound.org](https://freesound.org/people/nahmandub/sounds/131348/)
-- **Typewriter Mode**: Toggle with `Ctrl+Shift+T` or `Alt+T`. When enabled, the cursor stays centered like an old-school typewriter. This mode is experimental and may still feel rough around the edges.
+- **Typewriter Mode**: Toggle with `Ctrl+Shift+T` or `Alt+T`. When enabled, the cursor stays centered like an old-school typewriter. This is a [reworked](https://github.com/burninc0de/helowrite/commit/f983b2deada62e661ffce70468369d8c3a2095fe) version of the [initial](https://github.com/burninc0de/helowrite/commit/9006cb00513b6b2664f7db07fa6fa7e1656380d7) implementation, inspired by [this fork](https://github.com/gabinetenoturno/helowrite).
 
 ## Quick Start
 
