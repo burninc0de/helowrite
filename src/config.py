@@ -247,6 +247,17 @@ class Config:
         config["typewriter_mode"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_typewriter_sounds(self) -> bool:
+        """Return whether typewriter sounds are enabled."""
+        config = self._load_config()
+        return config.get("typewriter_sounds", "0") == "1"
+
+    def set_typewriter_sounds(self, enabled: bool):
+        """Persist typewriter sounds preference."""
+        config = self._load_config()
+        config["typewriter_sounds"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def _load_config(self) -> dict[str, str]:
         """Load config from file."""
         if self.config_file.exists():

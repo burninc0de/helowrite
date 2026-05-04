@@ -388,9 +388,16 @@ class HeloWriteTextArea(TextArea):
                 self.add_class("typewriter-hidden")
                 self._write_typewriter_debug("hide_key_enter")
                 self._schedule_typewriter_center()
+                if self.app.typewriter_sounds:
+                    self.app.play_sound("newline")
             else:
                 self.call_after_refresh(self.scroll_cursor_visible)
             return True  # Prevent default handling
+
+        if event.key == "backspace" and self.app.typewriter_mode:
+            if self.app.typewriter_sounds:
+                self.app.play_sound("ratchet")
+            return False
 
         if self.app.typewriter_mode and event.key in ("up", "down"):
             self.add_class("typewriter-hidden")

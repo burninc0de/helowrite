@@ -195,6 +195,10 @@ class SettingsScreen(ModalScreen):
                     "Space between paragraphs", id="space-between-paragraphs-checkbox"
                 )
             with Horizontal(classes="setting-row"):
+                yield Checkbox(
+                    "Typewriter Mode sounds", id="typewriter-sounds-checkbox"
+                )
+            with Horizontal(classes="setting-row"):
                 yield Static("Cursor color:", classes="setting-label")
                 yield Input(id="cursor-color-input", classes="setting-input")
             with Horizontal(classes="setting-row"):
@@ -226,6 +230,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#space-between-paragraphs-checkbox", Checkbox
         ).value = app.config.get_space_between_paragraphs()
+        self.query_one(
+            "#typewriter-sounds-checkbox", Checkbox
+        ).value = app.config.get_typewriter_sounds()
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
         self.query_one(
             "#vault-path-input", Input
@@ -277,6 +284,9 @@ class SettingsScreen(ModalScreen):
                 "#show-scrollbar-checkbox", Checkbox
             ).value
             working_dir = self.query_one("#working-dir-input", Input).value.strip()
+            typewriter_sounds = self.query_one(
+                "#typewriter-sounds-checkbox", Checkbox
+            ).value
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
@@ -324,6 +334,7 @@ class SettingsScreen(ModalScreen):
             app.config.set_auto_save_interval(auto_save_interval)
             app.config.set_scrollbar_enabled(scrollbar_enabled)
             app.config.set_default_working_directory(working_dir)
+            app.config.set_typewriter_sounds(typewriter_sounds)
 
             # Update app settings
             app.editor_width = width
@@ -340,6 +351,9 @@ class SettingsScreen(ModalScreen):
 
             # Update scrollbar setting
             app.scrollbar_enabled = scrollbar_enabled
+
+            # Update typewriter sounds setting
+            app.typewriter_sounds = typewriter_sounds
 
             # Apply settings
             app.apply_editor_settings()

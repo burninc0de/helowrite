@@ -298,6 +298,7 @@ class HeloWrite(App):
 
         # Typewriter mode setting
         self.typewriter_mode = self.config.get_typewriter_mode()
+        self.typewriter_sounds = self.config.get_typewriter_sounds()
         self._typewriter_adjusting = False
         self._typewriter_log_path = self.config.config_dir / "typewriter_debug.log"
 
@@ -1009,6 +1010,53 @@ class HeloWrite(App):
         if self.auto_save_timer:
             self.auto_save_timer.stop()
             self.auto_save_timer = None
+
+    def play_sound(self, sound_name: str) -> None:
+        """Play a sound file using the same audio pipeline as the bell."""
+        try:
+            import shutil
+            import subprocess
+            from pathlib import Path
+
+            sound_path = Path(__file__).parent / f"{sound_name}.wav"
+            if not sound_path.exists():
+                return
+
+            system = platform.system().lower()
+            if system == "darwin":
+                backends = [["afplay"], ["paplay"], ["aplay"]]
+            elif system == "windows":
+                backends = [
+                    [
+                        "powershell",
+                        "-c",
+                        "(New-Object System.Media.SoundPlayer).PlaySync()",
+                    ]
+                ]
+            else:
+                backends = [["paplay"], ["aplay"], ["afplay"]]
+
+            for backend in backends:
+                if shutil.which(backend[0]):
+                    if backend[0] == "powershell":
+                        subprocess.run(
+                            [
+                                "powershell",
+                                "-c",
+                                f"(New-Object System.Media.SoundPlayer '{sound_path}').PlaySync()",
+                            ],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                        )
+                    else:
+                        subprocess.Popen(
+                            backend + [str(sound_path)],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                        )
+                    break
+        except Exception:
+            pass
 
     def perform_auto_save(self):
         """Perform auto-save if file is dirty and has a path."""
