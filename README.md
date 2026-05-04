@@ -154,6 +154,25 @@ python src/app.py [filename.txt]
    pytest tests/test_settings_interaction.py
    ```
 
+## Typewriter Mode Debugging
+
+For debugging cursor positioning and centering logic in typewriter mode use this environment variable:
+
+```bash
+HELOWRITE_TYPEWRITER_DEBUG=1 python src/app.py #regular load
+```
+or:
+
+```bash
+HELOWRITE_TYPEWRITER_DEBUG=1 python dev.py src/app.py #hot reload
+```
+
+Logs will be printed at:
+
+```
+~/.config/helowrite/typewriter_debug.log
+```
+
 ## Keyboard Shortcuts (The Muscle Memory)
 
 - `Ctrl+S` - Save file
