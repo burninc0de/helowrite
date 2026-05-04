@@ -400,7 +400,7 @@ Designed for focused composition with minimal UI and keyboard-driven workflow.
 
 HeloWrite - Write without distraction.
 
-Version: 0.8.2
+Version: 0.8.3
 
 Press Escape to close"""
         with Vertical(id="about-container"):
