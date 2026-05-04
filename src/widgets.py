@@ -1,6 +1,7 @@
 """Custom widgets for HeloWrite."""
 
 import datetime
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -186,7 +187,9 @@ class HeloWriteTextArea(TextArea):
         self.typewriter_bottom_slack_lines = 0
         self._typewriter_adjusting = False
         self._typewriter_center_scheduled = False
-        self._typewriter_debug_enabled = False
+        self._typewriter_debug_enabled = bool(
+            os.environ.get("HELOWRITE_TYPEWRITER_DEBUG", "")
+        )
         super().__init__(**kwargs)
         self.language = None
 
@@ -222,13 +225,14 @@ class HeloWriteTextArea(TextArea):
         runs *after* _watch_selection in edit(), so synchronous scroll_y assignment
         is always clamped to 0 while virtual_size is stale.
         """
+        result = super().scroll_cursor_visible(*args, **kwargs)
         if not self._can_center_typewriter():
             self._clear_typewriter_hidden()
-            return super().scroll_cursor_visible(*args, **kwargs)
+            return result
         vp = self.scrollable_content_region.height
         if vp == 0:
             self._clear_typewriter_hidden()
-            return super().scroll_cursor_visible(*args, **kwargs)
+            return result
         target_scroll_y = self._get_typewriter_target_scroll_y()
         if abs(float(self.scroll_y) - target_scroll_y) < 1e-6:
             self._clear_typewriter_hidden()
@@ -323,7 +327,6 @@ class HeloWriteTextArea(TextArea):
                 # Insert one newline for paragraph break (spacing handled by CSS)
                 self.insert("\n")
             if self.app.typewriter_mode:
-                self.add_class("typewriter-hidden")
                 self._write_typewriter_debug("hide_key_enter")
                 self._schedule_typewriter_center()
             else:
@@ -331,7 +334,6 @@ class HeloWriteTextArea(TextArea):
             return True  # Prevent default handling
 
         if self.app.typewriter_mode and event.key in ("up", "down"):
-            self.add_class("typewriter-hidden")
             self._write_typewriter_debug(f"hide_key_{event.key}")
             self._schedule_typewriter_center()
             return False
