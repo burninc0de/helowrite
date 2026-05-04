@@ -939,11 +939,13 @@ class HeloWrite(App):
 
         def on_timer_complete():
             try:
+                import random
                 import shutil
                 import subprocess
                 from pathlib import Path
 
-                sound_path = Path(__file__).parent / "bell.wav"
+                sound_root = Path(__file__).parent / "audio"
+                sound_path = sound_root / "bell.wav"
                 if not sound_path.exists():
                     self.push_screen(TimerCompleteScreen())
                     return
@@ -1014,11 +1016,16 @@ class HeloWrite(App):
     def play_sound(self, sound_name: str) -> None:
         """Play a sound file using the same audio pipeline as the bell."""
         try:
+            import random
             import shutil
             import subprocess
             from pathlib import Path
 
-            sound_path = Path(__file__).parent / f"{sound_name}.wav"
+            sound_root = Path(__file__).parent / "audio"
+            if sound_name in ("newline", "ratchet"):
+                sound_path = sound_root / f"{sound_name}{random.randint(1, 3)}.wav"
+            else:
+                sound_path = sound_root / f"{sound_name}.wav"
             if not sound_path.exists():
                 return
 
