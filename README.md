@@ -13,7 +13,7 @@
 
 No bloat. No bullshit.
 
-https://user-images.githubusercontent.com/44199273/624cdd83-cbda-4c8e-978c-2464e43bb497.mp4
+https://user-images.githubusercontent.com/44199273/586904098-6681dfe3-787d-4c98-88e1-81711a6530b8.mp4
 
 ## Why HeloWrite?
 
