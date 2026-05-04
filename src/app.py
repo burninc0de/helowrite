@@ -939,7 +939,6 @@ class HeloWrite(App):
 
         def on_timer_complete():
             try:
-                import random
                 import shutil
                 import subprocess
                 from pathlib import Path
