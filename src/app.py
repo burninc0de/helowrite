@@ -1335,20 +1335,6 @@ class HeloWrite(App):
         try:
             current_cmd = None
 
-            # Stash any unstaged changes
-            current_cmd = "git stash push"
-            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "No local changes to save" in e.stdout
-                    or "No local changes to save" in e.stderr
-                ):
-                    pass  # No changes to stash, continue
-                else:
-                    raise
-
             # git pull (using merge instead of rebase to avoid conflicts)
             current_cmd = "git pull"
             cmd = ["git", "pull"]
@@ -1396,31 +1382,6 @@ class HeloWrite(App):
                 else:
                     raise
 
-            # Pop the stash
-            current_cmd = "git stash pop"
-            cmd = ["git", "stash", "pop"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if "No stash entries found" in e.stderr:
-                    pass  # No stash to pop, continue
-                else:
-                    # If stash pop fails due to conflicts, abort the pull
-                    error_msg = "Git pull aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self._feedback(error_msg, severity="error", timeout=10)
-                    # Try to abort any ongoing rebase/merge
-                    try:
-                        abort_cmd = ["git", "rebase", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no rebase to abort
-                    try:
-                        abort_cmd = ["git", "merge", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no merge to abort
-                    return
-
             # Reload file content in editor after successful pull
             self.reload_file_content()
 
@@ -1459,19 +1420,6 @@ class HeloWrite(App):
 
         try:
             current_cmd = None
-
-            current_cmd = "git stash push"
-            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
-            try:
-                await run_subprocess(cmd, vault_path)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "No local changes to save" in e.stdout
-                    or "No local changes to save" in e.stderr
-                ):
-                    pass
-                else:
-                    raise
 
             current_cmd = "git pull"
             cmd = ["git", "pull"]
@@ -1513,28 +1461,6 @@ class HeloWrite(App):
                         raise
                 else:
                     raise
-
-            current_cmd = "git stash pop"
-            cmd = ["git", "stash", "pop"]
-            try:
-                await run_subprocess(cmd, vault_path)
-            except subprocess.CalledProcessError as e:
-                if "No stash entries found" in e.stderr:
-                    pass
-                else:
-                    error_msg = "Git pull vault aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self._feedback(error_msg, severity="error", timeout=10)
-                    try:
-                        abort_cmd = ["git", "rebase", "--abort"]
-                        await run_subprocess(abort_cmd, vault_path)
-                    except subprocess.CalledProcessError:
-                        pass
-                    try:
-                        abort_cmd = ["git", "merge", "--abort"]
-                        await run_subprocess(abort_cmd, vault_path)
-                    except subprocess.CalledProcessError:
-                        pass
-                    return
 
             try:
                 panel = self.query_one("#file-open-panel")
