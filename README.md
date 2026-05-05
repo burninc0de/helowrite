@@ -53,29 +53,51 @@ If you want `helowrite` to work in every new terminal without activating a virtu
 
 Install `pipx` first (if you do not already have it):
 
+<details>
+<summary>Arch Linux</summary>
+
 ```bash
-# Arch Linux
 sudo pacman -S python-pipx
+```
+</details>
 
-# macOS (Homebrew)
+<details>
+<summary>macOS (Homebrew)</summary>
+
+```bash
 brew install pipx
+```
+</details>
 
-# Debian/Ubuntu
+<details>
+<summary>Debian/Ubuntu</summary>
+
+```bash
 sudo apt install pipx
+```
+</details>
 
-# Fedora
+<details>
+<summary>Fedora</summary>
+
+```bash
 sudo dnf install pipx
+```
+</details>
 
-# Generic fallback
+<details>
+<summary>Generic Fallback</summary>
+
+```bash
 python -m pip install --user pipx
 python -m pipx ensurepath
 ```
+</details>
 
 Then install HeloWrite:
 
 ```bash
 pipx install "git+https://github.com/burninc0de/helowrite.git"
-helowrite
 ```
 
 This creates an isolated environment and exposes the `helowrite` command globally in your user PATH.
@@ -105,15 +127,6 @@ helowrite
 ```
 
 Important: because this is a venv-local editable install, `helowrite` is available only while that venv is active.
-When you open a new terminal, run:
-
-```bash
-cd helowrite
-source venv/bin/activate
-helowrite
-```
-
-If you'd rather avoid re-activating a venv in each shell, use the recommended `pipx` install above.
 
 **Requirements**: Python 3.8+
 
@@ -154,7 +167,7 @@ python src/app.py [filename.txt]
    pytest tests/test_settings_interaction.py
    ```
 
-## Typewriter Mode Debugging
+#### Typewriter Mode Debugging
 
 For debugging cursor positioning and centering logic in typewriter mode use this environment variable:
 
