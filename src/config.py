@@ -20,6 +20,7 @@ class Config:
         else:
             self.config_dir = Path.home() / ".config" / "helowrite"
         self.config_file = self.config_dir / "config.conf"
+        self.keybindings_file = self.config_dir / "keybindings.conf"
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
     def get_theme(self) -> str:
@@ -268,6 +269,47 @@ class Config:
         config = self._load_config()
         config["typewriter_sounds"] = "1" if enabled else "0"
         self._save_config(config)
+
+    def get_keybindings(self) -> dict[str, str]:
+        """Load keybindings from the user keybindings file."""
+        if not self.keybindings_file.exists():
+            return {}
+
+        try:
+            content = self.keybindings_file.read_text()
+            keybindings: dict[str, str] = {}
+            for line in content.strip().split("\n"):
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                action, key = line.split("=", 1)
+                action = action.strip()
+                key = key.strip()
+                if action and key:
+                    keybindings[action] = key
+            return keybindings
+        except Exception:
+            return {}
+
+    def save_default_keybindings(self, keybindings: dict[str, str]) -> None:
+        """Write the default keybindings file if it does not already exist."""
+        if self.keybindings_file.exists():
+            return
+
+        try:
+            lines = [
+                "# HeloWrite keybindings",
+                "# Edit this file to customize hotkeys.",
+                "# Format: action=key",
+                "# Example: save=ctrl+s",
+                "",
+            ]
+            lines.extend(f"{action}={key}" for action, key in keybindings.items())
+            self.keybindings_file.write_text("\n".join(lines))
+        except Exception:
+            pass
 
     def _load_config(self) -> dict[str, str]:
         """Load config from file."""

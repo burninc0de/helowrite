@@ -61,32 +61,74 @@ class HeloWriteCommandPalette(CommandPalette):
 class HeloWrite(App):
     """A simple text editor TUI application."""
 
-    BINDINGS = [
-        Binding("ctrl+s", "save", "Save"),
-        Binding("ctrl+q", "quit", "Quit"),
-        Binding("ctrl+o", "open", "Open"),
-        Binding("ctrl+n", "new", "New"),
-        Binding("ctrl+f", "find", "Find", priority=True),
-        Binding("alt+left", "decrease_width", "Decrease Width"),
-        Binding("alt+right", "increase_width", "Increase Width"),
-        Binding("alt+a", "select_all", "Select All"),
-        Binding("f1", "toggle_help", "Help"),
-        Binding("f3", "settings", "Settings"),
-        Binding("f5", "recent_files", "Recent Files"),
-        Binding("alt+d", "create_daily_note", "Create Daily Note"),
-        Binding("alt+enter", "toggle_distraction_free", "Distraction Free Mode"),
-        Binding("f11", "toggle_distraction_free", "Distraction Free Mode"),
-        Binding("f12", "about", "About"),
-        Binding("alt+g", "git_push", "Git Push"),
-        Binding("alt+h", "git_pull", "Git Pull"),
-        Binding("alt+j", "git_pull_vault", "Git Pull Vault"),
-        Binding("alt+up", "change_to_parent_dir", "Change to Parent Directory"),
-        Binding("alt+down", "change_to_child_dir", "Change to Child Directory"),
-        Binding("alt+i", "toggle_insert_newline", "Toggle Insert Newline"),
-        Binding("ctrl+t", "pomodoro_timer", "Pomodoro Timer"),
-        Binding("ctrl+shift+t", "toggle_typewriter_mode", "Typewriter Mode"),
-        Binding("alt+t", "toggle_typewriter_mode", "Typewriter Mode"),
-    ]
+    DEFAULT_KEYBINDINGS = {
+        "save": "ctrl+s",
+        "quit": "ctrl+q",
+        "open": "ctrl+o",
+        "new": "ctrl+n",
+        "find": "ctrl+f",
+        "decrease_width": "alt+left",
+        "increase_width": "alt+right",
+        "select_all": "alt+a",
+        "toggle_help": "f1",
+        "settings": "f3",
+        "recent_files": "f5",
+        "create_daily_note": "alt+d",
+        "toggle_distraction_free": "f11,alt+enter",
+        "about": "f12",
+        "git_push": "alt+g",
+        "git_pull": "alt+h",
+        "git_pull_vault": "alt+j",
+        "change_to_parent_dir": "alt+up",
+        "change_to_child_dir": "alt+down",
+        "toggle_insert_newline": "alt+i",
+        "pomodoro_timer": "ctrl+t",
+        "toggle_typewriter_mode": "ctrl+shift+t,alt+t",
+    }
+
+    DEFAULT_KEYBINDING_DESCRIPTIONS = {
+        "save": "Save",
+        "quit": "Quit",
+        "open": "Open",
+        "new": "New",
+        "find": "Find",
+        "decrease_width": "Decrease Width",
+        "increase_width": "Increase Width",
+        "select_all": "Select All",
+        "toggle_help": "Help",
+        "settings": "Settings",
+        "recent_files": "Recent Files",
+        "create_daily_note": "Create Daily Note",
+        "toggle_distraction_free": "Distraction Free Mode",
+        "about": "About",
+        "git_push": "Git Push",
+        "git_pull": "Git Pull",
+        "git_pull_vault": "Git Pull Vault",
+        "change_to_parent_dir": "Change to Parent Directory",
+        "change_to_child_dir": "Change to Child Directory",
+        "toggle_insert_newline": "Toggle Insert Newline",
+        "pomodoro_timer": "Pomodoro Timer",
+        "toggle_typewriter_mode": "Typewriter Mode",
+    }
+
+    BINDINGS = []
+
+    def _bind_keybindings(self) -> None:
+        """Bind actions using user keybindings or defaults."""
+        self.config.save_default_keybindings(self.DEFAULT_KEYBINDINGS)
+        saved_keybindings = self.config.get_keybindings()
+
+        for action, default_key in self.DEFAULT_KEYBINDINGS.items():
+            key = saved_keybindings.get(action, default_key)
+            description = self.DEFAULT_KEYBINDING_DESCRIPTIONS.get(
+                action, action.replace("_", " ").title()
+            )
+            try:
+                self.bind(key, action, description=description)
+            except Exception:
+                # Ignore invalid or malformed binding values and continue.
+                pass
+
 
     def get_system_commands(self, screen):
         # Collect parent commands into a dict for easy lookup
@@ -280,6 +322,7 @@ class HeloWrite(App):
         self._original_text = ""
         self.console = Console()
         self.config = Config()
+        self._bind_keybindings()
         self.distraction_free = False
         self.language = "text"
         self._word_count_timer: Optional[Timer] = None

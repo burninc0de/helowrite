@@ -195,7 +195,7 @@ Logs will be printed at:
 - `Ctrl+F` - Find/Replace (toggle)
 - `Ctrl+P` - Command palette
 - `Ctrl+T` - Pomodoro timer
-- `Ctrl+Shift+T` / `Alt+T` - Toggle typewriter mode (experimental)
+- `Ctrl+Shift+T` - Toggle typewriter mode
 - `Alt+Left/Right` - Decrease/Increase editor width (Option+Left/Right on macOS)
 - `Alt+Up/Down` - Navigate directory up/down with history (Option+Up/Down on macOS)
 - `Alt+A` - Select all text (Option+A on macOS)
@@ -207,11 +207,34 @@ Logs will be printed at:
 - `F1` - Show help
 - `F3` - Open settings
 - `F5` - Open recent files
-- `Alt+Enter` / `F11` - Toggle distraction-free mode
+- `F11` - Toggle distraction-free mode
 - `F12` - About dialog
 - `Arrow keys` - Navigate cursor
 - `Home/End` - Jump to start/end of line
 - `Page Up/Down` - Scroll by page
+
+## Customizing Hotkeys
+
+HeloWrite writes a user-editable keybindings file the first time it runs:
+
+```bash
+~/.config/helowrite/keybindings.conf
+```
+
+Each line uses the format `action=key`. Only one binding is supported per action.
+You can customize any action by editing that file and restarting HeloWrite.
+
+Example:
+
+```ini
+save=ctrl+s
+quit=ctrl+q
+toggle_distraction_free=f11
+toggle_typewriter_mode=ctrl+shift+t
+```
+
+Use Textual-style key names, e.g. `ctrl+s`, `ctrl+shift+t`, `alt+enter`, `f1`, `alt+left`.
+If a line is malformed or a key is invalid, HeloWrite will ignore that binding and keep the default for the action.
 
 ## Architecture
 
