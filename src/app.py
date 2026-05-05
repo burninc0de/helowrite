@@ -7,7 +7,6 @@ from typing import Optional
 
 from rich.console import Console
 from textual.app import App, ComposeResult, SystemCommand
-from textual.binding import Binding
 from textual.command import CommandPalette
 from textual.theme import Theme
 from textual.timer import Timer
@@ -74,7 +73,7 @@ class HeloWrite(App):
         "settings": "f3",
         "recent_files": "f5",
         "create_daily_note": "alt+d",
-        "toggle_distraction_free": "f11,alt+enter",
+        "toggle_distraction_free": "f11",
         "about": "f12",
         "git_push": "alt+g",
         "git_pull": "alt+h",
@@ -83,7 +82,7 @@ class HeloWrite(App):
         "change_to_child_dir": "alt+down",
         "toggle_insert_newline": "alt+i",
         "pomodoro_timer": "ctrl+t",
-        "toggle_typewriter_mode": "ctrl+shift+t,alt+t",
+        "toggle_typewriter_mode": "ctrl+shift+t",
     }
 
     DEFAULT_KEYBINDING_DESCRIPTIONS = {
@@ -128,7 +127,6 @@ class HeloWrite(App):
             except Exception:
                 # Ignore invalid or malformed binding values and continue.
                 pass
-
 
     def get_system_commands(self, screen):
         # Collect parent commands into a dict for easy lookup

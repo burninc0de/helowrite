@@ -75,18 +75,18 @@ async def test_settings_toggle_scrollbar(temp_config_dir: Path):
 
 @pytest.mark.asyncio
 async def test_distraction_free_toggle(temp_config_dir: Path):
-    """Test toggling distraction free mode via shortcut (Alt+Enter)."""
+    """Test toggling distraction free mode via shortcut (F11)."""
     app = HeloWrite()
     async with app.run_test() as pilot:
         assert not app.distraction_free
 
         # Toggle On
-        await pilot.press("alt+enter")
+        await pilot.press("f11")
         assert app.distraction_free
         assert app.query_one("#editor").has_class("distraction-free")
 
         # Toggle Off
-        await pilot.press("alt+enter")
+        await pilot.press("f11")
         assert not app.distraction_free
         assert not app.query_one("#editor").has_class("distraction-free")
 
@@ -113,3 +113,15 @@ async def test_settings_validation_keeps_screen_open(temp_config_dir: Path):
 
         # App state should NOT have changed
         assert app.editor_width != 999
+
+
+def test_app_creates_default_keybindings_file(temp_config_dir: Path) -> None:
+    """Test that the app writes a default keybindings file on first startup."""
+    app = HeloWrite()
+
+    keybindings_file = temp_config_dir / "keybindings.conf"
+    assert keybindings_file.exists()
+
+    content = keybindings_file.read_text()
+    assert "save=ctrl+s" in content
+    assert "toggle_distraction_free=f11" in content
