@@ -139,19 +139,8 @@ class HeloWrite(App):
 
         # Yield in exact desired order
         yield SystemCommand(
-            "Git Push", "Push current file changes to remote", self.action_git_push
-        )
-        yield SystemCommand(
-            "Git Pull", "Pull remote changes and update editor", self.action_git_pull
-        )
-        yield SystemCommand(
-            "Git Pull Vault",
-            "Pull remote changes to vault repository",
-            self.action_git_pull_vault,
-        )
-        yield SystemCommand(
-            "Change to Vault",
-            "Change working directory to Obsidian vault",
+            "Workspace: Vault",
+            "Switch working directory to vault",
             self.action_change_to_vault,
         )
 
@@ -172,10 +161,6 @@ class HeloWrite(App):
         # Theme
         if "Theme" in parent_commands:
             yield parent_commands["Theme"]
-
-        # Quit (last)
-        if "Quit" in parent_commands:
-            yield parent_commands["Quit"]
 
     DEFAULT_CSS = """Screen {
     background: $surface;
