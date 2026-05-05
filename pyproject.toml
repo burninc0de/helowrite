@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "helowrite"
-version = "0.8.4"
+version = "0.8.41"
 description = "A fast, terminal-based text editor built with Python and Textual"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -59,7 +59,7 @@ helowrite = "app:main"
 [tool.setuptools]
 py-modules = ["app", "config", "constants", "screens", "utils", "widgets"]
 package-dir = {"" = "src"}
-packages = ["css"]
+packages = ["css", "audio"]
 
 [tool.ruff]
 line-length = 88
