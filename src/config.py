@@ -189,6 +189,17 @@ class Config:
         config["obsidian_vault_path"] = path
         self._save_config(config)
 
+    def get_obsidian_git_pull_on_load(self) -> bool:
+        """Return whether to git pull on load when vault is configured."""
+        config = self._load_config()
+        return config.get("obsidian_git_pull_on_load", "0") == "1"
+
+    def set_obsidian_git_pull_on_load(self, enabled: bool):
+        """Persist git pull on load preference."""
+        config = self._load_config()
+        config["obsidian_git_pull_on_load"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_auto_save_enabled(self) -> bool:
         """Return whether auto-save is enabled."""
         config = self._load_config()

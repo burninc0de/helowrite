@@ -1,6 +1,7 @@
 import datetime
 import os
 import platform
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -324,6 +325,14 @@ class HeloWrite(App):
                 os.chdir(default_dir)
             except Exception:
                 pass
+
+        # Git pull on load for Obsidian vault if enabled
+        vault_path = self.config.get_obsidian_vault_path()
+        git_pull_on_load = self.config.get_obsidian_git_pull_on_load()
+        if vault_path and git_pull_on_load and os.path.isdir(vault_path):
+            vault_git = os.path.join(vault_path, ".git")
+            if os.path.isdir(vault_git):
+                self.run_worker(self._async_git_pull_vault(vault_path))
 
         # Register our custom themes
         helowrite_theme = Theme(
@@ -1510,6 +1519,15 @@ class HeloWrite(App):
                 tree.reload()
             except Exception:
                 pass
+
+            # Reload current file if it's from the vault
+            if self.file_path and vault_path:
+                try:
+                    self.file_path = Path(str(self.file_path))
+                    if str(self.file_path).startswith(vault_path):
+                        self.reload_file_content()
+                except Exception:
+                    pass
 
             self._feedback("Git pull completed for vault", timeout=2)
         except subprocess.CalledProcessError as e:

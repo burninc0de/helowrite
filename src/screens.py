@@ -207,6 +207,10 @@ class SettingsScreen(ModalScreen):
             with Horizontal(classes="setting-row"):
                 yield Static("Obsidian vault path:", classes="setting-label")
                 yield Input(id="vault-path-input", classes="setting-input")
+            with Horizontal(classes="setting-row"):
+                yield Checkbox(
+                    " Git pull vault on load", id="git-pull-on-load-checkbox"
+                )
             yield Static(
                 "Enter: save | Esc: cancel | Tab: navigate", id="settings-footer"
             )
@@ -237,6 +241,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#vault-path-input", Input
         ).value = app.config.get_obsidian_vault_path()
+        self.query_one(
+            "#git-pull-on-load-checkbox", Checkbox
+        ).value = app.config.get_obsidian_git_pull_on_load()
         self.query_one("#auto-save-interval-input", Input).value = str(
             app.config.get_auto_save_interval()
         )
@@ -277,6 +284,9 @@ class SettingsScreen(ModalScreen):
             ).value
             cursor_color = self.query_one("#cursor-color-input", Input).value.strip()
             vault_path = self.query_one("#vault-path-input", Input).value.strip()
+            git_pull_on_load = self.query_one(
+                "#git-pull-on-load-checkbox", Checkbox
+            ).value
             auto_save_interval_str = self.query_one(
                 "#auto-save-interval-input", Input
             ).value.strip()
@@ -331,6 +341,7 @@ class SettingsScreen(ModalScreen):
             app.config.set_space_between_paragraphs(space_between_paragraphs)
             app.config.set_cursor_color(cursor_color)
             app.config.set_obsidian_vault_path(vault_path)
+            app.config.set_obsidian_git_pull_on_load(git_pull_on_load)
             app.config.set_auto_save_interval(auto_save_interval)
             app.config.set_scrollbar_enabled(scrollbar_enabled)
             app.config.set_default_working_directory(working_dir)
