@@ -1173,7 +1173,6 @@ class HeloWrite(App):
         """Async part of git push."""
         import asyncio
         import os
-        import subprocess
 
         file_dir = str(self.file_path.parent)
         file_name = str(self.file_path.name)
@@ -1295,7 +1294,6 @@ class HeloWrite(App):
         """Async part of git pull."""
         import asyncio
         import os
-        import subprocess
 
         file_dir = str(self.file_path.parent)
         file_name = str(self.file_path.name)
@@ -1423,7 +1421,6 @@ class HeloWrite(App):
     async def _async_git_pull_vault(self, vault_path: str):
         """Async part of git pull for vault."""
         import asyncio
-        import subprocess
 
         log_file = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "git_sync_errors.log"
