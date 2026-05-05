@@ -8,6 +8,9 @@
 /_/ /_/\___/_/\____/|__/|__/_/  /_/\__/\___/ 
                                              
 ```
+![GitHub Release](https://img.shields.io/github/v/release/burninc0de/helowrite?color=orange)
+![Test](https://github.com/burninc0de/helowrite/actions/workflows/python-app.yml/badge.svg)
+
 
 **The Tactical Blade for Prose**. HeloWrite is a distraction-free, terminal-based writing environment built for speed, paranoia, and deep focus. It's not an "app"—it's a void.
 
