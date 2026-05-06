@@ -21,6 +21,7 @@ class Config:
             self.config_dir = Path.home() / ".config" / "helowrite"
         self.config_file = self.config_dir / "config.conf"
         self.keybindings_file = self.config_dir / "keybindings.conf"
+        self.snippets_file = self.config_dir / "snippets.conf"
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
     def get_theme(self) -> str:
@@ -308,6 +309,46 @@ class Config:
             ]
             lines.extend(f"{action}={key}" for action, key in keybindings.items())
             self.keybindings_file.write_text("\n".join(lines))
+        except Exception:
+            pass
+
+    def get_snippets(self) -> dict[str, str]:
+        """Load snippets from file."""
+        if not self.snippets_file.exists():
+            return {}
+
+        try:
+            content = self.snippets_file.read_text(encoding="utf-8")
+            snippets: dict[str, str] = {}
+            for line in content.splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip()
+                if key:
+                    snippets[key] = value
+            return snippets
+        except Exception:
+            return {}
+
+    def save_snippets(self, snippets: dict[str, str]) -> None:
+        """Persist snippets to file."""
+        try:
+            lines = [
+                "# HeloWrite snippets",
+                "# Format: trigger=replacement",
+                "# Placeholders: %CURRENTTIME, %DATE, %DATETIME, %CLIPBOARD, %CLIPBOARD_TRIMMED",
+                "# Use %% for a literal percent sign",
+                "# Escape sequences: \\n (newline), \\t (tab), \\\\n (literal backslash+n)",
+                "",
+            ]
+            for trigger, replacement in sorted(snippets.items()):
+                lines.append(f"{trigger}={replacement}")
+            self.snippets_file.write_text("\n".join(lines), encoding="utf-8")
         except Exception:
             pass
 

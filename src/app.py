@@ -332,6 +332,13 @@ class HeloWrite(App):
         # Directory navigation stack
         self.dir_stack = []
 
+        # Snippets
+        self._snippets = self.config.get_snippets()
+
+    def reload_snippets(self) -> None:
+        """Reload snippets from config file."""
+        self._snippets = self.config.get_snippets()
+
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()

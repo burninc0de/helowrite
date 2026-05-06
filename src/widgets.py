@@ -394,6 +394,55 @@ class HeloWriteTextArea(TextArea):
                 self.call_after_refresh(self.scroll_cursor_visible)
             return True  # Prevent default handling
 
+        app = getattr(self.app, "_snippets", None)
+        if app and (
+            event.key in ("space", "tab")
+            or (len(event.key) == 1 and not event.key.isalnum())
+        ):
+            from snippets import expand_placeholders, find_trigger
+
+            snippets = app
+            if hasattr(snippets, "get_snippets"):
+                snippets = snippets.get_snippets()
+
+            if not snippets:
+                return False
+
+            cursor_pos = self.cursor_location
+            if cursor_pos is None:
+                return False
+
+            current_line = cursor_pos[0]
+            text_before = self.get_text_range((current_line, 0), cursor_pos)
+
+            triggers = list(snippets.keys())
+            trigger, start_pos, end_pos = find_trigger(text_before, triggers)
+
+            if trigger is None:
+                return False
+
+            raw = snippets[trigger]
+            replacement = expand_placeholders(raw)
+
+            suffix = text_before[end_pos:]
+            if suffix and all(not ch.isalnum() and not ch.isspace() for ch in suffix):
+                self.delete((current_line, start_pos), (current_line, len(text_before)))
+                self.insert(replacement + suffix)
+            else:
+                self.delete((current_line, start_pos), (current_line, end_pos))
+                self.insert(replacement)
+
+            if event.key == "space":
+                self.insert(" ")
+            elif event.key == "tab":
+                self.insert("\t")
+            elif len(event.key) == 1 and not event.key.isalnum():
+                self.insert(event.key)
+
+            event.prevent_default()
+            event.stop()
+            return True
+
         if event.key == "backspace" and self.app.typewriter_mode:
             if self.app.typewriter_sounds:
                 self.app.play_sound("ratchet")

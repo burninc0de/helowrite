@@ -239,6 +239,29 @@ toggle_typewriter_mode=ctrl+shift+t
 Use Textual-style key names, e.g. `ctrl+s`, `ctrl+shift+t`, `alt+enter`, `f1`, `alt+left`.
 If a line is malformed or a key is invalid, HeloWrite will ignore that binding and keep the default for the action.
 
+## Snippets
+
+HeloWrite supports a simple snippet engine via `~/.config/helowrite/snippets.conf`.
+
+Each snippet uses the format `trigger=replacement`:
+
+```ini
+# trigger=replacement
+ddd=Archduke Maximilian of Habsburg-Lorraine
+```
+
+Snippets are expanded when the trigger is typed and followed by whitespace or punctuation. Trailing punctuation is preserved, so typing `ddd.` becomes:
+
+```text
+Archduke Maximilian of Habsburg-Lorraine.
+```
+
+Supported placeholders:
+- `%CURRENTTIME` → current time in `HH:MM`
+- `%%` → literal `%`
+
+After editing `snippets.conf`, restart HeloWrite to load your changes.
+
 ## Architecture
 
 HeloWrite is built using:
