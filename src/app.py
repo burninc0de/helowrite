@@ -163,6 +163,20 @@ class HeloWrite(App):
         if "Theme" in parent_commands:
             yield parent_commands["Theme"]
 
+        # Typewriter Mode
+        yield SystemCommand(
+            "Typewriter Mode",
+            "Toggle typewriter mode (centered cursor)",
+            self.action_toggle_typewriter_mode,
+        )
+
+        # Distraction Free Mode
+        yield SystemCommand(
+            "Distraction Free Mode",
+            "Toggle distraction-free mode",
+            self.action_toggle_distraction_free,
+        )
+
     DEFAULT_CSS = """Screen {
     background: $surface;
 }
