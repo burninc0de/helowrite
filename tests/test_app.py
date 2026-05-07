@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from app import HeloWrite
+from screens import WelcomeScreen
 
 
 @pytest.mark.asyncio
@@ -18,6 +19,17 @@ async def test_app_startup_and_quit(temp_config_dir: Path):
         assert app.file_path is None
         
         # Quit
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_welcome_screen_is_disabled_in_tests(temp_config_dir: Path):
+    """Ensure the welcome screen is disabled for headless pytest runs."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert not any(
+            isinstance(screen, WelcomeScreen) for screen in app.screen_stack
+        )
         await pilot.press("ctrl+q")
 
 

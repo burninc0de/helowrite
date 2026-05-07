@@ -439,7 +439,7 @@ Designed for focused composition with minimal UI and keyboard-driven workflow.
 
 HeloWrite - Write without distraction.
 
-Version: 0.8.62
+Version: 0.8.63
 
 Press Escape to close"""
         with Vertical(id="about-container"):
@@ -879,3 +879,73 @@ class TimerCompleteScreen(ModalScreen):
             self.app.pop_screen()
         else:
             self.app.pop_screen()
+
+
+class WelcomeScreen(ModalScreen):
+    """Welcome screen shown on first launch."""
+
+    DEFAULT_CSS = """
+WelcomeScreen {
+        align: center middle;
+        background: $surface;
+        scrollbar-size: 1 1;
+        scrollbar-color: $surface-lighten-2;
+        scrollbar-color-hover: $surface-lighten-1;
+        scrollbar-background: $surface;
+    }
+
+    #welcome-container {
+        width: 90;
+        height: auto;
+        padding: 2 4;
+    }
+
+    #welcome-title {
+        text-align: center;
+        color: $primary;
+        text-style: bold;
+    }
+
+    #welcome-subtitle {
+        text-align: center;
+        color: $text;
+        text-style: italic;
+    }
+
+    #welcome-section {
+        width: 100%;
+        text-align: center;
+    }
+
+    #welcome-hint {
+        color: $text-muted;
+        text-align: center;
+        margin-top: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        ascii_art = pyfiglet.figlet_format("HeloWrite", font="slant")
+
+        with Vertical(id="welcome-container"):
+            yield Static(ascii_art, id="welcome-title")
+            yield Static("The Tactical Blade for Prose", id="welcome-subtitle")
+            yield Static(
+                """
+Press [bold $primary]Ctrl+P[/] to open the [bold $primary]Command Palette[/] — choose a theme and customize settings.
+
+Customize your keybindings in: [bold $primary]~/.config/helowrite/keybindings.conf[/]
+""",
+                id="welcome-section",
+            )
+            yield Static(
+                "Press any key to begin, or (x) to disable this message...",
+                id="welcome-hint",
+            )
+
+    def on_key(self, event) -> None:
+        if event.key.lower() == "x":
+            self.app.config.set_show_welcome(False)
+        self.app.editor_width = self.app.config.get_editor_width()
+        self.app.apply_editor_settings()
+        self.app.pop_screen()

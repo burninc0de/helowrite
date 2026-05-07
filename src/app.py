@@ -23,6 +23,7 @@ from screens import (
     SaveAsScreen,
     SettingsScreen,
     TimerCompleteScreen,
+    WelcomeScreen,
 )
 from utils import detect_language
 from widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
@@ -130,6 +131,10 @@ class HeloWrite(App):
                 pass
 
     def get_system_commands(self, screen):
+        from screens import WelcomeScreen
+
+        is_welcome = any(isinstance(s, WelcomeScreen) for s in self.screen_stack)
+
         # Collect parent commands into a dict for easy lookup
         parent_commands = {}
         for cmd in super().get_system_commands(screen):
@@ -138,21 +143,23 @@ class HeloWrite(App):
             ):
                 parent_commands[cmd.title] = cmd
 
-        # Yield in exact desired order
-        yield SystemCommand(
-            "Workspace: Vault",
-            "Switch working directory to vault",
-            self.action_change_to_vault,
-        )
+        # Yield in exact desired order (skip some on welcome screen)
+        if not is_welcome:
+            yield SystemCommand(
+                "Workspace: Vault",
+                "Switch working directory to vault",
+                self.action_change_to_vault,
+            )
 
-        # Keys
-        if "Keys" in parent_commands:
+        # Keys (skip on welcome screen)
+        if not is_welcome and "Keys" in parent_commands:
             yield parent_commands["Keys"]
 
-        # Pomodoro Timer
-        yield SystemCommand(
-            "Pomodoro Timer", "Start a focus timer", self.action_pomodoro_timer
-        )
+        # Pomodoro Timer (skip on welcome screen)
+        if not is_welcome:
+            yield SystemCommand(
+                "Pomodoro Timer", "Start a focus timer", self.action_pomodoro_timer
+            )
 
         # Settings
         yield SystemCommand(
@@ -163,19 +170,21 @@ class HeloWrite(App):
         if "Theme" in parent_commands:
             yield parent_commands["Theme"]
 
-        # Typewriter Mode
-        yield SystemCommand(
-            "Typewriter Mode",
-            "Toggle typewriter mode (centered cursor)",
-            self.action_toggle_typewriter_mode,
-        )
+        # Typewriter Mode (skip on welcome screen)
+        if not is_welcome:
+            yield SystemCommand(
+                "Typewriter Mode",
+                "Toggle typewriter mode (centered cursor)",
+                self.action_toggle_typewriter_mode,
+            )
 
-        # Distraction Free Mode
-        yield SystemCommand(
-            "Distraction Free Mode",
-            "Toggle distraction-free mode",
-            self.action_toggle_distraction_free,
-        )
+        # Distraction Free Mode (skip on welcome screen)
+        if not is_welcome:
+            yield SystemCommand(
+                "Distraction Free Mode",
+                "Toggle distraction-free mode",
+                self.action_toggle_distraction_free,
+            )
 
     DEFAULT_CSS = """Screen {
     background: $surface;
@@ -390,6 +399,10 @@ class HeloWrite(App):
             vault_git = os.path.join(vault_path, ".git")
             if os.path.isdir(vault_git):
                 self.run_worker(self._async_git_pull_vault(vault_path))
+
+        # Show welcome screen on first launch
+        if self.config.get_show_welcome():
+            self.push_screen(WelcomeScreen())
 
         # Register our custom themes
         helowrite_theme = Theme(

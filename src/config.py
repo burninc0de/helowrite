@@ -79,6 +79,17 @@ class Config:
         config["distraction_free"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_show_welcome(self) -> bool:
+        """Return whether to show the welcome screen."""
+        config = self._load_config()
+        return config.get("show_welcome", "1") == "1"
+
+    def set_show_welcome(self, show: bool):
+        """Persist welcome screen preference."""
+        config = self._load_config()
+        config["show_welcome"] = "1" if show else "0"
+        self._save_config(config)
+
     def get_show_word_count_distraction_free(self) -> bool:
         """Return whether to show word count in distraction-free mode."""
         config = self._load_config()

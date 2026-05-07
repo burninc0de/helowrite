@@ -8,6 +8,8 @@ from typing import Generator
 
 import pytest
 
+from config import Config
+
 
 @pytest.fixture()
 def temp_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
@@ -17,6 +19,10 @@ def temp_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
     config_dir.mkdir()
     previous = os.environ.get("HELOWWRITE_CONFIG_DIR")
     os.environ["HELOWWRITE_CONFIG_DIR"] = str(config_dir)
+
+    # Disable the welcome screen for headless test runs.
+    Config().set_show_welcome(False)
+
     try:
         yield config_dir
     finally:
