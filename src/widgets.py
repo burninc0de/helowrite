@@ -2,14 +2,16 @@
 
 import datetime
 import os
+import re
 from pathlib import Path
-from typing import Optional
+from typing import Any, List, Optional
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.geometry import Size
 from textual.widgets import DirectoryTree, Static, TextArea
 
+from snippets import PLACEHOLDER_PATTERN
 from utils import detect_language, has_nerd_fonts
 
 
@@ -173,6 +175,12 @@ class HeloWriteTextArea(TextArea):
         text-style: bold;
     }
 
+    .text-area--selection {
+        background: $primary;
+        color: #ffffff;
+        text-style: bold;
+    }
+
     .typewriter-hidden .text-area--cursor,
     .typewriter-hidden .text-area--cursor-line {
         opacity: 0;
@@ -194,6 +202,79 @@ class HeloWriteTextArea(TextArea):
         )
         super().__init__(**kwargs)
         self.language = None
+
+    def _build_snippet_highlights(self) -> None:
+        app = getattr(self, "app", None) or getattr(self, "_app", None)
+        snippets: Any = getattr(app, "_snippets", None)
+        if hasattr(snippets, "get_snippets"):
+            snippets = snippets.get_snippets()
+        if not isinstance(snippets, dict) or not snippets:
+            return
+
+        replacement_values = sorted(
+            (value for value in snippets.values() if value), key=len, reverse=True
+        )
+        if not replacement_values:
+            return
+
+        for line_number, line in enumerate(self.text.splitlines()):
+            for replacement in replacement_values:
+                pattern = self._build_snippet_highlight_pattern(replacement)
+                if not pattern:
+                    continue
+                for match in re.finditer(pattern, line):
+                    self._highlights[line_number].append(
+                        (match.start(), match.end(), "snippet")
+                    )
+
+    def _build_snippet_highlight_pattern(self, replacement: str) -> Optional[str]:
+        """Build a regex that matches the expanded snippet text."""
+        if not replacement:
+            return None
+
+        parts: List[str] = []
+        index = 0
+        while index < len(replacement):
+            if replacement.startswith("\\\\", index):
+                parts.append(re.escape("\\"))
+                index += 2
+                continue
+            if replacement.startswith("\\n", index):
+                parts.append(re.escape("\n"))
+                index += 2
+                continue
+            if replacement.startswith("\\t", index):
+                parts.append(re.escape("\t"))
+                index += 2
+                continue
+            if replacement.startswith("%%", index):
+                parts.append("%")
+                index += 2
+                continue
+
+            placeholder = PLACEHOLDER_PATTERN.match(replacement, index)
+            if placeholder:
+                parts.append(self._placeholder_regex(placeholder.group(0)))
+                index = placeholder.end()
+                continue
+
+            parts.append(re.escape(replacement[index]))
+            index += 1
+
+        pattern = "".join(parts)
+        if re.fullmatch(r"[A-Za-z0-9_ ]+", replacement):
+            return rf"(?<!\w){pattern}(?!\w)"
+        return pattern
+
+    def _placeholder_regex(self, placeholder: str) -> str:
+        if placeholder == "%CURRENTTIME":
+            return r"\d{2}:\d{2}"
+        return re.escape(placeholder)
+
+    def _build_highlight_map(self) -> None:
+        super()._build_highlight_map()
+        if getattr(self.app, "snippet_highlighting_enabled", True):
+            self._build_snippet_highlights()
 
     def set_typewriter_bottom_slack(self, lines: int) -> None:
         """Set extra virtual lines at EOF for typewriter centering."""

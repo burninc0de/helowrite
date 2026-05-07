@@ -179,6 +179,10 @@ class SettingsScreen(ModalScreen):
                     id="show-word-count-checkbox",
                 )
             with Horizontal(classes="setting-row"):
+                yield Checkbox(
+                    " Enable snippet coloring", id="snippet-coloring-checkbox"
+                )
+            with Horizontal(classes="setting-row"):
                 yield Checkbox(" Enable auto-save", id="auto-save-checkbox")
             with Horizontal(classes="setting-row"):
                 yield Checkbox(" Show scrollbar", id="show-scrollbar-checkbox")
@@ -224,6 +228,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#show-word-count-checkbox", Checkbox
         ).value = app.config.get_show_word_count_distraction_free()
+        self.query_one(
+            "#snippet-coloring-checkbox", Checkbox
+        ).value = app.config.get_snippet_highlighting_enabled()
         self.query_one(
             "#auto-save-checkbox", Checkbox
         ).value = app.config.get_auto_save_enabled()
@@ -336,6 +343,9 @@ class SettingsScreen(ModalScreen):
             # Save to config
             app.config.set_open_last_file(open_last_file)
             app.config.set_show_word_count_distraction_free(show_word_count)
+            app.config.set_snippet_highlighting_enabled(
+                self.query_one("#snippet-coloring-checkbox", Checkbox).value
+            )
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
             app.config.set_space_between_paragraphs(space_between_paragraphs)
@@ -351,6 +361,9 @@ class SettingsScreen(ModalScreen):
             app.editor_width = width
             app.space_between_paragraphs = space_between_paragraphs
             app.cursor_color = cursor_color
+            app.snippet_highlighting_enabled = self.query_one(
+                "#snippet-coloring-checkbox", Checkbox
+            ).value
 
             # Apply auto-save
             app.auto_save_enabled = auto_save_enabled
@@ -368,6 +381,7 @@ class SettingsScreen(ModalScreen):
 
             # Apply settings
             app.apply_editor_settings()
+            app.apply_cursor_color()
 
             app.show_message("Settings saved!")
             self.app.pop_screen()

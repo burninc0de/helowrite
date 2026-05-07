@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
+from rich.style import Style
 from textual.app import App, ComposeResult, SystemCommand
 from textual.command import CommandPalette
 from textual.theme import Theme
@@ -334,10 +335,19 @@ class HeloWrite(App):
 
         # Snippets
         self._snippets = self.config.get_snippets()
+        self.snippet_highlighting_enabled = (
+            self.config.get_snippet_highlighting_enabled()
+        )
 
     def reload_snippets(self) -> None:
         """Reload snippets from config file."""
         self._snippets = self.config.get_snippets()
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor._build_highlight_map()
+            editor.refresh()
+        except Exception:
+            pass
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -493,6 +503,7 @@ class HeloWrite(App):
         if old_theme != new_theme and getattr(self, "_theme_initialized", False):
             self.config.set_theme(new_theme)
             self.notify(f"Theme changed to {new_theme}", severity="information")
+            self.apply_cursor_color()
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
@@ -568,6 +579,14 @@ class HeloWrite(App):
         except Exception:
             pass
 
+        # Rebuild snippet highlight map when the setting changes.
+        try:
+            if hasattr(editor, "_build_highlight_map"):
+                editor._build_highlight_map()
+                editor.refresh(layout=True)
+        except Exception:
+            pass
+
         # Keep typewriter layout synced if the mode is active.
         if self.typewriter_mode:
             try:
@@ -592,20 +611,44 @@ class HeloWrite(App):
 
             # Simple approach: add CSS that will apply on restart
             cursor_css = f"""
-            TextArea > .text-area--cursor {{
+            TextArea .text-area--cursor {{
                 background: {color};
                 color: #ffffff;
                 text-style: bold;
             }}
 
-            TextArea > .text-area--cursor-line {{
+            TextArea .text-area--cursor-line {{
                 background: {cursor_line_color};
+            }}
+
+            TextArea .text-area--selection {{
+                background: {color};
+                color: #ffffff;
+                text-style: bold;
             }}
             """
 
             # Add CSS to the app's stylesheet (will apply on next restart)
             self.stylesheet.add_source(cursor_css)
+
+            highlight_color = (
+                self.current_theme.primary
+                if self.cursor_color.lower() == "theme"
+                else self.cursor_color
+            )
+            try:
+                editor._theme.syntax_styles["snippet"] = Style(
+                    color=highlight_color,
+                    bold=True,
+                )
+            except Exception:
+                pass
+
             editor.refresh(layout=True)
+            try:
+                self.refresh(layout=True)
+            except Exception:
+                pass
         except Exception:
             # If dynamic CSS fails, the static CSS will be used
             pass

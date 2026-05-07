@@ -235,6 +235,17 @@ class Config:
         config["scrollbar_enabled"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_snippet_highlighting_enabled(self) -> bool:
+        """Return whether snippet coloring/highlighting is enabled."""
+        config = self._load_config()
+        return config.get("snippet_highlighting_enabled", "1") == "1"
+
+    def set_snippet_highlighting_enabled(self, enabled: bool):
+        """Persist snippet coloring/highlighting preference."""
+        config = self._load_config()
+        config["snippet_highlighting_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_default_working_directory(self) -> str:
         """Get the default working directory, defaulting to empty (current dir)."""
         config = self._load_config()

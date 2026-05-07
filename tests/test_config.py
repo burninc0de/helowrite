@@ -38,6 +38,14 @@ def test_config_setters_persist_values(temp_config_dir: Path, setter, value, exp
     assert expected in read_raw_config(temp_config_dir)
 
 
+def test_snippet_highlighting_setting_persists(temp_config_dir: Path) -> None:
+    config = Config(config_dir=temp_config_dir)
+    config.set_snippet_highlighting_enabled(False)
+
+    assert "snippet_highlighting_enabled=0" in read_raw_config(temp_config_dir)
+    assert config.get_snippet_highlighting_enabled() is False
+
+
 def test_recent_files_keeps_latest_five(temp_config_dir: Path) -> None:
     config = Config(config_dir=temp_config_dir)
     for idx in range(7):
