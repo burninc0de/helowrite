@@ -225,9 +225,7 @@ class HeloWriteTextArea(TextArea):
                 for match in re.finditer(pattern, line):
                     start = self._char_to_utf8_byte_index(line, match.start())
                     end = self._char_to_utf8_byte_index(line, match.end())
-                    self._highlights[line_number].append(
-                        (start, end, "snippet")
-                    )
+                    self._highlights[line_number].append((start, end, "snippet"))
 
     def _char_to_utf8_byte_index(self, line: str, index: int) -> int:
         """Convert a character offset into a UTF-8 byte offset for Textual highlights."""
