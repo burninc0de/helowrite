@@ -223,9 +223,15 @@ class HeloWriteTextArea(TextArea):
                 if not pattern:
                     continue
                 for match in re.finditer(pattern, line):
+                    start = self._char_to_utf8_byte_index(line, match.start())
+                    end = self._char_to_utf8_byte_index(line, match.end())
                     self._highlights[line_number].append(
-                        (match.start(), match.end(), "snippet")
+                        (start, end, "snippet")
                     )
+
+    def _char_to_utf8_byte_index(self, line: str, index: int) -> int:
+        """Convert a character offset into a UTF-8 byte offset for Textual highlights."""
+        return len(line[: max(0, index)].encode("utf-8"))
 
     def _build_snippet_highlight_pattern(self, replacement: str) -> Optional[str]:
         """Build a regex that matches the expanded snippet text."""

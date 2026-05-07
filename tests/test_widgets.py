@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from widgets import StatusBar
+import textual.message_pump as mp
+from textual.app import App
+
+from widgets import HeloWriteTextArea, StatusBar
 
 
 class _StubApp:
@@ -11,6 +14,18 @@ class _StubApp:
 
     def update_status(self):  # pragma: no cover - trivial
         self.updated = True
+
+
+class _SnippetApp(App):
+    def __init__(self):
+        super().__init__()
+        self._snippets = {
+            "eee": "Société Anonyme Belge pour le Commerce du Haut-Congo"
+        }
+        self.snippet_highlighting_enabled = True
+
+    def compose(self):
+        return
 
 
 def test_status_bar_updates_display_text():
@@ -40,3 +55,18 @@ def test_status_bar_disable_find_mode_restores_state():
     assert not bar.find_mode
     assert not bar.has_class("find-mode")
     assert bar._app.updated  # type: ignore[attr-defined]
+
+
+def test_snippet_highlight_uses_utf8_byte_offsets_for_unicode() -> None:
+    app = _SnippetApp()
+    token = mp.active_app.set(app)
+    try:
+        widget = HeloWriteTextArea()
+        widget.text = app._snippets["eee"]
+        widget._highlights.clear()
+        widget._build_snippet_highlights()
+
+        expected_end = len(widget.text.encode("utf-8"))
+        assert widget._highlights[0] == [(0, expected_end, "snippet")]
+    finally:
+        mp.active_app.reset(token)
