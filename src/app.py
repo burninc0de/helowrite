@@ -392,7 +392,26 @@ class HeloWrite(App):
 
     def on_mount(self) -> None:
         """Called when the app is mounted."""
+        # Load CLI-provided file FIRST, before any chdir, so paths are resolved
+        # relative to where the user invoked the app (not the configured working dir)
+        editor = self.query_one("#editor", HeloWriteTextArea)
+        editor.focus()
+
+        if self.file_path:
+            self.file_path = Path(self.file_path).resolve()
+            self.language = detect_language(self.file_path)
+            editor.language = None if self.language == "text" else self.language
+            if self.file_path.exists():
+                try:
+                    content = self.file_path.read_text()
+                    editor.load_text(content)
+                    self._original_text = content
+                    self.show_message(f"Loaded: {self.file_path}")
+                except Exception as e:
+                    self.show_message(f"Error loading file: {e}")
+
         # Change to default working directory if configured
+        # This only affects the file manager panels, not CLI-provided files
         default_dir = self.config.get_default_working_directory()
         if default_dir and os.path.isdir(default_dir):
             try:
@@ -475,30 +494,26 @@ class HeloWrite(App):
             if last_file:
                 last_path = Path(last_file)
                 if last_path.exists():
-                    self.file_path = last_path
-                    self.show_message(f"Restoring last file: {last_path}")
-                else:
-                    # Clear the invalid last file path
-                    self.config.set_last_file_path("")
+                    self.file_path = last_path.resolve()
+                    self.show_message(f"Restoring last file: {self.file_path}")
 
         # Set language based on file extension
         self.language = detect_language(self.file_path)
         editor.language = None if self.language == "text" else self.language
 
-        # Load file if provided
+        # Load file content (CLI file was loaded early; last file needs loading here)
         if self.file_path and self.file_path.exists():
             try:
                 content = self.file_path.read_text()
                 editor.load_text(content)
                 self._original_text = content
-                # Restore cursor position if this was an auto-loaded last file
+                # Restore cursor position for auto-loaded last file
                 if (
                     self.config.get_open_last_file()
                     and str(self.file_path) == self.config.get_last_file_path()
                 ):
                     saved_cursor = self.config.get_last_cursor_position()
                     lines = content.split("\n")
-                    # Validate and clamp cursor position to file bounds
                     valid_line = max(0, min(saved_cursor[0], len(lines) - 1))
                     valid_col = max(0, min(saved_cursor[1], len(lines[valid_line])))
                     editor.cursor_location = (valid_line, valid_col)
