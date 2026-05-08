@@ -2,6 +2,7 @@ import datetime
 import os
 import platform
 import subprocess
+from bisect import bisect_right
 from pathlib import Path
 from typing import Optional
 
@@ -11,7 +12,7 @@ from textual.app import App, ComposeResult, SystemCommand
 from textual.command import CommandPalette
 from textual.theme import Theme
 from textual.timer import Timer
-from textual.widgets import Footer, Header, Static, TextArea
+from textual.widgets import Footer, Header, Input, Static, TextArea
 
 from config import Config
 from screens import (
@@ -26,7 +27,7 @@ from screens import (
     WelcomeScreen,
 )
 from utils import detect_language
-from widgets import CenteredEditor, FileOpenPanel, HeloWriteTextArea, StatusBar
+from widgets import CenteredEditor, FileOpenPanel, FindBar, HeloWriteTextArea, StatusBar
 
 
 class HeloWriteCommandPalette(CommandPalette):
@@ -333,6 +334,9 @@ class HeloWrite(App):
         self.distraction_free = False
         self.language = "text"
         self._word_count_timer: Optional[Timer] = None
+        self.find_query = ""
+        self.find_matches: list[tuple[int, int, int]] = []
+        self.find_active_match_index = -1
         # Load editor settings
         self.editor_width = self.config.get_editor_width()
         self.cursor_color = self.config.get_cursor_color()
@@ -361,6 +365,9 @@ class HeloWrite(App):
         self.snippet_highlighting_enabled = (
             self.config.get_snippet_highlighting_enabled()
         )
+        self.markdown_highlighting_enabled = (
+            self.config.get_markdown_highlighting_enabled()
+        )
 
     def reload_snippets(self) -> None:
         """Reload snippets from config file."""
@@ -375,6 +382,7 @@ class HeloWrite(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
+        yield FindBar(id="find-bar")
         with CenteredEditor():
             yield HeloWriteTextArea(id="editor", highlight_cursor_line=False)
         yield StatusBar()
@@ -554,6 +562,9 @@ class HeloWrite(App):
                 3.0, self.show_distraction_word_count
             )
 
+        if self.find_query:
+            self.apply_find_query(self.find_query)
+
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
         self.update_status()
@@ -668,6 +679,31 @@ class HeloWrite(App):
                     color=highlight_color,
                     bold=True,
                 )
+                editor._theme.syntax_styles["markdown_heading"] = Style(
+                    color=highlight_color,
+                    bold=True,
+                )
+                editor._theme.syntax_styles["markdown_link"] = Style(
+                    color=highlight_color,
+                    underline=True,
+                )
+                editor._theme.syntax_styles["markdown_image"] = Style(
+                    color=highlight_color,
+                    italic=True,
+                )
+                editor._theme.syntax_styles["markdown_blockquote"] = Style(
+                    color=highlight_color,
+                    dim=True,
+                )
+                editor._theme.syntax_styles["search_result"] = Style(
+                    bgcolor=highlight_color,
+                    color=self.current_theme.background,
+                )
+                editor._theme.syntax_styles["search_result_current"] = Style(
+                    bgcolor=highlight_color,
+                    color=self.current_theme.background,
+                    bold=True,
+                )
             except Exception:
                 pass
 
@@ -772,47 +808,171 @@ class HeloWrite(App):
         self.show_message("New file created")
 
     def action_find(self):
-        """Toggle find mode in status bar."""
-        status_bar = self.query_one(StatusBar)
-        if status_bar.find_mode:
-            status_bar.disable_find_mode()
-            # Return focus to editor
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            editor.focus()
-        else:
-            status_bar.enable_find_mode()
-            status_bar.focus()
+        """Toggle the top search bar and focus the search input."""
+        find_bar = self.query_one("#find-bar", FindBar)
+        if find_bar.has_class("visible"):
+            self.close_find_bar(clear_query=True)
+            return
+
+        find_bar.add_class("visible")
+        find_input = find_bar.query_one("#find-input", Input)
+        find_input.value = self.find_query
+        find_bar.set_query(self.find_query)
+        find_bar.set_match_count(len(self.find_matches), self.find_active_match_index)
+        find_input.focus()
 
     def action_find_next(self):
-        """Find next occurrence of search text."""
-        status_bar = self.query_one(StatusBar)
-        if not status_bar.find_mode or not status_bar.find_text:
+        """Jump to the next search result."""
+        if not self.find_matches:
+            return
+
+        if self.find_active_match_index < 0:
+            self.find_active_match_index = 0
+        else:
+            self.find_active_match_index = (self.find_active_match_index + 1) % len(
+                self.find_matches
+            )
+
+        self.jump_to_find_result(self.find_active_match_index)
+        self.refresh_find_highlights()
+
+    def action_find_previous(self) -> None:
+        """Jump to the previous search result."""
+        if not self.find_matches:
+            return
+
+        if self.find_active_match_index < 0:
+            self.find_active_match_index = len(self.find_matches) - 1
+        else:
+            self.find_active_match_index = (self.find_active_match_index - 1) % len(
+                self.find_matches
+            )
+
+        self.jump_to_find_result(self.find_active_match_index)
+        self.refresh_find_highlights()
+
+    def close_find_bar(self, clear_query: bool = True) -> None:
+        """Close the find bar and optionally clear search highlights."""
+        find_bar = self.query_one("#find-bar", FindBar)
+        find_bar.remove_class("visible")
+        find_input = find_bar.query_one("#find-input", Input)
+        find_input.value = ""
+        find_bar.set_query("")
+
+        if clear_query:
+            self.find_query = ""
+            self.find_matches = []
+            self.find_active_match_index = -1
+            self.refresh_find_highlights()
+
+        editor = self.query_one("#editor", HeloWriteTextArea)
+        editor.focus()
+
+    def refresh_find_highlights(self) -> None:
+        """Rebuild highlights and update find-bar metadata."""
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor._build_highlight_map()
+            editor.refresh(layout=True)
+        except Exception:
+            pass
+
+        try:
+            find_bar = self.query_one("#find-bar", FindBar)
+            find_bar.set_match_count(
+                len(self.find_matches), self.find_active_match_index
+            )
+        except Exception:
+            pass
+
+    def apply_find_query(self, query: str) -> None:
+        """Compute all matches for the active query and update highlights."""
+        self.find_query = query
+        if not query:
+            self.find_matches = []
+            self.find_active_match_index = -1
+            self.refresh_find_highlights()
             return
 
         editor = self.query_one("#editor", HeloWriteTextArea)
         text = editor.text
-        find_text = status_bar.find_text
-        cursor_pos = editor.cursor_location
+        lower_text = text.lower()
+        needle = query.lower()
 
-        # Find from current position
-        start = (
-            cursor_pos[1] + cursor_pos[0] * len(text.split("\n")[cursor_pos[0]])
-            if cursor_pos[0] < len(text.split("\n"))
-            else 0
-        )
-        pos = text.find(find_text, start)
-        if pos == -1 and start > 0:  # Wrap around
-            pos = text.find(find_text, 0)
+        if not needle:
+            self.find_matches = []
+            self.find_active_match_index = -1
+            self.refresh_find_highlights()
+            return
 
-        if pos != -1:
-            # Calculate line and column
-            lines = text[:pos].split("\n")
-            line = len(lines) - 1
-            col = len(lines[-1])
-            editor.cursor_location = (line, col)
-            self.show_message(f"Found at line {line + 1}, column {col + 1}")
-        else:
-            self.show_message("Text not found")
+        line_starts = [0]
+        for index, char in enumerate(text):
+            if char == "\n":
+                line_starts.append(index + 1)
+
+        matches: list[tuple[int, int, int]] = []
+        start = 0
+        while True:
+            pos = lower_text.find(needle, start)
+            if pos == -1:
+                break
+
+            line = bisect_right(line_starts, pos) - 1
+            col = pos - line_starts[line]
+            matches.append((line, col, col + len(query)))
+            start = pos + max(len(query), 1)
+
+        self.find_matches = matches
+        self.find_active_match_index = 0 if matches else -1
+        self.refresh_find_highlights()
+
+    def jump_to_find_result(self, index: int) -> None:
+        """Move cursor and scroll to a specific find result."""
+        if index < 0 or index >= len(self.find_matches):
+            return
+
+        line, col, _ = self.find_matches[index]
+        editor = self.query_one("#editor", HeloWriteTextArea)
+        editor.cursor_location = (line, col)
+        editor.scroll_cursor_visible()
+        self.show_message(f"Match {index + 1}/{len(self.find_matches)}")
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        """Update find matches while typing in the find input."""
+        if event.input.id == "find-input":
+            find_bar = self.query_one("#find-bar", FindBar)
+            find_bar.set_query(event.value)
+            self.apply_find_query(event.value)
+
+    def on_key(self, event) -> None:
+        """Handle find-bar key controls while focus is in the find input."""
+        try:
+            focused = self.screen.focused
+        except Exception:
+            focused = None
+
+        if isinstance(focused, Input) and focused.id == "find-input":
+            if event.key == "escape":
+                event.prevent_default()
+                event.stop()
+                self.close_find_bar(clear_query=True)
+                return
+            if event.key == "down":
+                event.prevent_default()
+                event.stop()
+                self.action_find_next()
+                return
+            if event.key == "up":
+                event.prevent_default()
+                event.stop()
+                self.action_find_previous()
+                return
+            if event.key in ("enter", "return"):
+                event.prevent_default()
+                event.stop()
+                self.action_find_next()
+                self.close_find_bar(clear_query=True)
+                return
 
     def action_settings(self):
         """Open settings dialog."""

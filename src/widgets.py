@@ -9,7 +9,7 @@ from typing import Any, List, Optional
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.geometry import Size
-from textual.widgets import DirectoryTree, Static, TextArea
+from textual.widgets import DirectoryTree, Input, Static, TextArea
 
 from snippets import PLACEHOLDER_PATTERN
 from utils import detect_language, has_nerd_fonts
@@ -132,8 +132,95 @@ class CenteredEditor(Horizontal):
     pass
 
 
+class FindBar(Horizontal):
+    """Top search bar for in-buffer find navigation."""
+
+    DEFAULT_CSS = """
+    FindBar {
+        height: 1;
+        padding: 0 1;
+        background: $primary-darken-2;
+        color: $text;
+        display: none;
+    }
+
+    FindBar.visible {
+        display: block;
+    }
+
+    #find-text {
+        width: auto;
+        color: $text;
+    }
+
+    #find-input {
+        width: 0;
+        min-width: 0;
+        height: 1;
+        border: none;
+        background: transparent;
+        color: transparent;
+        padding: 0;
+    }
+
+    #find-meta {
+        width: auto;
+        padding-left: 1;
+        color: $text-muted;
+    }
+
+    #find-arrows {
+        width: auto;
+        padding-left: 1;
+        color: $primary;
+        text-style: bold;
+    }
+
+    #find-spacer {
+        width: 1fr;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Static("Find:", id="find-text")
+        yield Input(placeholder="Type to search...", id="find-input")
+        yield Static("0 matches", id="find-meta")
+        yield Static("", id="find-spacer")
+        yield Static("ESC ↑ ↓", id="find-arrows")
+
+    def set_query(self, query: str) -> None:
+        """Render the query visibly in the top bar."""
+        label = self.query_one("#find-text", Static)
+        if query:
+            label.update(f'Find: "{query}"')
+        else:
+            label.update("Find:")
+
+    def set_match_count(self, count: int, current_index: int = -1) -> None:
+        """Update the match counter in the find bar."""
+        meta = self.query_one("#find-meta", Static)
+        if count <= 0:
+            meta.update("0 matches")
+            return
+        if 0 <= current_index < count:
+            meta.update(f"{current_index + 1}/{count}")
+            return
+        meta.update(f"{count} matches")
+
+
 class HeloWriteTextArea(TextArea):
     """Custom TextArea with additional commands and paragraph spacing."""
+
+    BINDINGS = [
+        binding
+        for binding in TextArea.BINDINGS
+        if getattr(binding, "key", "") != "ctrl+f"
+    ]
+
+    MARKDOWN_HEADING_RE = re.compile(r"^\s{0,3}(#{1,6}\s+.+)$")
+    MARKDOWN_BLOCKQUOTE_RE = re.compile(r"^\s{0,3}(>\s?.+)$")
+    MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^\)]+\)")
+    MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\([^\)]+\)")
 
     DEFAULT_CSS = """
     TextArea {
@@ -279,6 +366,62 @@ class HeloWriteTextArea(TextArea):
         super()._build_highlight_map()
         if getattr(self.app, "snippet_highlighting_enabled", True):
             self._build_snippet_highlights()
+        if getattr(self.app, "markdown_highlighting_enabled", True):
+            self._build_markdown_highlights()
+        self._build_search_highlights()
+
+    def _build_search_highlights(self) -> None:
+        app = getattr(self, "app", None) or getattr(self, "_app", None)
+        matches = getattr(app, "find_matches", [])
+        current_index = getattr(app, "find_active_match_index", -1)
+        if not matches:
+            return
+
+        lines = self.text.splitlines()
+
+        for index, (line_number, start_col, end_col) in enumerate(matches):
+            if line_number < 0 or line_number >= len(lines):
+                continue
+            line = lines[line_number]
+            if start_col < 0 or end_col <= start_col or start_col > len(line):
+                continue
+            end_col = min(end_col, len(line))
+            start = self._char_to_utf8_byte_index(line, start_col)
+            end = self._char_to_utf8_byte_index(line, end_col)
+            token = (
+                "search_result_current" if index == current_index else "search_result"
+            )
+            self._highlights[line_number].append((start, end, token))
+
+    def _build_markdown_highlights(self) -> None:
+        app = getattr(self, "app", None) or getattr(self, "_app", None)
+        if getattr(app, "language", "text") != "markdown":
+            return
+
+        for line_number, line in enumerate(self.text.splitlines()):
+            heading_match = self.MARKDOWN_HEADING_RE.match(line)
+            if heading_match:
+                start = self._char_to_utf8_byte_index(line, heading_match.start(1))
+                end = self._char_to_utf8_byte_index(line, heading_match.end(1))
+                self._highlights[line_number].append((start, end, "markdown_heading"))
+
+            quote_match = self.MARKDOWN_BLOCKQUOTE_RE.match(line)
+            if quote_match:
+                start = self._char_to_utf8_byte_index(line, quote_match.start(1))
+                end = self._char_to_utf8_byte_index(line, quote_match.end(1))
+                self._highlights[line_number].append(
+                    (start, end, "markdown_blockquote")
+                )
+
+            for image_match in self.MARKDOWN_IMAGE_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, image_match.start())
+                end = self._char_to_utf8_byte_index(line, image_match.end())
+                self._highlights[line_number].append((start, end, "markdown_image"))
+
+            for link_match in self.MARKDOWN_LINK_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, link_match.start())
+                end = self._char_to_utf8_byte_index(line, link_match.end())
+                self._highlights[line_number].append((start, end, "markdown_link"))
 
     def set_typewriter_bottom_slack(self, lines: int) -> None:
         """Set extra virtual lines at EOF for typewriter centering."""
@@ -463,6 +606,14 @@ class HeloWriteTextArea(TextArea):
 
     def on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
+        if event.key == "ctrl+f":
+            action_find = getattr(self.app, "action_find", None)
+            if callable(action_find):
+                action_find()
+            event.prevent_default()
+            event.stop()
+            return True
+
         if event.key == "enter":
             # Insert text directly and consume Enter so TextArea doesn't process
             # the same key a second time.

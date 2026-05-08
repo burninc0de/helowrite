@@ -46,6 +46,14 @@ def test_snippet_highlighting_setting_persists(temp_config_dir: Path) -> None:
     assert config.get_snippet_highlighting_enabled() is False
 
 
+def test_markdown_highlighting_setting_persists(temp_config_dir: Path) -> None:
+    config = Config(config_dir=temp_config_dir)
+    config.set_markdown_highlighting_enabled(False)
+
+    assert "markdown_highlighting_enabled=0" in read_raw_config(temp_config_dir)
+    assert config.get_markdown_highlighting_enabled() is False
+
+
 def test_recent_files_keeps_latest_five(temp_config_dir: Path) -> None:
     config = Config(config_dir=temp_config_dir)
     for idx in range(7):

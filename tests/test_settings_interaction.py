@@ -74,6 +74,28 @@ async def test_settings_toggle_scrollbar(temp_config_dir: Path):
 
 
 @pytest.mark.asyncio
+async def test_settings_toggle_markdown_coloring(temp_config_dir: Path):
+    """Test toggling markdown coloring via Settings screen."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert app.markdown_highlighting_enabled
+
+        await pilot.press("f3")
+        await pilot.pause()
+
+        checkbox = app.screen.query_one("#markdown-coloring-checkbox", Checkbox)
+        checkbox.value = False
+
+        await pilot.press("enter")
+        await pilot.pause()
+
+        assert not app.markdown_highlighting_enabled
+
+        config = Config(config_dir=temp_config_dir)
+        assert not config.get_markdown_highlighting_enabled()
+
+
+@pytest.mark.asyncio
 async def test_distraction_free_toggle(temp_config_dir: Path):
     """Test toggling distraction free mode via shortcut (F11)."""
     app = HeloWrite()

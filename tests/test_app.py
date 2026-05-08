@@ -5,9 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from textual.widgets import Input
 
 from app import HeloWrite
 from screens import WelcomeScreen
+from widgets import FindBar
 
 
 @pytest.mark.asyncio
@@ -17,7 +19,7 @@ async def test_app_startup_and_quit(temp_config_dir: Path):
     async with app.run_test() as pilot:
         # Check initial state
         assert app.file_path is None
-        
+
         # Quit
         await pilot.press("ctrl+q")
 
@@ -27,9 +29,86 @@ async def test_welcome_screen_is_disabled_in_tests(temp_config_dir: Path):
     """Ensure the welcome screen is disabled for headless pytest runs."""
     app = HeloWrite()
     async with app.run_test() as pilot:
-        assert not any(
-            isinstance(screen, WelcomeScreen) for screen in app.screen_stack
+        assert not any(isinstance(screen, WelcomeScreen) for screen in app.screen_stack)
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_ctrl_f_opens_find_bar_and_focuses_input(temp_config_dir: Path):
+    """Ctrl+F should open the top find bar and focus the search input."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        await pilot.press("ctrl+f")
+        await pilot.pause()
+
+        find_bar = app.query_one("#find-bar", FindBar)
+        find_input = app.query_one("#find-input", Input)
+        assert find_bar.has_class("visible")
+        assert app.screen.focused == find_input
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_find_bar_navigation_and_enter_close(temp_config_dir: Path):
+    """Typing should highlight matches; arrows navigate and Enter closes."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        editor = app.query_one("#editor")
+        editor.load_text("alpha beta alpha")
+        await pilot.pause()
+
+        app.action_find()
+        await pilot.pause()
+
+        find_input = app.query_one("#find-input", Input)
+        find_input.value = "alpha"
+        app.apply_find_query("alpha")
+        await pilot.pause()
+
+        assert len(app.find_matches) == 2
+        assert app.find_active_match_index == 0
+        assert any(
+            span[2] in {"search_result", "search_result_current"}
+            for spans in editor._highlights.values()
+            for span in spans
         )
+
+        await pilot.press("down")
+        await pilot.pause()
+        assert app.find_active_match_index == 1
+
+        await pilot.press("enter")
+        await pilot.pause()
+
+        find_bar = app.query_one("#find-bar", FindBar)
+        assert not find_bar.has_class("visible")
+        assert app.find_query == ""
+        assert app.find_matches == []
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_find_bar_shows_query_text_and_arrows(temp_config_dir: Path):
+    """Find bar should visibly render the current query and arrow controls."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        await pilot.press("ctrl+f")
+        await pilot.pause()
+
+        find_input = app.query_one("#find-input", Input)
+        find_input.value = "vault"
+        await pilot.pause()
+
+        find_text = app.query_one("#find-text")
+        find_arrows = app.query_one("#find-arrows")
+        rendered_find_text = str(find_text.content)
+        assert rendered_find_text.startswith("Find:")
+        assert "vault" in rendered_find_text
+        assert "↑" in str(find_arrows.content)
+        assert "↓" in str(find_arrows.content)
+
         await pilot.press("ctrl+q")
 
 
@@ -39,16 +118,16 @@ async def test_app_loads_file(tmp_path: Path, temp_config_dir: Path):
     # Create a dummy file
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello World")
-    
+
     app = HeloWrite(str(test_file))
     async with app.run_test() as pilot:
         # Check if file was loaded
         assert app.file_path == test_file
-        
+
         # Check editor content
         editor = app.query_one("#editor")
         assert editor.text == "Hello World"
-        
+
         await pilot.press("ctrl+q")
 
 
@@ -57,54 +136,54 @@ async def test_app_save_file(tmp_path: Path, temp_config_dir: Path):
     """Test saving a file."""
     test_file = tmp_path / "save_test.txt"
     test_file.write_text("Original")
-    
+
     app = HeloWrite(str(test_file))
     async with app.run_test() as pilot:
         editor = app.query_one("#editor")
-        
+
         # Modify text directly
         # Note: We need to ensure the app knows it's dirty.
         # Setting text directly on TextArea might not trigger 'changed' message in a way
         # that updates is_dirty immediately depending on how it's wired,
         # but HeloWrite.on_text_area_changed listens for it.
         # Let's simulate typing or just set text and wait for event processing.
-        
+
         editor.load_text("Modified")
         # Force dirty state or wait for event?
         # Textual's run_test handles message pump.
         # However, load_text typically resets the "original text" logic in some editors,
         # but let's check HeloWrite.load_text usage.
-        
+
         # In HeloWrite.__init__:
         # editor.load_text(content)
         # self._original_text = content
-        
-        # If I call load_text again, _original_text doesn't update automatically 
-        # unless I update it myself. 
+
+        # If I call load_text again, _original_text doesn't update automatically
+        # unless I update it myself.
         # But wait, HeloWrite doesn't override load_text on the editor, it calls it on the widget.
         # And on_text_area_changed compares editor.text with self._original_text.
-        
+
         # So:
         # 1. App starts, loads "Original". _original_text="Original".
         # 2. We call editor.load_text("Modified").
         # 3. on_text_area_changed fires. editor.text ("Modified") != _original_text ("Original").
         # 4. is_dirty becomes True.
-        
+
         await pilot.pause()
         assert app.is_dirty
-        
+
         # Save
         await pilot.press("ctrl+s")
-        
+
         # Wait a bit for async save
         await pilot.pause()
-        
+
         # Check if dirty flag cleared
         assert not app.is_dirty
-        
+
         # Verify file on disk
         assert test_file.read_text() == "Modified"
-        
+
         # Clean exit
         await pilot.press("ctrl+q")
 
@@ -161,7 +240,10 @@ async def test_typewriter_same_line_typing_no_hide_when_scroll_unchanged(
         view_height = editor.scrollable_content_region.height
 
         editor._last_typewriter_center_state = {
-            "cursor": (editor.cursor_location[0], max(editor.cursor_location[1] - 1, 0)),
+            "cursor": (
+                editor.cursor_location[0],
+                max(editor.cursor_location[1] - 1, 0),
+            ),
             "scroll_y": initial_scroll,
             "target": initial_scroll,
             "max_scroll_y": float(editor.max_scroll_y),

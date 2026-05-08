@@ -257,6 +257,17 @@ class Config:
         config["snippet_highlighting_enabled"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_markdown_highlighting_enabled(self) -> bool:
+        """Return whether lightweight markdown accent highlighting is enabled."""
+        config = self._load_config()
+        return config.get("markdown_highlighting_enabled", "1") == "1"
+
+    def set_markdown_highlighting_enabled(self, enabled: bool):
+        """Persist markdown accent highlighting preference."""
+        config = self._load_config()
+        config["markdown_highlighting_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_default_working_directory(self) -> str:
         """Get the default working directory, defaulting to empty (current dir)."""
         config = self._load_config()

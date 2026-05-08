@@ -8,7 +8,14 @@ import pyfiglet
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Checkbox, DirectoryTree, Input, Static
+from textual.widgets import (
+    Checkbox,
+    DirectoryTree,
+    Input,
+    Static,
+    TabbedContent,
+    TabPane,
+)
 
 from utils import detect_language
 from widgets import HeloWriteTextArea
@@ -99,8 +106,8 @@ class SettingsScreen(ModalScreen):
     }
 
     #settings-frame {
-        width: 60;
-        height: auto;
+        width: 80;
+        height: 85%;
         background: $surface;
         border: thick $primary;
         padding: 1 2;
@@ -118,7 +125,7 @@ class SettingsScreen(ModalScreen):
     }
 
     .setting-label {
-        width: 35;
+        width: 28;
         color: $text;
     }
 
@@ -127,7 +134,12 @@ class SettingsScreen(ModalScreen):
     }
 
     .setting-input {
-        width: 12;
+        width: 14;
+        height: 1;
+    }
+
+    .setting-input-wide {
+        width: 50;
         height: 1;
     }
 
@@ -136,6 +148,19 @@ class SettingsScreen(ModalScreen):
         color: $text-muted;
         text-style: dim;
         margin-top: 1;
+    }
+
+    SettingsScreen TabbedContent {
+        height: 1fr;
+    }
+
+    SettingsScreen TabbedContent ContentSwitcher {
+        height: 1fr;
+    }
+
+    SettingsScreen TabPane {
+        height: 1fr;
+        overflow-y: auto;
     }
 
     SettingsScreen Input {
@@ -169,54 +194,84 @@ class SettingsScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         with Vertical(id="settings-frame"):
             yield Static(" Settings ", id="settings-title")
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    " Open last file on startup", id="open-last-file-checkbox"
-                )
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    " Show word count in distraction-free mode",
-                    id="show-word-count-checkbox",
-                )
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    " Enable snippet coloring", id="snippet-coloring-checkbox"
-                )
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(" Enable auto-save", id="auto-save-checkbox")
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(" Show scrollbar", id="show-scrollbar-checkbox")
-            with Horizontal(classes="setting-row"):
-                yield Static("Auto-save interval:", classes="setting-label")
-                yield Input(id="auto-save-interval-input", classes="setting-input")
-                yield Static(" minutes (1, 5, or 10)", classes="setting-value")
-            with Horizontal(classes="setting-row"):
-                yield Static("Editor width:", classes="setting-label")
-                yield Input(id="width-input", classes="setting-input")
-                yield Static(" %", classes="setting-value")
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    "Space between paragraphs", id="space-between-paragraphs-checkbox"
-                )
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    "Typewriter Mode sounds", id="typewriter-sounds-checkbox"
-                )
-            with Horizontal(classes="setting-row"):
-                yield Static("Cursor color:", classes="setting-label")
-                yield Input(id="cursor-color-input", classes="setting-input")
-            with Horizontal(classes="setting-row"):
-                yield Static("Default working directory:", classes="setting-label")
-                yield Input(id="working-dir-input", classes="setting-input")
-            with Horizontal(classes="setting-row"):
-                yield Static("Obsidian vault path:", classes="setting-label")
-                yield Input(id="vault-path-input", classes="setting-input")
-            with Horizontal(classes="setting-row"):
-                yield Checkbox(
-                    " Git pull vault on load", id="git-pull-on-load-checkbox"
-                )
+            with TabbedContent():
+                with TabPane("Editor"):
+                    with Vertical():
+                        with Horizontal(classes="setting-row"):
+                            yield Static("Editor width:", classes="setting-label")
+                            yield Input(id="width-input", classes="setting-input")
+                            yield Static(" %", classes="setting-value")
+                        with Horizontal(classes="setting-row"):
+                            yield Static("Cursor color:", classes="setting-label")
+                            yield Input(
+                                id="cursor-color-input", classes="setting-input"
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Show scrollbar", id="show-scrollbar-checkbox"
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                "Space between paragraphs",
+                                id="space-between-paragraphs-checkbox",
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                "Typewriter Mode sounds",
+                                id="typewriter-sounds-checkbox",
+                            )
+                with TabPane("Content"):
+                    with Vertical():
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Show word count in distraction-free mode",
+                                id="show-word-count-checkbox",
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Enable snippet coloring",
+                                id="snippet-coloring-checkbox",
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Enable markdown coloring",
+                                id="markdown-coloring-checkbox",
+                            )
+                with TabPane("Behavior"):
+                    with Vertical():
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Open last file on startup",
+                                id="open-last-file-checkbox",
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(" Enable auto-save", id="auto-save-checkbox")
+                        with Horizontal(classes="setting-row"):
+                            yield Static("Auto-save interval:", classes="setting-label")
+                            yield Input(
+                                id="auto-save-interval-input", classes="setting-input"
+                            )
+                            yield Static(" min (1, 5, 10)", classes="setting-value")
+                with TabPane("Files"):
+                    with Vertical():
+                        with Horizontal(classes="setting-row"):
+                            yield Static("Working directory:", classes="setting-label")
+                            yield Input(
+                                id="working-dir-input", classes="setting-input-wide"
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Static("Obsidian vault:", classes="setting-label")
+                            yield Input(
+                                id="vault-path-input", classes="setting-input-wide"
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Git pull vault on load",
+                                id="git-pull-on-load-checkbox",
+                            )
             yield Static(
-                "Enter: save | Esc: cancel | Tab: navigate", id="settings-footer"
+                "Enter: save | Space: toggle | Tab: navigate | ESC: cancel",
+                id="settings-footer",
             )
 
     def on_mount(self):
@@ -231,6 +286,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#snippet-coloring-checkbox", Checkbox
         ).value = app.config.get_snippet_highlighting_enabled()
+        self.query_one(
+            "#markdown-coloring-checkbox", Checkbox
+        ).value = app.config.get_markdown_highlighting_enabled()
         self.query_one(
             "#auto-save-checkbox", Checkbox
         ).value = app.config.get_auto_save_enabled()
@@ -346,6 +404,9 @@ class SettingsScreen(ModalScreen):
             app.config.set_snippet_highlighting_enabled(
                 self.query_one("#snippet-coloring-checkbox", Checkbox).value
             )
+            app.config.set_markdown_highlighting_enabled(
+                self.query_one("#markdown-coloring-checkbox", Checkbox).value
+            )
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
             app.config.set_space_between_paragraphs(space_between_paragraphs)
@@ -363,6 +424,9 @@ class SettingsScreen(ModalScreen):
             app.cursor_color = cursor_color
             app.snippet_highlighting_enabled = self.query_one(
                 "#snippet-coloring-checkbox", Checkbox
+            ).value
+            app.markdown_highlighting_enabled = self.query_one(
+                "#markdown-coloring-checkbox", Checkbox
             ).value
 
             # Apply auto-save
@@ -439,7 +503,7 @@ Designed for focused composition with minimal UI and keyboard-driven workflow.
 
 HeloWrite - Write without distraction.
 
-Version: 0.8.64
+Version: 0.8.7
 
 Press Escape to close"""
         with Vertical(id="about-container"):
