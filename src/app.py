@@ -371,6 +371,7 @@ class HeloWrite(App):
         self._applying_system_update: bool = False
         self._system_watcher_active: bool = False
         self._system_watcher_timer: Optional[Timer] = None
+        self._system_watch_interval_seconds: float = 1.0
 
         # Snippets
         self._snippets = self.config.get_snippets()
@@ -594,7 +595,7 @@ class HeloWrite(App):
         if self._system_watcher_active:
             return
         self._system_watcher_timer = self.set_interval(
-            5.0, self._check_system_theme_update
+            self._system_watch_interval_seconds, self._check_system_theme_update
         )
         self._system_watcher_active = True
 
