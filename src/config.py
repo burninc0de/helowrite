@@ -29,6 +29,11 @@ class Config:
         config = self._load_config()
         return config.get("theme", "helowrite-dark")
 
+    def has_theme_preference(self) -> bool:
+        """Return whether a theme has been explicitly saved."""
+        config = self._load_config()
+        return "theme" in config
+
     def set_theme(self, theme: str):
         """Save the theme to config file."""
         config = self._load_config()

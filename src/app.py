@@ -26,7 +26,12 @@ from screens import (
     TimerCompleteScreen,
     WelcomeScreen,
 )
-from utils import detect_language
+from utils import (
+    create_system_theme,
+    detect_language,
+    get_system_theme_last_modified,
+    is_system_theme_available,
+)
 from widgets import CenteredEditor, FileOpenPanel, FindBar, HeloWriteTextArea, StatusBar
 
 
@@ -360,6 +365,13 @@ class HeloWrite(App):
         # Directory navigation stack
         self.dir_stack = []
 
+        # System theme integration
+        self._system_theme: Optional[dict] = None
+        self._system_last_check: float = 0.0
+        self._applying_system_update: bool = False
+        self._system_watcher_active: bool = False
+        self._system_watcher_timer: Optional[Timer] = None
+
         # Snippets
         self._snippets = self.config.get_snippets()
         self.snippet_highlighting_enabled = (
@@ -473,13 +485,38 @@ class HeloWrite(App):
         )
         self.register_theme(kanso_pearl_theme)
 
+        # Register system theme from any discovered system theme source.
+        system = create_system_theme()
+        if system:
+            system_theme = Theme(
+                name="system",
+                primary=system["primary"],
+                background=system["background"],
+                surface=system["surface"],
+                foreground=system["foreground"],
+                dark=system["dark"],
+            )
+            self.register_theme(system_theme)
+            self._system_theme = system
+            self._system_last_check = get_system_theme_last_modified() or 0.0
+        else:
+            self._system_theme = None
+
         # Load saved theme now that UI is ready
         theme = self.config.get_theme()
-        # Check against all available themes (including built-in and custom)
+        has_saved_theme = self.config.has_theme_preference()
         available_themes = set(self.available_themes.keys())
-        if theme not in available_themes:
+
+        if self._system_theme and not has_saved_theme:
+            theme = "system"
+            self.config.set_theme("system")
+        elif theme == "system" and not self._system_theme:
             theme = "helowrite-dark"
             self.config.set_theme("helowrite-dark")
+        elif theme not in available_themes:
+            theme = "helowrite-dark"
+            self.config.set_theme("helowrite-dark")
+
         self.theme = theme
         self._theme_initialized = True
         # Force refresh to ensure theme colors are applied to Screen background
@@ -548,12 +585,98 @@ class HeloWrite(App):
         if self.auto_save_enabled:
             self.start_auto_save()
 
+        # Start system theme watcher only if system theme is currently selected
+        if self._system_theme and self.theme == "system":
+            self._start_system_theme_watcher()
+
+    def _start_system_theme_watcher(self) -> None:
+        """Enable periodic checks for active system theme changes."""
+        if self._system_watcher_active:
+            return
+        self._system_watcher_timer = self.set_interval(
+            5.0, self._check_system_theme_update
+        )
+        self._system_watcher_active = True
+
+    def _stop_system_theme_watcher(self) -> None:
+        """Disable periodic checks for system theme changes."""
+        if self._system_watcher_timer:
+            self._system_watcher_timer.stop()
+            self._system_watcher_timer = None
+        self._system_watcher_active = False
+
+    def _fallback_to_default_theme(self) -> None:
+        """Fallback when system theme disappears or becomes invalid."""
+        self._system_theme = None
+        self._system_last_check = 0.0
+        self._stop_system_theme_watcher()
+        self.theme = "helowrite-dark"
+        self.config.set_theme("helowrite-dark")
+        self.notify(
+            "System theme unavailable. Falling back to helowrite-dark.",
+            severity="warning",
+        )
+
     def watch_theme(self, old_theme: str, new_theme: str) -> None:
         """Called when the theme changes - save it to config."""
+        if getattr(self, "_applying_system_update", False):
+            return
         if old_theme != new_theme and getattr(self, "_theme_initialized", False):
             self.config.set_theme(new_theme)
             self.notify(f"Theme changed to {new_theme}", severity="information")
             self.apply_cursor_color()
+            # Start/stop system theme watcher based on selection
+            if new_theme == "system" and self._system_theme:
+                self._start_system_theme_watcher()
+            elif old_theme == "system":
+                self._stop_system_theme_watcher()
+
+    def _check_system_theme_update(self) -> None:
+        """Check if system theme has changed and update if needed."""
+        if not is_system_theme_available():
+            if self.theme == "system":
+                self._fallback_to_default_theme()
+            return
+
+        if not self._system_theme:
+            self._system_theme = create_system_theme()
+            self._system_last_check = get_system_theme_last_modified() or 0.0
+            if not self._system_theme:
+                return
+
+        try:
+            current_mtime = get_system_theme_last_modified() or 0.0
+            if current_mtime > self._system_last_check:
+                new_system_theme = create_system_theme()
+                if new_system_theme:
+                    self._system_theme = new_system_theme
+                    self._system_last_check = current_mtime
+                    if self.theme == "system":
+                        self._applying_system_update = True
+                        try:
+                            # Re-register theme with fresh colors from system.
+                            system_theme = Theme(
+                                name="system",
+                                primary=new_system_theme["primary"],
+                                background=new_system_theme["background"],
+                                surface=new_system_theme["surface"],
+                                foreground=new_system_theme["foreground"],
+                                dark=new_system_theme["dark"],
+                            )
+                            self.register_theme(system_theme)
+                            self.theme = "textual-dark"
+                            self.theme = "system"
+                        finally:
+                            self._applying_system_update = False
+
+                        self.refresh_css()
+                        self.screen.refresh()
+                        # Re-apply dynamic cursor/syntax styles that depend on current theme.
+                        self.apply_cursor_color()
+                elif self.theme == "system":
+                    self._fallback_to_default_theme()
+        except Exception:
+            pass
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
@@ -808,6 +931,7 @@ class HeloWrite(App):
         if self._word_count_timer:
             self._word_count_timer.stop()
         self.stop_auto_save()
+        self._stop_system_theme_watcher()
         self.exit()
 
     def action_open(self):

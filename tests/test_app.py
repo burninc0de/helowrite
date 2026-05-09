@@ -8,6 +8,7 @@ import pytest
 from textual.widgets import Input
 
 from app import HeloWrite
+from config import Config
 from screens import WelcomeScreen
 from widgets import FindBar
 
@@ -336,4 +337,132 @@ async def test_typewriter_enter_advances_double_line_with_paragraph_spacing(
 
         assert end_row == start_row + 2
 
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_system_theme_auto_selected_on_first_launch(
+    temp_config_dir: Path, monkeypatch
+):
+    system_theme = {
+        "name": "system",
+        "display_name": "System",
+        "primary": "#5ea1ff",
+        "background": "#101010",
+        "surface": "#101010",
+        "foreground": "#f0f0f0",
+        "dark": True,
+    }
+    monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("app.is_system_theme_available", lambda: True)
+
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert app.theme == "system"
+        assert Config(config_dir=temp_config_dir).get_theme() == "system"
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_system_theme_does_not_override_saved_user_choice(
+    temp_config_dir: Path, monkeypatch
+):
+    Config(config_dir=temp_config_dir).set_theme("kanso-pearl")
+    system_theme = {
+        "name": "system",
+        "display_name": "System",
+        "primary": "#5ea1ff",
+        "background": "#101010",
+        "surface": "#101010",
+        "foreground": "#f0f0f0",
+        "dark": True,
+    }
+    monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("app.is_system_theme_available", lambda: True)
+
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert app.theme == "kanso-pearl"
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_system_theme_falls_back_when_source_disappears(
+    temp_config_dir: Path, monkeypatch
+):
+    Config(config_dir=temp_config_dir).set_theme("system")
+    state = {"available": True}
+    system_theme = {
+        "name": "system",
+        "display_name": "System",
+        "primary": "#5ea1ff",
+        "background": "#101010",
+        "surface": "#101010",
+        "foreground": "#f0f0f0",
+        "dark": True,
+    }
+
+    monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("app.is_system_theme_available", lambda: state["available"])
+
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert app.theme == "system"
+        state["available"] = False
+        app._check_system_theme_update()
+        assert app.theme == "helowrite-dark"
+        assert Config(config_dir=temp_config_dir).get_theme() == "helowrite-dark"
+        assert app._system_watcher_active is False
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_system_theme_update_reapplies_dynamic_highlight_styles(
+    temp_config_dir: Path, monkeypatch
+):
+    Config(config_dir=temp_config_dir).set_theme("system")
+    state = {
+        "available": True,
+        "mtime": 100.0,
+        "primary": "#5ea1ff",
+    }
+
+    def make_theme() -> dict:
+        return {
+            "name": "system",
+            "display_name": "System",
+            "primary": state["primary"],
+            "background": "#101010",
+            "surface": "#101010",
+            "foreground": "#f0f0f0",
+            "dark": True,
+        }
+
+    monkeypatch.setattr("app.create_system_theme", make_theme)
+    monkeypatch.setattr("app.get_system_theme_last_modified", lambda: state["mtime"])
+    monkeypatch.setattr("app.is_system_theme_available", lambda: state["available"])
+
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        assert app.theme == "system"
+
+        calls = {"count": 0}
+        original_apply_cursor_color = app.apply_cursor_color
+
+        def track_apply_cursor_color() -> None:
+            calls["count"] += 1
+            original_apply_cursor_color()
+
+        app.apply_cursor_color = track_apply_cursor_color
+
+        state["primary"] = "#ff8a00"
+        state["mtime"] = 101.0
+        app._check_system_theme_update()
+
+        assert calls["count"] == 1
+        assert app._system_theme is not None
+        assert app._system_theme["primary"] == "#ff8a00"
         await pilot.press("ctrl+q")
