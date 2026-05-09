@@ -14,7 +14,7 @@
 
 **The Tactical Blade for Prose**. HeloWrite is a distraction-free, terminal-based writing environment built for speed, paranoia, and deep focus. It's not an "app"—it's a void.
 
-No bloat. No bullshit.
+One word at a time. No distractions, no detours.
 
 https://user-images.githubusercontent.com/44199273/586904098-6681dfe3-787d-4c98-88e1-81711a6530b8.mp4
 
@@ -24,16 +24,16 @@ HeloWrite is a digital typewriter with an infinite roll of paper and no "Format"
 
 It has one job: help you scrape words out of your skull.
 
-HeloWrite treats prose with the same rigor developers treat code, but without the steep learning curve. Terminal-native, standard keybinds, clean aesthetics.
+HeloWrite treats prose with the same rigor developers treat code, minus the steep learning curve. Terminal-native, standard keybinds, clean aesthetics.
 
-Writing is hard. Everything else is secondary.
+Writing is hard. Focus is paramount. Everything else is secondary.
 
 - **0.5s Startup**: From Enter to blinking cursor in 500ms.
 - **The Void**: High-contrast, minimalist UI designed to stop flashlighting your retinas.
 - **Git-First Workflow**: Don't just "sync"—stage, commit, and push your work only when it is worth keeping.
 
 ## Operational Essentials
-- **Pure Focus**: Alt+Enter (Option+Enter on macOS) or F11 toggles distraction-free mode. No icons, no ribbons, just you and the syntactical turds you're polishing.
+- **Pure Focus**: Alt+Enter (Option+Enter on macOS) or F11 toggles distraction-free mode. No icons, no ribbons, just you and the text.
 - **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
 - **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.
@@ -111,9 +111,15 @@ To upgrade to the latest version:
 pipx upgrade helowrite
 ```
 
+To uninstall:
+
+```bash
+pipx uninstall helowrite
+```
+
 ### Development Install (Editable Source Checkout)
 
-Use this if you want to hack on HeloWrite itself. This install is intentionally tied to your virtual environment.
+Use this if you want to hack on HeloWrite itself. We use a virtual environment so your system python stays untouched.
 
 ```bash
 # Clone the void
