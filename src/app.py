@@ -710,6 +710,21 @@ class HeloWrite(App):
                     color=highlight_color,
                     dim=True,
                 )
+                editor._theme.syntax_styles["markdown_italic"] = Style(
+                    color=highlight_color,
+                    italic=True,
+                )
+                editor._theme.syntax_styles["markdown_bold"] = Style(
+                    color=highlight_color,
+                    bold=True,
+                )
+                editor._theme.syntax_styles["markdown_code"] = Style(
+                    color=highlight_color,
+                )
+                editor._theme.syntax_styles["markdown_codeblock"] = Style(
+                    color=highlight_color,
+                    bold=True,
+                )
                 editor._theme.syntax_styles["search_result"] = Style(
                     bgcolor=highlight_color,
                     color=self.current_theme.background,

@@ -221,6 +221,10 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_BLOCKQUOTE_RE = re.compile(r"^\s{0,3}(>\s?.+)$")
     MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^\)]+\)")
     MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\([^\)]+\)")
+    MARKDOWN_ITALIC_RE = re.compile(r"(?<!\*)\*(?!\*)((?!\s).)*?(?<!\*)\*(?!\*)")
+    MARKDOWN_BOLD_RE = re.compile(r"\*\*(?!\s)((?!\s).)*?\*\*")
+    MARKDOWN_CODE_RE = re.compile(r"(`+)(.*?)\1")
+    MARKDOWN_CODEBLOCK_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
 
     DEFAULT_CSS = """
     TextArea {
@@ -422,6 +426,43 @@ class HeloWriteTextArea(TextArea):
                 start = self._char_to_utf8_byte_index(line, link_match.start())
                 end = self._char_to_utf8_byte_index(line, link_match.end())
                 self._highlights[line_number].append((start, end, "markdown_link"))
+
+            for code_match in self.MARKDOWN_CODE_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, code_match.start())
+                end = self._char_to_utf8_byte_index(line, code_match.end())
+                self._highlights[line_number].append((start, end, "markdown_code"))
+
+            for bold_match in self.MARKDOWN_BOLD_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, bold_match.start())
+                end = self._char_to_utf8_byte_index(line, bold_match.end())
+                self._highlights[line_number].append((start, end, "markdown_bold"))
+
+            for italic_match in self.MARKDOWN_ITALIC_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, italic_match.start())
+                end = self._char_to_utf8_byte_index(line, italic_match.end())
+                self._highlights[line_number].append((start, end, "markdown_italic"))
+
+        for match in self.MARKDOWN_CODEBLOCK_RE.finditer(self.text):
+            start_offset = match.start()
+            end_offset = match.end()
+            line_start = self.text[:start_offset].count("\n")
+            line_end = self.text[:end_offset].count("\n")
+            lines = self.text.splitlines()
+            for ln in range(line_start, line_end + 1):
+                self._highlights.setdefault(ln, [])
+                line_content = lines[ln]
+                line_text_start = sum(len(line) + 1 for line in lines[:ln])
+                rel_start = start_offset - line_text_start if ln == line_start else 0
+                rel_end = (
+                    end_offset - line_text_start
+                    if ln == line_end
+                    else len(line_content)
+                )
+                start = self._char_to_utf8_byte_index(line_content, max(0, rel_start))
+                end = self._char_to_utf8_byte_index(
+                    line_content, min(len(line_content), rel_end)
+                )
+                self._highlights[ln].append((start, end, "markdown_codeblock"))
 
     def set_typewriter_bottom_slack(self, lines: int) -> None:
         """Set extra virtual lines at EOF for typewriter centering."""
