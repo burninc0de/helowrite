@@ -97,3 +97,13 @@ def test_smart_quote_replacements_defaults_and_persistence(
     assert config.get_smart_quote_close_single() == ">"
     assert config.get_smart_quote_open_double() == "["
     assert config.get_smart_quote_close_double() == "]"
+
+
+def test_config_file_is_written_in_utf8_for_smart_quotes(
+    temp_config_dir: Path,
+) -> None:
+    config = Config(config_dir=temp_config_dir)
+    config.set_smart_quote_open_double("\u201c")
+
+    raw = (temp_config_dir / "config.conf").read_bytes()
+    assert b"\xe2\x80\x9c" in raw

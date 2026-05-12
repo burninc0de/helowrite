@@ -24,6 +24,14 @@ class Config:
         self.snippets_file = self.config_dir / "snippets.conf"
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _read_text_with_fallback(path: Path) -> str:
+        """Read text as UTF-8, falling back to cp1252 for legacy files."""
+        try:
+            return path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return path.read_text(encoding="cp1252")
+
     def get_theme(self) -> str:
         """Get the saved theme, defaulting to 'helowrite-dark'."""
         config = self._load_config()
@@ -370,7 +378,7 @@ class Config:
             return {}
 
         try:
-            content = self.keybindings_file.read_text()
+            content = self._read_text_with_fallback(self.keybindings_file)
             keybindings: dict[str, str] = {}
             for line in content.strip().split("\n"):
                 line = line.strip()
@@ -401,7 +409,7 @@ class Config:
                 "",
             ]
             lines.extend(f"{action}={key}" for action, key in keybindings.items())
-            self.keybindings_file.write_text("\n".join(lines))
+            self.keybindings_file.write_text("\n".join(lines), encoding="utf-8")
         except Exception:
             pass
 
@@ -449,7 +457,7 @@ class Config:
         """Load config from file."""
         if self.config_file.exists():
             try:
-                content = self.config_file.read_text()
+                content = self._read_text_with_fallback(self.config_file)
                 config = {}
                 for line in content.strip().split("\n"):
                     if "=" in line:
@@ -464,6 +472,6 @@ class Config:
         """Save config to file."""
         try:
             content = "\n".join(f"{key}={value}" for key, value in config.items())
-            self.config_file.write_text(content)
+            self.config_file.write_text(content, encoding="utf-8")
         except Exception:
             pass

@@ -466,3 +466,21 @@ async def test_system_theme_update_reapplies_dynamic_highlight_styles(
         assert app._system_theme is not None
         assert app._system_theme["primary"] == "#ff8a00"
         await pilot.press("ctrl+q")
+
+
+def test_read_text_file_supports_legacy_cp1252(tmp_path: Path, temp_config_dir: Path):
+    """Legacy cp1252 files should still load correctly."""
+    path = tmp_path / "legacy.md"
+    path.write_bytes(b"\x93hello\x94")
+
+    app = HeloWrite()
+    assert app.read_text_file(path) == "\u201chello\u201d"
+
+
+def test_write_text_file_always_uses_utf8(tmp_path: Path, temp_config_dir: Path):
+    """Editor writes should always use UTF-8 for portability."""
+    path = tmp_path / "utf8.md"
+
+    HeloWrite.write_text_file(path, "\u201chello\u201d")
+
+    assert path.read_bytes() == b"\xe2\x80\x9chello\xe2\x80\x9d"

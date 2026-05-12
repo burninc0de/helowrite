@@ -120,6 +120,30 @@ class HeloWrite(App):
 
     BINDINGS = []
 
+    @staticmethod
+    def _read_text_with_fallback(path: Path) -> tuple[str, str]:
+        """Read UTF-8 text with fallback for legacy cp1252-encoded files."""
+        try:
+            return path.read_text(encoding="utf-8"), "utf-8"
+        except UnicodeDecodeError:
+            return path.read_text(encoding="cp1252"), "cp1252"
+
+    def read_text_file(self, path: Path, show_encoding_notice: bool = False) -> str:
+        """Read file text safely for editor content and optional encoding notice."""
+        content, encoding = self._read_text_with_fallback(path)
+        if show_encoding_notice and encoding != "utf-8":
+            self._feedback(
+                "Loaded with legacy cp1252 encoding. Save to convert to UTF-8.",
+                severity="warning",
+                timeout=5,
+            )
+        return content
+
+    @staticmethod
+    def write_text_file(path: Path, text: str) -> None:
+        """Write text using UTF-8 so smart quotes are portable across tools."""
+        path.write_text(text, encoding="utf-8")
+
     def _bind_keybindings(self) -> None:
         """Bind actions using user keybindings or defaults."""
         self.config.save_default_keybindings(self.DEFAULT_KEYBINDINGS)
@@ -423,7 +447,9 @@ class HeloWrite(App):
             editor.language = None if self.language == "text" else self.language
             if self.file_path.exists():
                 try:
-                    content = self.file_path.read_text()
+                    content = self.read_text_file(
+                        self.file_path, show_encoding_notice=True
+                    )
                     editor.load_text(content)
                     self._original_text = content
                     self.show_message(f"Loaded: {self.file_path}")
@@ -549,7 +575,7 @@ class HeloWrite(App):
         # Load file content (CLI file was loaded early; last file needs loading here)
         if self.file_path and self.file_path.exists():
             try:
-                content = self.file_path.read_text()
+                content = self.read_text_file(self.file_path, show_encoding_notice=True)
                 editor.load_text(content)
                 self._original_text = content
                 # Restore cursor position for auto-loaded last file
@@ -913,7 +939,7 @@ class HeloWrite(App):
             return
 
         try:
-            self.file_path.write_text(text)
+            self.write_text_file(self.file_path, text)
             self._original_text = text
             self.is_dirty = False
             self.update_status()
@@ -1164,8 +1190,7 @@ class HeloWrite(App):
         # Create the file if it doesn't exist
         if not os.path.exists(file_path):
             try:
-                with open(file_path, "w") as f:
-                    f.write("")
+                self.write_text_file(Path(file_path), "")
             except Exception as e:
                 self.show_message(f"Error creating daily note: {e}")
                 return
@@ -1175,7 +1200,7 @@ class HeloWrite(App):
         self.file_path = file_path_obj
         self.language = detect_language(file_path_obj)
         try:
-            content = file_path_obj.read_text()
+            content = self.read_text_file(file_path_obj, show_encoding_notice=True)
             editor = self.query_one("#editor", HeloWriteTextArea)
             editor.language = None if self.language == "text" else self.language
             editor.load_text(content)
@@ -1508,7 +1533,7 @@ class HeloWrite(App):
         try:
             editor = self.query_one("#editor", TextArea)
             text = editor.text
-            self.file_path.write_text(text)
+            self.write_text_file(self.file_path, text)
             self.is_dirty = False
             self.update_status()
             self._feedback(
@@ -1709,12 +1734,12 @@ class HeloWrite(App):
                     error_msg = "Git push failed: no upstream branch set. Try pulling first with Alt+H to set it up."
                 else:
                     error_msg = "Git push failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a") as f:
+                with open(log_file, "a", encoding="utf-8") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self._feedback(error_msg, severity="error", timeout=10)
         except Exception as e:
             error_msg = f"Error: {str(e)}"
-            with open(log_file, "a") as f:
+            with open(log_file, "a", encoding="utf-8") as f:
                 f.write(error_msg + "\n")
             self._feedback(error_msg, severity="error", timeout=10)
 
@@ -1837,12 +1862,12 @@ class HeloWrite(App):
                 self._feedback("Git pull completed (already up to date)", timeout=2)
             else:
                 error_msg = "Git pull failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a") as f:
+                with open(log_file, "a", encoding="utf-8") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self._feedback(error_msg, severity="error", timeout=10)
         except Exception as e:
             error_msg = f"Error: {str(e)}"
-            with open(log_file, "a") as f:
+            with open(log_file, "a", encoding="utf-8") as f:
                 f.write(error_msg + "\n")
             self._feedback(error_msg, severity="error", timeout=10)
 
@@ -1967,12 +1992,12 @@ class HeloWrite(App):
                 )
             else:
                 error_msg = "Git pull vault failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a") as f:
+                with open(log_file, "a", encoding="utf-8") as f:
                     f.write(f"Command '{current_cmd}' failed: {error_details}\n")
                 self._feedback(error_msg, severity="error", timeout=10)
         except Exception as e:
             error_msg = f"Error: {str(e)}"
-            with open(log_file, "a") as f:
+            with open(log_file, "a", encoding="utf-8") as f:
                 f.write(error_msg + "\n")
             self._feedback(error_msg, severity="error", timeout=10)
 
@@ -1981,7 +2006,7 @@ class HeloWrite(App):
         if not self.file_path or not self.file_path.exists():
             return
         try:
-            content = self.file_path.read_text(encoding="utf-8")
+            content = self.read_text_file(self.file_path)
             if content != self._original_text:
                 editor = self.query_one("#editor", HeloWriteTextArea)
                 # Save current cursor position

@@ -866,7 +866,7 @@ class FileOpenPanel(Vertical):
             app.file_path = file_path
             app.language = detect_language(file_path)
             try:
-                content = file_path.read_text()
+                content = app.read_text_file(file_path, show_encoding_notice=True)
                 editor = app.query_one("#editor", HeloWriteTextArea)
                 editor.language = None if app.language == "text" else app.language
                 editor.load_text(content)
