@@ -139,7 +139,17 @@ Important: because this is a venv-local editable install, `helowrite` is availab
 
 **Requirements**: Python 3.8+
 
-### Troubleshooting: `helowrite: command not found`
+### Troubleshooting: 
+
+> [!IMPORTANT]
+> HeloWrite is built for high-performance terminal environments that support modern input protocols.
+
+- Verified: Ghostty, Kitty, Alacritty.
+- Unsupported: macOS Terminal.app, Windows Console, and other legacy emulators.
+
+Depending on your terminal or environment, some key combinations may get eaten by your terminal and/or OS. Make sure to customize your keybinds in `keybindings.conf` if something isn't working as expected.
+
+#### `helowrite: command not found`
 
 - If you installed with `pip install -e .` inside a venv, reactivate that venv in each new terminal.
 - If you installed with `pipx` but the command is still missing, ensure `~/.local/bin` is on your PATH.
