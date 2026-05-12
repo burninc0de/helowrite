@@ -356,6 +356,13 @@ class HeloWrite(App):
         # Space between paragraphs setting
         self.space_between_paragraphs = self.config.get_space_between_paragraphs()
 
+        # Smart quotes setting
+        self.smart_quotes = self.config.get_smart_quotes()
+        self.smart_quote_open_single = self.config.get_smart_quote_open_single()
+        self.smart_quote_close_single = self.config.get_smart_quote_close_single()
+        self.smart_quote_open_double = self.config.get_smart_quote_open_double()
+        self.smart_quote_close_double = self.config.get_smart_quote_close_double()
+
         # Typewriter mode setting
         self.typewriter_mode = self.config.get_typewriter_mode()
         self.typewriter_sounds = self.config.get_typewriter_sounds()

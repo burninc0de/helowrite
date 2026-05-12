@@ -143,6 +143,22 @@ class SettingsScreen(ModalScreen):
         height: 1;
     }
 
+    .smart-quote-label {
+        width: 13;
+        color: $text;
+    }
+
+    .smart-quote-close-label {
+        margin-left: 2;
+        margin-right:1;
+
+    }
+
+    .smart-quote-input {
+        width: 7;
+        height: 1;
+    }
+
     #settings-footer {
         text-align: center;
         color: $text-muted;
@@ -237,6 +253,43 @@ class SettingsScreen(ModalScreen):
                                 " Enable markdown coloring",
                                 id="markdown-coloring-checkbox",
                             )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Typographic quotes",
+                                id="smart-quotes-checkbox",
+                            )
+                        with Horizontal(
+                            classes="setting-row", id="smart-quote-row-single"
+                        ):
+                            yield Static("Open single:", classes="smart-quote-label")
+                            yield Input(
+                                id="smart-quote-open-single-input",
+                                classes="smart-quote-input",
+                            )
+                            yield Static(
+                                "Close single:",
+                                classes="smart-quote-label smart-quote-close-label",
+                            )
+                            yield Input(
+                                id="smart-quote-close-single-input",
+                                classes="smart-quote-input",
+                            )
+                        with Horizontal(
+                            classes="setting-row", id="smart-quote-row-double"
+                        ):
+                            yield Static("Open double:", classes="smart-quote-label")
+                            yield Input(
+                                id="smart-quote-open-double-input",
+                                classes="smart-quote-input",
+                            )
+                            yield Static(
+                                "Close double:",
+                                classes="smart-quote-label smart-quote-close-label",
+                            )
+                            yield Input(
+                                id="smart-quote-close-double-input",
+                                classes="smart-quote-input",
+                            )
                 with TabPane("Behavior"):
                     with Vertical():
                         with Horizontal(classes="setting-row"):
@@ -290,6 +343,21 @@ class SettingsScreen(ModalScreen):
             "#markdown-coloring-checkbox", Checkbox
         ).value = app.config.get_markdown_highlighting_enabled()
         self.query_one(
+            "#smart-quotes-checkbox", Checkbox
+        ).value = app.config.get_smart_quotes()
+        self.query_one(
+            "#smart-quote-open-single-input", Input
+        ).value = app.config.get_smart_quote_open_single()
+        self.query_one(
+            "#smart-quote-close-single-input", Input
+        ).value = app.config.get_smart_quote_close_single()
+        self.query_one(
+            "#smart-quote-open-double-input", Input
+        ).value = app.config.get_smart_quote_open_double()
+        self.query_one(
+            "#smart-quote-close-double-input", Input
+        ).value = app.config.get_smart_quote_close_double()
+        self.query_one(
             "#auto-save-checkbox", Checkbox
         ).value = app.config.get_auto_save_enabled()
         self.query_one(
@@ -316,6 +384,10 @@ class SettingsScreen(ModalScreen):
             "#working-dir-input", Input
         ).value = app.config.get_default_working_directory()
 
+        self._set_smart_quote_rows_visible(
+            self.query_one("#smart-quotes-checkbox", Checkbox).value
+        )
+
         # Focus first focusable widget
         self.query_one("#open-last-file-checkbox", Checkbox).focus()
 
@@ -325,6 +397,14 @@ class SettingsScreen(ModalScreen):
             self.app.pop_screen()
         elif event.key == "enter":
             self.save_settings()
+
+    def _set_smart_quote_rows_visible(self, visible: bool) -> None:
+        self.query_one("#smart-quote-row-single", Horizontal).display = visible
+        self.query_one("#smart-quote-row-double", Horizontal).display = visible
+
+    def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+        if event.checkbox.id == "smart-quotes-checkbox":
+            self._set_smart_quote_rows_visible(event.value)
 
     def _is_typing_in_input(self) -> bool:
         """Check if currently focused on an input field."""
@@ -362,6 +442,18 @@ class SettingsScreen(ModalScreen):
             typewriter_sounds = self.query_one(
                 "#typewriter-sounds-checkbox", Checkbox
             ).value
+            smart_quote_open_single = self.query_one(
+                "#smart-quote-open-single-input", Input
+            ).value
+            smart_quote_close_single = self.query_one(
+                "#smart-quote-close-single-input", Input
+            ).value
+            smart_quote_open_double = self.query_one(
+                "#smart-quote-open-double-input", Input
+            ).value
+            smart_quote_close_double = self.query_one(
+                "#smart-quote-close-double-input", Input
+            ).value
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
@@ -398,6 +490,23 @@ class SettingsScreen(ModalScreen):
                 app.show_message("Working directory must be an existing directory")
                 return
 
+            smart_quote_open_single = smart_quote_open_single.strip() or "\u2018"
+            smart_quote_close_single = smart_quote_close_single.strip() or "\u2019"
+            smart_quote_open_double = smart_quote_open_double.strip() or "\u201c"
+            smart_quote_close_double = smart_quote_close_double.strip() or "\u201d"
+
+            if any(
+                len(value) != 1
+                for value in (
+                    smart_quote_open_single,
+                    smart_quote_close_single,
+                    smart_quote_open_double,
+                    smart_quote_close_double,
+                )
+            ):
+                app.show_message("Each smart quote replacement must be exactly 1 char")
+                return
+
             # Save to config
             app.config.set_open_last_file(open_last_file)
             app.config.set_show_word_count_distraction_free(show_word_count)
@@ -406,6 +515,9 @@ class SettingsScreen(ModalScreen):
             )
             app.config.set_markdown_highlighting_enabled(
                 self.query_one("#markdown-coloring-checkbox", Checkbox).value
+            )
+            app.config.set_smart_quotes(
+                self.query_one("#smart-quotes-checkbox", Checkbox).value
             )
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
@@ -417,6 +529,10 @@ class SettingsScreen(ModalScreen):
             app.config.set_scrollbar_enabled(scrollbar_enabled)
             app.config.set_default_working_directory(working_dir)
             app.config.set_typewriter_sounds(typewriter_sounds)
+            app.config.set_smart_quote_open_single(smart_quote_open_single)
+            app.config.set_smart_quote_close_single(smart_quote_close_single)
+            app.config.set_smart_quote_open_double(smart_quote_open_double)
+            app.config.set_smart_quote_close_double(smart_quote_close_double)
 
             # Update app settings
             app.editor_width = width
@@ -428,6 +544,11 @@ class SettingsScreen(ModalScreen):
             app.markdown_highlighting_enabled = self.query_one(
                 "#markdown-coloring-checkbox", Checkbox
             ).value
+            app.smart_quotes = self.query_one("#smart-quotes-checkbox", Checkbox).value
+            app.smart_quote_open_single = smart_quote_open_single
+            app.smart_quote_close_single = smart_quote_close_single
+            app.smart_quote_open_double = smart_quote_open_double
+            app.smart_quote_close_double = smart_quote_close_double
 
             # Apply auto-save
             app.auto_save_enabled = auto_save_enabled

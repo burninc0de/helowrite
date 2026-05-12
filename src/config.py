@@ -128,6 +128,61 @@ class Config:
         config["space_between_paragraphs"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_smart_quotes(self) -> bool:
+        """Return whether to use smart/curly quotes."""
+        config = self._load_config()
+        return config.get("smart_quotes", "0") == "1"
+
+    def set_smart_quotes(self, enabled: bool):
+        """Persist smart quotes preference."""
+        config = self._load_config()
+        config["smart_quotes"] = "1" if enabled else "0"
+        self._save_config(config)
+
+    def get_smart_quote_open_single(self) -> str:
+        """Return opening replacement character for single quote."""
+        config = self._load_config()
+        return config.get("smart_quote_open_single", "\u2018")
+
+    def set_smart_quote_open_single(self, value: str):
+        """Persist opening replacement character for single quote."""
+        config = self._load_config()
+        config["smart_quote_open_single"] = value
+        self._save_config(config)
+
+    def get_smart_quote_close_single(self) -> str:
+        """Return closing replacement character for single quote."""
+        config = self._load_config()
+        return config.get("smart_quote_close_single", "\u2019")
+
+    def set_smart_quote_close_single(self, value: str):
+        """Persist closing replacement character for single quote."""
+        config = self._load_config()
+        config["smart_quote_close_single"] = value
+        self._save_config(config)
+
+    def get_smart_quote_open_double(self) -> str:
+        """Return opening replacement character for double quote."""
+        config = self._load_config()
+        return config.get("smart_quote_open_double", "\u201c")
+
+    def set_smart_quote_open_double(self, value: str):
+        """Persist opening replacement character for double quote."""
+        config = self._load_config()
+        config["smart_quote_open_double"] = value
+        self._save_config(config)
+
+    def get_smart_quote_close_double(self) -> str:
+        """Return closing replacement character for double quote."""
+        config = self._load_config()
+        return config.get("smart_quote_close_double", "\u201d")
+
+    def set_smart_quote_close_double(self, value: str):
+        """Persist closing replacement character for double quote."""
+        config = self._load_config()
+        config["smart_quote_close_double"] = value
+        self._save_config(config)
+
     def get_open_last_file(self) -> bool:
         """Return whether to open the last file on startup."""
         config = self._load_config()

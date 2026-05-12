@@ -294,6 +294,37 @@ class HeloWriteTextArea(TextArea):
         super().__init__(**kwargs)
         self.language = None
 
+    def _is_opening_quote_position(self) -> bool:
+        """Return True if cursor is at a position where an opening quote should be used."""
+        cursor = self.cursor_location
+        if cursor is None:
+            return True
+        row, col = cursor
+        if col == 0:
+            return True
+        text_before = self.get_text_range((row, 0), (row, col))
+        if not text_before:
+            return True
+        return text_before[-1] in " \t\n\r([{'\""
+
+    def _insert_smart_quote(self, plain_quote: str) -> None:
+        """Insert curly quote based on cursor context."""
+        app = self.app
+        open_single = getattr(app, "smart_quote_open_single", "\u2018")
+        close_single = getattr(app, "smart_quote_close_single", "\u2019")
+        open_double = getattr(app, "smart_quote_open_double", "\u201c")
+        close_double = getattr(app, "smart_quote_close_double", "\u201d")
+        if self._is_opening_quote_position():
+            if plain_quote == '"':
+                self.insert(open_double)
+            else:
+                self.insert(open_single)
+        else:
+            if plain_quote == '"':
+                self.insert(close_double)
+            else:
+                self.insert(close_single)
+
     def _build_snippet_highlights(self) -> None:
         app = getattr(self, "app", None) or getattr(self, "_app", None)
         snippets: Any = getattr(app, "_snippets", None)
@@ -645,7 +676,7 @@ class HeloWriteTextArea(TextArea):
                 extra = vp // 2 + self.typewriter_bottom_slack_lines
                 self.virtual_size = Size(width, height + extra)
 
-    def on_key(self, event):
+    async def _on_key(self, event):
         """Handle key presses, adding paragraph break on Enter."""
         if event.key == "ctrl+f":
             action_find = getattr(self.app, "action_find", None)
@@ -653,11 +684,21 @@ class HeloWriteTextArea(TextArea):
                 action_find()
             event.prevent_default()
             event.stop()
-            return True
+            return
+
+        if getattr(self.app, "smart_quotes", False):
+            if event.character == '"':
+                self._insert_smart_quote('"')
+                event.prevent_default()
+                event.stop()
+                return
+            if event.character == "'":
+                self._insert_smart_quote("'")
+                event.prevent_default()
+                event.stop()
+                return
 
         if event.key == "enter":
-            # Insert text directly and consume Enter so TextArea doesn't process
-            # the same key a second time.
             self.insert("\n\n" if self.app.space_between_paragraphs else "\n")
             event.prevent_default()
             event.stop()
@@ -669,7 +710,7 @@ class HeloWriteTextArea(TextArea):
                     self.app.play_sound("newline")
             else:
                 self.call_after_refresh(self.scroll_cursor_visible)
-            return True  # Prevent default handling
+            return
 
         app = getattr(self.app, "_snippets", None)
         if app and (
@@ -683,11 +724,13 @@ class HeloWriteTextArea(TextArea):
                 snippets = snippets.get_snippets()
 
             if not snippets:
-                return False
+                await super()._on_key(event)
+                return
 
             cursor_pos = self.cursor_location
             if cursor_pos is None:
-                return False
+                await super()._on_key(event)
+                return
 
             current_line = cursor_pos[0]
             text_before = self.get_text_range((current_line, 0), cursor_pos)
@@ -696,7 +739,8 @@ class HeloWriteTextArea(TextArea):
             trigger, start_pos, end_pos = find_trigger(text_before, triggers)
 
             if trigger is None:
-                return False
+                await super()._on_key(event)
+                return
 
             raw = snippets[trigger]
             replacement = expand_placeholders(raw)
@@ -718,21 +762,22 @@ class HeloWriteTextArea(TextArea):
 
             event.prevent_default()
             event.stop()
-            return True
+            return
 
         if event.key == "backspace" and self.app.typewriter_mode:
             if self.app.typewriter_sounds:
                 self.app.play_sound("ratchet")
-            return False
+            await super()._on_key(event)
+            return
 
         if self.app.typewriter_mode and event.key in ("up", "down"):
             self.add_class("typewriter-hidden")
             self._write_typewriter_debug(f"hide_key_{event.key}")
             self._schedule_typewriter_center()
-            return False
+            await super()._on_key(event)
+            return
 
-        # For other keys, let Textual handle them normally
-        return False
+        await super()._on_key(event)
 
     def action_home(self):
         """Override Ctrl+A to select all instead of going to start of line."""

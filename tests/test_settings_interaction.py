@@ -147,3 +147,55 @@ def test_app_creates_default_keybindings_file(temp_config_dir: Path) -> None:
     content = keybindings_file.read_text()
     assert "save=ctrl+s" in content
     assert "toggle_distraction_free=f11" in content
+
+
+@pytest.mark.asyncio
+async def test_settings_save_custom_smart_quote_replacements(temp_config_dir: Path):
+    """Test custom smart quote replacement characters are saved and applied."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        await pilot.press("f3")
+        await pilot.pause()
+
+        app.screen.query_one("#smart-quote-open-single-input", Input).value = "<"
+        app.screen.query_one("#smart-quote-close-single-input", Input).value = ">"
+        app.screen.query_one("#smart-quote-open-double-input", Input).value = "["
+        app.screen.query_one("#smart-quote-close-double-input", Input).value = "]"
+
+        await pilot.press("enter")
+        await pilot.pause()
+
+        assert app.smart_quote_open_single == "<"
+        assert app.smart_quote_close_single == ">"
+        assert app.smart_quote_open_double == "["
+        assert app.smart_quote_close_double == "]"
+
+        config = Config(config_dir=temp_config_dir)
+        assert config.get_smart_quote_open_single() == "<"
+        assert config.get_smart_quote_close_single() == ">"
+        assert config.get_smart_quote_open_double() == "["
+        assert config.get_smart_quote_close_double() == "]"
+
+
+@pytest.mark.asyncio
+async def test_smart_quote_replacement_rows_toggle_with_checkbox(
+    temp_config_dir: Path,
+) -> None:
+    """Smart quote replacement rows are visible only when smart quotes are enabled."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        await pilot.press("f3")
+        await pilot.pause()
+
+        checkbox = app.screen.query_one("#smart-quotes-checkbox", Checkbox)
+        row_single = app.screen.query_one("#smart-quote-row-single")
+        row_double = app.screen.query_one("#smart-quote-row-double")
+
+        assert row_single.display == checkbox.value
+        assert row_double.display == checkbox.value
+
+        checkbox.value = not checkbox.value
+        await pilot.pause()
+
+        assert row_single.display == checkbox.value
+        assert row_double.display == checkbox.value

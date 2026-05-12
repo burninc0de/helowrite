@@ -76,3 +76,24 @@ def test_recent_files_move_existing_to_front(temp_config_dir: Path) -> None:
     config.add_recent_file("/tmp/file1.md")
 
     assert config.get_recent_files()[0] == "/tmp/file1.md"
+
+
+def test_smart_quote_replacements_defaults_and_persistence(
+    temp_config_dir: Path,
+) -> None:
+    config = Config(config_dir=temp_config_dir)
+
+    assert config.get_smart_quote_open_single() == "\u2018"
+    assert config.get_smart_quote_close_single() == "\u2019"
+    assert config.get_smart_quote_open_double() == "\u201c"
+    assert config.get_smart_quote_close_double() == "\u201d"
+
+    config.set_smart_quote_open_single("<")
+    config.set_smart_quote_close_single(">")
+    config.set_smart_quote_open_double("[")
+    config.set_smart_quote_close_double("]")
+
+    assert config.get_smart_quote_open_single() == "<"
+    assert config.get_smart_quote_close_single() == ">"
+    assert config.get_smart_quote_open_double() == "["
+    assert config.get_smart_quote_close_double() == "]"
