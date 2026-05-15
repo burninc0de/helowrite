@@ -698,23 +698,9 @@ class HeloWriteTextArea(TextArea):
                 event.stop()
                 return
 
-        if event.key == "enter":
-            self.insert("\n\n" if self.app.space_between_paragraphs else "\n")
-            event.prevent_default()
-            event.stop()
-            if self.app.typewriter_mode:
-                self.add_class("typewriter-hidden")
-                self._write_typewriter_debug("hide_key_enter")
-                self._schedule_typewriter_center()
-                if self.app.typewriter_sounds:
-                    self.app.play_sound("newline")
-            else:
-                self.call_after_refresh(self.scroll_cursor_visible)
-            return
-
         app = getattr(self.app, "_snippets", None)
         if app and (
-            event.key in ("space", "tab")
+            event.key in ("space", "tab", "enter")
             or (len(event.key) == 1 and not event.key.isalnum())
         ):
             from snippets import expand_placeholders, find_trigger
@@ -739,29 +725,64 @@ class HeloWriteTextArea(TextArea):
             trigger, start_pos, end_pos = find_trigger(text_before, triggers)
 
             if trigger is None:
-                await super()._on_key(event)
-                return
-
-            raw = snippets[trigger]
-            replacement = expand_placeholders(raw)
-
-            suffix = text_before[end_pos:]
-            if suffix and all(not ch.isalnum() and not ch.isspace() for ch in suffix):
-                self.delete((current_line, start_pos), (current_line, len(text_before)))
-                self.insert(replacement + suffix)
+                if event.key != "enter":
+                    await super()._on_key(event)
+                    return
             else:
-                self.delete((current_line, start_pos), (current_line, end_pos))
-                self.insert(replacement)
+                raw = snippets[trigger]
+                replacement = expand_placeholders(raw)
 
-            if event.key == "space":
-                self.insert(" ")
-            elif event.key == "tab":
-                self.insert("\t")
-            elif len(event.key) == 1 and not event.key.isalnum():
-                self.insert(event.key)
+                suffix = text_before[end_pos:]
+                if suffix and all(
+                    not ch.isalnum() and not ch.isspace() for ch in suffix
+                ):
+                    self.delete(
+                        (current_line, start_pos), (current_line, len(text_before))
+                    )
+                    self.insert(replacement + suffix)
+                else:
+                    self.delete((current_line, start_pos), (current_line, end_pos))
+                    self.insert(replacement)
+
+                if event.key == "space":
+                    self.insert(" ")
+                elif event.key == "tab":
+                    self.insert("\t")
+                elif len(event.key) == 1 and not event.key.isalnum():
+                    self.insert(event.key)
+
+            if event.key == "enter":
+                self.insert("\n\n" if self.app.space_between_paragraphs else "\n")
+                if self.app.typewriter_mode:
+                    self.add_class("typewriter-hidden")
+                    self._write_typewriter_debug(
+                        "snippet_enter" if trigger else "key_enter"
+                    )
+                    self._schedule_typewriter_center()
+                    if self.app.typewriter_sounds:
+                        self.app.play_sound("newline")
+                else:
+                    self.call_after_refresh(self.scroll_cursor_visible)
+                event.prevent_default()
+                event.stop()
+                return
 
             event.prevent_default()
             event.stop()
+            return
+
+        if event.key == "enter":
+            self.insert("\n\n" if self.app.space_between_paragraphs else "\n")
+            event.prevent_default()
+            event.stop()
+            if self.app.typewriter_mode:
+                self.add_class("typewriter-hidden")
+                self._write_typewriter_debug("key_enter")
+                self._schedule_typewriter_center()
+                if self.app.typewriter_sounds:
+                    self.app.play_sound("newline")
+            else:
+                self.call_after_refresh(self.scroll_cursor_visible)
             return
 
         if event.key == "backspace" and self.app.typewriter_mode:
