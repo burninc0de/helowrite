@@ -1,6 +1,6 @@
 # Command Palette Template
 
-This document explains how to add new custom commands to HeloWrite's Command Palette.
+This document explains how to add new custom commands to HeloWrite's Command Palette, based on Textual.
 
 ## Principles
 
