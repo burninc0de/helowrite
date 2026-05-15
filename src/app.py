@@ -1,6 +1,5 @@
 import datetime
 import os
-import platform
 from pathlib import Path
 from typing import Optional
 
@@ -11,6 +10,7 @@ from textual.command import CommandPalette
 from textual.timer import Timer
 from textual.widgets import Footer, Header, Input, Static, TextArea
 
+from audio_playback import play_sound
 from config import Config
 from git_sync import GitSyncResult, run_git_pull, run_git_pull_vault, run_git_push
 from pomodoro import schedule_pomodoro_timer
@@ -1196,52 +1196,7 @@ class HeloWrite(App):
     def play_sound(self, sound_name: str) -> None:
         """Play a sound file using the same audio pipeline as the bell."""
         try:
-            import random
-            import shutil
-            import subprocess
-            from pathlib import Path
-
-            sound_root = Path(__file__).parent / "audio"
-            if sound_name in ("newline", "ratchet"):
-                sound_path = sound_root / f"{sound_name}{random.randint(1, 3)}.wav"
-            else:
-                sound_path = sound_root / f"{sound_name}.wav"
-            if not sound_path.exists():
-                return
-
-            system = platform.system().lower()
-            if system == "darwin":
-                backends = [["afplay"], ["paplay"], ["aplay"]]
-            elif system == "windows":
-                backends = [
-                    [
-                        "powershell",
-                        "-c",
-                        "(New-Object System.Media.SoundPlayer).PlaySync()",
-                    ]
-                ]
-            else:
-                backends = [["paplay"], ["aplay"], ["afplay"]]
-
-            for backend in backends:
-                if shutil.which(backend[0]):
-                    if backend[0] == "powershell":
-                        subprocess.run(
-                            [
-                                "powershell",
-                                "-c",
-                                f"(New-Object System.Media.SoundPlayer '{sound_path}').PlaySync()",
-                            ],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                        )
-                    else:
-                        subprocess.Popen(
-                            backend + [str(sound_path)],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                        )
-                    break
+            play_sound(sound_name)
         except Exception:
             pass
 
