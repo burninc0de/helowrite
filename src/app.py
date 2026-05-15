@@ -1,7 +1,6 @@
 import datetime
 import os
 import platform
-from bisect import bisect_right
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +25,7 @@ from screens import (
     TimerCompleteScreen,
     WelcomeScreen,
 )
+from search import SearchMatch, SearchState
 from utils import (
     create_system_theme,
     detect_language,
@@ -363,9 +363,7 @@ class HeloWrite(App):
         self.distraction_free = False
         self.language = "text"
         self._word_count_timer: Optional[Timer] = None
-        self.find_query = ""
-        self.find_matches: list[tuple[int, int, int]] = []
-        self.find_active_match_index = -1
+        self.search_state = SearchState()
         # Load editor settings
         self.editor_width = self.config.get_editor_width()
         self.cursor_color = self.config.get_cursor_color()
@@ -412,6 +410,33 @@ class HeloWrite(App):
         self.markdown_highlighting_enabled = (
             self.config.get_markdown_highlighting_enabled()
         )
+
+    @property
+    def find_query(self) -> str:
+        """Return the active find query."""
+        return self.search_state.query
+
+    @find_query.setter
+    def find_query(self, value: str) -> None:
+        self.search_state.query = value
+
+    @property
+    def find_matches(self) -> list[SearchMatch]:
+        """Return active find matches for widget highlighting."""
+        return self.search_state.matches
+
+    @find_matches.setter
+    def find_matches(self, value: list[SearchMatch]) -> None:
+        self.search_state.matches = value
+
+    @property
+    def find_active_match_index(self) -> int:
+        """Return the active find match index."""
+        return self.search_state.active_match_index
+
+    @find_active_match_index.setter
+    def find_active_match_index(self, value: int) -> None:
+        self.search_state.active_match_index = value
 
     def reload_snippets(self) -> None:
         """Reload snippets from config file."""
@@ -1017,14 +1042,8 @@ class HeloWrite(App):
         if not self.find_matches:
             return
 
-        if self.find_active_match_index < 0:
-            self.find_active_match_index = 0
-        else:
-            self.find_active_match_index = (self.find_active_match_index + 1) % len(
-                self.find_matches
-            )
-
-        self.jump_to_find_result(self.find_active_match_index)
+        match_index = self.search_state.select_next()
+        self.jump_to_find_result(match_index)
         self.refresh_find_highlights()
 
     def action_find_previous(self) -> None:
@@ -1032,14 +1051,8 @@ class HeloWrite(App):
         if not self.find_matches:
             return
 
-        if self.find_active_match_index < 0:
-            self.find_active_match_index = len(self.find_matches) - 1
-        else:
-            self.find_active_match_index = (self.find_active_match_index - 1) % len(
-                self.find_matches
-            )
-
-        self.jump_to_find_result(self.find_active_match_index)
+        match_index = self.search_state.select_previous()
+        self.jump_to_find_result(match_index)
         self.refresh_find_highlights()
 
     def close_find_bar(self, clear_query: bool = True) -> None:
@@ -1051,9 +1064,7 @@ class HeloWrite(App):
         find_bar.set_query("")
 
         if clear_query:
-            self.find_query = ""
-            self.find_matches = []
-            self.find_active_match_index = -1
+            self.search_state.clear()
             self.refresh_find_highlights()
 
         editor = self.query_one("#editor", HeloWriteTextArea)
@@ -1078,43 +1089,8 @@ class HeloWrite(App):
 
     def apply_find_query(self, query: str) -> None:
         """Compute all matches for the active query and update highlights."""
-        self.find_query = query
-        if not query:
-            self.find_matches = []
-            self.find_active_match_index = -1
-            self.refresh_find_highlights()
-            return
-
         editor = self.query_one("#editor", HeloWriteTextArea)
-        text = editor.text
-        lower_text = text.lower()
-        needle = query.lower()
-
-        if not needle:
-            self.find_matches = []
-            self.find_active_match_index = -1
-            self.refresh_find_highlights()
-            return
-
-        line_starts = [0]
-        for index, char in enumerate(text):
-            if char == "\n":
-                line_starts.append(index + 1)
-
-        matches: list[tuple[int, int, int]] = []
-        start = 0
-        while True:
-            pos = lower_text.find(needle, start)
-            if pos == -1:
-                break
-
-            line = bisect_right(line_starts, pos) - 1
-            col = pos - line_starts[line]
-            matches.append((line, col, col + len(query)))
-            start = pos + max(len(query), 1)
-
-        self.find_matches = matches
-        self.find_active_match_index = 0 if matches else -1
+        self.search_state.apply_query(editor.text, query)
         self.refresh_find_highlights()
 
     def jump_to_find_result(self, index: int) -> None:
