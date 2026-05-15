@@ -17,6 +17,7 @@ from textual.widgets import (
     TabPane,
 )
 
+from pomodoro import parse_pomodoro_minutes
 from utils import detect_language
 from widgets import HeloWriteTextArea
 
@@ -993,24 +994,11 @@ class PomodoroTimerScreen(ModalScreen):
 
     def start_timer(self):
         """Parse input and start the timer."""
-        import re
-
         app = cast(Any, self.app)
         input_widget = self.query_one("#time-input", Input)
-        time_str = input_widget.value.strip()
-
-        if not time_str:
-            app.show_message("Please enter time in minutes")
-            return
-
-        match = re.match(r"^(\d+)$", time_str)
-        if not match:
-            app.show_message("Please enter a valid number (e.g., 25)")
-            return
-
-        minutes = int(match.group(1))
-        if minutes <= 0 or minutes > 1440:
-            app.show_message("Time must be between 1 and 1440 minutes")
+        minutes, error = parse_pomodoro_minutes(input_widget.value)
+        if error or minutes is None:
+            app.show_message(error or "Please enter a valid number (e.g., 25)")
             return
 
         self.app.pop_screen()

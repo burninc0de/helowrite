@@ -13,6 +13,7 @@ from textual.widgets import Footer, Header, Input, Static, TextArea
 
 from config import Config
 from git_sync import GitSyncResult, run_git_pull, run_git_pull_vault, run_git_push
+from pomodoro import schedule_pomodoro_timer
 from screens import (
     AboutScreen,
     HelpScreen,
@@ -1169,69 +1170,13 @@ class HeloWrite(App):
 
     def start_timer(self, minutes: int):
         """Start the countdown timer."""
-
-        total_seconds = minutes * 60
         self.show_message(f"Timer set for {minutes} minutes")
 
-        def on_timer_complete():
-            try:
-                import shutil
-                import subprocess
-                from pathlib import Path
-
-                sound_root = Path(__file__).parent / "audio"
-                sound_path = sound_root / "bell.wav"
-                if not sound_path.exists():
-                    self.push_screen(TimerCompleteScreen())
-                    return
-
-                # Prioritize native backend first to avoid cross-platform binaries
-                # shadowing each other (e.g., paplay installed on macOS).
-                system = platform.system().lower()
-                if system == "darwin":
-                    backends = [["afplay"], ["paplay"], ["aplay"]]
-                elif system == "windows":
-                    backends = [
-                        [
-                            "powershell",
-                            "-c",
-                            "(New-Object System.Media.SoundPlayer).PlaySync()",
-                        ]
-                    ]
-                else:
-                    backends = [["paplay"], ["aplay"], ["afplay"]]
-
-                for backend in backends:
-                    if shutil.which(backend[0]):
-                        if backend[0] == "powershell":
-                            # Windows - use .NET to play
-                            subprocess.run(
-                                [
-                                    "powershell",
-                                    "-c",
-                                    f"(New-Object System.Media.SoundPlayer '{sound_path}').PlaySync()",
-                                ],
-                                stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL,
-                            )
-                        else:
-                            subprocess.Popen(
-                                backend + [str(sound_path)],
-                                stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL,
-                            )
-                        break
-            except Exception:
-                pass
+        def on_timer_complete() -> None:
+            self.play_sound("bell")
             self.push_screen(TimerCompleteScreen())
 
-        def tick(remaining: int) -> None:
-            if remaining > 0:
-                self.set_timer(1.0, lambda r=remaining - 1: tick(r))
-            else:
-                on_timer_complete()
-
-        tick(total_seconds)
+        schedule_pomodoro_timer(minutes, self.set_timer, on_timer_complete)
 
     def start_auto_save(self):
         """Start the auto-save timer."""
