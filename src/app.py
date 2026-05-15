@@ -1,7 +1,6 @@
 import datetime
 import os
 import platform
-import subprocess
 from bisect import bisect_right
 from pathlib import Path
 from typing import Optional
@@ -15,6 +14,7 @@ from textual.timer import Timer
 from textual.widgets import Footer, Header, Input, Static, TextArea
 
 from config import Config
+from git_sync import GitSyncResult, run_git_pull, run_git_pull_vault, run_git_push
 from screens import (
     AboutScreen,
     HelpScreen,
@@ -1624,345 +1624,26 @@ class HeloWrite(App):
 
     async def _async_git_push(self):
         """Async part of git push."""
-        import asyncio
-        import os
-
-        file_dir = str(self.file_path.parent)
-        file_name = str(self.file_path.name)
-        log_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "git_sync_errors.log"
-        )
-
-        async def run_subprocess(cmd, cwd):
-            return await asyncio.to_thread(
-                subprocess.run, cmd, cwd=cwd, capture_output=True, text=True, check=True
-            )
-
-        try:
-            current_cmd = None
-
-            # Stash any unstaged changes
-            current_cmd = "git stash push"
-            cmd = ["git", "stash", "push", "-m", "auto-stash before sync"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "No local changes to save" in e.stdout
-                    or "No local changes to save" in e.stderr
-                ):
-                    pass  # No changes to stash, continue
-                else:
-                    raise
-
-            # Pop the stash
-            current_cmd = "git stash pop"
-            cmd = ["git", "stash", "pop"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if "No stash entries found" in e.stderr:
-                    pass  # No stash to pop, continue
-                else:
-                    # If stash pop fails due to conflicts, abort the push
-                    error_msg = "Git push aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self._feedback(error_msg, severity="error", timeout=10)
-                    # Try to abort any ongoing rebase/merge
-                    try:
-                        abort_cmd = ["git", "rebase", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no rebase to abort
-                    try:
-                        abort_cmd = ["git", "merge", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no merge to abort
-                    return
-
-            # git add
-            current_cmd = "git add"
-            cmd = ["git", "add", file_name]
-            await run_subprocess(cmd, file_dir)
-
-            # git commit
-            current_cmd = "git commit"
-            commit_msg = f"Update {file_name}"
-            cmd = ["git", "commit", "-m", commit_msg]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if "nothing to commit" in e.stdout or "nothing to commit" in e.stderr:
-                    self._feedback("No changes to commit", timeout=2)
-                    return  # Skip push
-                else:
-                    raise
-
-            # git push
-            current_cmd = "git push"
-            cmd = ["git", "push"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "Everything up-to-date" in e.stdout
-                    or "Everything up-to-date" in e.stderr
-                    or "up to date" in e.stdout
-                    or "up to date" in e.stderr
-                ):
-                    pass  # Already pushed, continue
-                else:
-                    raise
-
-            self._feedback(f"Git push completed for {file_name}", timeout=2)
-        except subprocess.CalledProcessError as e:
-            error_details = (
-                e.stderr.strip()
-                or e.stdout.strip()
-                or f"Command failed with return code {e.returncode}"
-            )
-            if "up to date" in error_details:
-                self._feedback("Git push completed (already up to date)", timeout=2)
-            else:
-                # Check for specific error that requires pulling first
-                if (
-                    "Updates were rejected because the remote contains work"
-                    in error_details
-                ):
-                    error_msg = "Git push failed: remote has changes you don't have. Try pulling first with Alt+H, then push again."
-                elif "no upstream branch" in error_details:
-                    error_msg = "Git push failed: no upstream branch set. Try pulling first with Alt+H to set it up."
-                else:
-                    error_msg = "Git push failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a", encoding="utf-8") as f:
-                    f.write(f"Command '{current_cmd}' failed: {error_details}\n")
-                self._feedback(error_msg, severity="error", timeout=10)
-        except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write(error_msg + "\n")
-            self._feedback(error_msg, severity="error", timeout=10)
+        if self.file_path:
+            self._apply_git_sync_result(await run_git_push(self.file_path))
 
     async def _async_git_pull(self):
         """Async part of git pull."""
-        import asyncio
-        import os
-
-        file_dir = str(self.file_path.parent)
-        file_name = str(self.file_path.name)
-        log_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "git_sync_errors.log"
-        )
-
-        async def run_subprocess(cmd, cwd):
-            return await asyncio.to_thread(
-                subprocess.run, cmd, cwd=cwd, capture_output=True, text=True, check=True
-            )
-
-        try:
-            current_cmd = None
-
-            # Stash any unstaged changes
-            current_cmd = "git stash push"
-            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "No local changes to save" in e.stdout
-                    or "No local changes to save" in e.stderr
-                ):
-                    pass  # No changes to stash, continue
-                else:
-                    raise
-
-            # git pull (using merge instead of rebase to avoid conflicts)
-            current_cmd = "git pull"
-            cmd = ["git", "pull"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "Already up to date" in e.stdout
-                    or "Already up to date" in e.stderr
-                    or "up to date" in e.stdout
-                    or "up to date" in e.stderr
-                ):
-                    pass  # Already up to date, continue
-                elif "There is no tracking information" in e.stderr:
-                    # Try to infer and set upstream
-                    try:
-                        # Get current branch
-                        branch_cmd = ["git", "branch", "--show-current"]
-                        branch_result = await run_subprocess(branch_cmd, file_dir)
-                        current_branch = branch_result.stdout.strip()
-
-                        # Get remotes
-                        remote_cmd = ["git", "remote"]
-                        remote_result = await run_subprocess(remote_cmd, file_dir)
-                        remotes = remote_result.stdout.strip().split("\n")
-
-                        if "origin" in remotes:
-                            # Set upstream and retry pull
-                            upstream_cmd = [
-                                "git",
-                                "branch",
-                                "--set-upstream-to",
-                                f"origin/{current_branch}",
-                                current_branch,
-                            ]
-                            await run_subprocess(upstream_cmd, file_dir)
-
-                            # Retry pull
-                            cmd = ["git", "pull"]
-                            await run_subprocess(cmd, file_dir)
-                        else:
-                            raise  # No origin remote, re-raise original error
-                    except subprocess.CalledProcessError:
-                        raise  # Re-raise original error if inference fails
-                else:
-                    raise
-
-            # Pop the stash
-            current_cmd = "git stash pop"
-            cmd = ["git", "stash", "pop"]
-            try:
-                await run_subprocess(cmd, file_dir)
-            except subprocess.CalledProcessError as e:
-                if "No stash entries found" in e.stderr:
-                    pass  # No stash to pop, continue
-                else:
-                    # If stash pop fails due to conflicts, abort the pull
-                    error_msg = "Git pull aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self._feedback(error_msg, severity="error", timeout=10)
-                    # Try to abort any ongoing rebase/merge
-                    try:
-                        abort_cmd = ["git", "rebase", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no rebase to abort
-                    try:
-                        abort_cmd = ["git", "merge", "--abort"]
-                        await run_subprocess(abort_cmd, file_dir)
-                    except subprocess.CalledProcessError:
-                        pass  # Ignore if no merge to abort
-                    return
-
-            # Reload file content in editor after successful pull
-            self.reload_file_content()
-
-            self._feedback(f"Git pull completed for {file_name}", timeout=2)
-        except subprocess.CalledProcessError as e:
-            error_details = (
-                e.stderr.strip()
-                or e.stdout.strip()
-                or f"Command failed with return code {e.returncode}"
-            )
-            if "up to date" in error_details:
-                self._feedback("Git pull completed (already up to date)", timeout=2)
-            else:
-                error_msg = "Git pull failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a", encoding="utf-8") as f:
-                    f.write(f"Command '{current_cmd}' failed: {error_details}\n")
-                self._feedback(error_msg, severity="error", timeout=10)
-        except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write(error_msg + "\n")
-            self._feedback(error_msg, severity="error", timeout=10)
+        if self.file_path:
+            self._apply_git_sync_result(await run_git_pull(self.file_path))
 
     async def _async_git_pull_vault(self, vault_path: str):
         """Async part of git pull for vault."""
-        import asyncio
+        result = await run_git_pull_vault(Path(vault_path))
+        if self.file_path:
+            self.file_path = Path(str(self.file_path))
+            if not str(self.file_path).startswith(vault_path):
+                result.reload_current_file = False
+        self._apply_git_sync_result(result)
 
-        log_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "git_sync_errors.log"
-        )
-
-        async def run_subprocess(cmd, cwd):
-            return await asyncio.to_thread(
-                subprocess.run, cmd, cwd=cwd, capture_output=True, text=True, check=True
-            )
-
-        try:
-            current_cmd = None
-
-            current_cmd = "git stash push"
-            cmd = ["git", "stash", "push", "-m", "auto-stash before pull"]
-            try:
-                await run_subprocess(cmd, vault_path)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "No local changes to save" in e.stdout
-                    or "No local changes to save" in e.stderr
-                ):
-                    pass
-                else:
-                    raise
-
-            current_cmd = "git pull"
-            cmd = ["git", "pull"]
-            try:
-                await run_subprocess(cmd, vault_path)
-            except subprocess.CalledProcessError as e:
-                if (
-                    "Already up to date" in e.stdout
-                    or "Already up to date" in e.stderr
-                    or "up to date" in e.stdout
-                    or "up to date" in e.stderr
-                ):
-                    pass
-                elif "There is no tracking information" in e.stderr:
-                    try:
-                        branch_cmd = ["git", "branch", "--show-current"]
-                        branch_result = await run_subprocess(branch_cmd, vault_path)
-                        current_branch = branch_result.stdout.strip()
-
-                        remote_cmd = ["git", "remote"]
-                        remote_result = await run_subprocess(remote_cmd, vault_path)
-                        remotes = remote_result.stdout.strip().split("\n")
-
-                        if "origin" in remotes:
-                            upstream_cmd = [
-                                "git",
-                                "branch",
-                                "--set-upstream-to",
-                                f"origin/{current_branch}",
-                                current_branch,
-                            ]
-                            await run_subprocess(upstream_cmd, vault_path)
-
-                            cmd = ["git", "pull"]
-                            await run_subprocess(cmd, vault_path)
-                        else:
-                            raise
-                    except subprocess.CalledProcessError:
-                        raise
-                else:
-                    raise
-
-            current_cmd = "git stash pop"
-            cmd = ["git", "stash", "pop"]
-            try:
-                await run_subprocess(cmd, vault_path)
-            except subprocess.CalledProcessError as e:
-                if "No stash entries found" in e.stderr:
-                    pass
-                else:
-                    error_msg = "Git pull vault aborted: conflicts detected when restoring stashed changes. Please resolve manually."
-                    self._feedback(error_msg, severity="error", timeout=10)
-                    try:
-                        abort_cmd = ["git", "rebase", "--abort"]
-                        await run_subprocess(abort_cmd, vault_path)
-                    except subprocess.CalledProcessError:
-                        pass
-                    try:
-                        abort_cmd = ["git", "merge", "--abort"]
-                        await run_subprocess(abort_cmd, vault_path)
-                    except subprocess.CalledProcessError:
-                        pass
-                    return
-
+    def _apply_git_sync_result(self, result: GitSyncResult) -> None:
+        """Apply git sync side effects and show user feedback."""
+        if result.refresh_file_panel:
             try:
                 panel = self.query_one("#file-open-panel")
                 tree = panel.query_one("#file-tree-panel")
@@ -1970,36 +1651,14 @@ class HeloWrite(App):
             except Exception:
                 pass
 
-            # Reload current file if it's from the vault
-            if self.file_path and vault_path:
-                try:
-                    self.file_path = Path(str(self.file_path))
-                    if str(self.file_path).startswith(vault_path):
-                        self.reload_file_content()
-                except Exception:
-                    pass
+        if result.reload_current_file:
+            self.reload_file_content()
 
-            self._feedback("Git pull completed for vault", timeout=2)
-        except subprocess.CalledProcessError as e:
-            error_details = (
-                e.stderr.strip()
-                or e.stdout.strip()
-                or f"Command failed with return code {e.returncode}"
-            )
-            if "up to date" in error_details:
-                self._feedback(
-                    "Git pull vault completed (already up to date)", timeout=2
-                )
-            else:
-                error_msg = "Git pull vault failed - check git_sync_errors.log for details. You may need to resolve conflicts manually."
-                with open(log_file, "a", encoding="utf-8") as f:
-                    f.write(f"Command '{current_cmd}' failed: {error_details}\n")
-                self._feedback(error_msg, severity="error", timeout=10)
-        except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write(error_msg + "\n")
-            self._feedback(error_msg, severity="error", timeout=10)
+        self._feedback(
+            result.message,
+            severity=result.severity,
+            timeout=result.timeout,
+        )
 
     def reload_file_content(self):
         """Reload the current file content into the editor after git pull."""
