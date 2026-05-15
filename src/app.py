@@ -8,7 +8,6 @@ from rich.console import Console
 from rich.style import Style
 from textual.app import App, ComposeResult, SystemCommand
 from textual.command import CommandPalette
-from textual.theme import Theme
 from textual.timer import Timer
 from textual.widgets import Footer, Header, Input, Static, TextArea
 
@@ -26,6 +25,12 @@ from screens import (
     WelcomeScreen,
 )
 from search import SearchMatch, SearchState
+from themes import (
+    apply_system_theme_update,
+    choose_startup_theme,
+    register_builtin_themes,
+    register_system_theme,
+)
 from utils import (
     create_system_theme,
     detect_language,
@@ -502,79 +507,16 @@ class HeloWrite(App):
         if self.config.get_show_welcome():
             self.push_screen(WelcomeScreen())
 
-        # Register our custom themes
-        helowrite_theme = Theme(
-            name="helowrite-dark",
-            primary="#7aa2f7",  # TokyoNight blue tones
-            background="#1a1a2e",  # Deep dark blue background
-            surface="#1a1a2e",  # Same as background
-            foreground="#e6e6fa",  # Light lavender text
-            dark=True,
+        register_builtin_themes(self)
+        system_theme = create_system_theme()
+        self._system_theme, self._system_last_check = register_system_theme(
+            self,
+            system_theme=system_theme,
+            last_modified=get_system_theme_last_modified() or 0.0,
         )
-        self.register_theme(helowrite_theme)
-
-        helowrite_light_theme = Theme(
-            name="helowrite-light",
-            primary="#61dafb",  # Bright cyan/blue accent
-            background="#ffffff",  # Clean white background
-            surface="#ffffff",  # Same as background
-            foreground="#1a1a2e",  # Dark text on light background
-            dark=False,  # Light theme
+        theme = choose_startup_theme(
+            self.config, set(self.available_themes.keys()), self._system_theme
         )
-        self.register_theme(helowrite_light_theme)
-
-        # Register Kanso themes
-        kanso_zen_theme = Theme(
-            name="kanso-zen",
-            primary="#8ba4b0",  # Blue accent from Kansō
-            background="#090E13",  # Deep zen background
-            surface="#090E13",  # Same as background
-            foreground="#C5C9C7",  # Main foreground
-            dark=True,
-        )
-        self.register_theme(kanso_zen_theme)
-
-        kanso_pearl_theme = Theme(
-            name="kanso-pearl",
-            primary="#9fb5c9",  # Blue accent from Kansō pearl
-            background="#f2f1ef",  # Pearl white background
-            surface="#f2f1ef",  # Same as background
-            foreground="#22262D",  # Dark text on light bg
-            dark=False,  # Light theme
-        )
-        self.register_theme(kanso_pearl_theme)
-
-        # Register system theme from any discovered system theme source.
-        system = create_system_theme()
-        if system:
-            system_theme = Theme(
-                name="system",
-                primary=system["primary"],
-                background=system["background"],
-                surface=system["surface"],
-                foreground=system["foreground"],
-                dark=system["dark"],
-            )
-            self.register_theme(system_theme)
-            self._system_theme = system
-            self._system_last_check = get_system_theme_last_modified() or 0.0
-        else:
-            self._system_theme = None
-
-        # Load saved theme now that UI is ready
-        theme = self.config.get_theme()
-        has_saved_theme = self.config.has_theme_preference()
-        available_themes = set(self.available_themes.keys())
-
-        if self._system_theme and not has_saved_theme:
-            theme = "system"
-            self.config.set_theme("system")
-        elif theme == "system" and not self._system_theme:
-            theme = "helowrite-dark"
-            self.config.set_theme("helowrite-dark")
-        elif theme not in available_themes:
-            theme = "helowrite-dark"
-            self.config.set_theme("helowrite-dark")
 
         self.theme = theme
         self._theme_initialized = True
@@ -713,18 +655,7 @@ class HeloWrite(App):
                     if self.theme == "system":
                         self._applying_system_update = True
                         try:
-                            # Re-register theme with fresh colors from system.
-                            system_theme = Theme(
-                                name="system",
-                                primary=new_system_theme["primary"],
-                                background=new_system_theme["background"],
-                                surface=new_system_theme["surface"],
-                                foreground=new_system_theme["foreground"],
-                                dark=new_system_theme["dark"],
-                            )
-                            self.register_theme(system_theme)
-                            self.theme = "textual-dark"
-                            self.theme = "system"
+                            apply_system_theme_update(self, new_system_theme)
                         finally:
                             self._applying_system_update = False
 
