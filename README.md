@@ -16,7 +16,7 @@
 
 One word at a time. No distractions, no detours.
 
-https://user-images.githubusercontent.com/44199273/586904098-6681dfe3-787d-4c98-88e1-81711a6530b8.mp4
+https://user-images.githubusercontent.com/44199273/593093499-68de2681-1e60-4a1f-a917-88775902fc22.mp4
 
 ## Why HeloWrite?
 
