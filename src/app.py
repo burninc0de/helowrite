@@ -456,11 +456,13 @@ class HeloWrite(App):
 
         # Start system theme watcher only if system theme is currently selected
         if self._system_theme and self.theme == "system":
-            self._start_system_theme_watcher()
+            self._check_system_theme_update_once()
 
     def _start_system_theme_watcher(self) -> None:
         """Enable periodic checks for active system theme changes."""
         if self._system_watcher_active:
+            return
+        if not self._system_theme:
             return
         self._system_watcher_timer = self.set_interval(
             self._system_watch_interval_seconds, self._check_system_theme_update
@@ -473,6 +475,16 @@ class HeloWrite(App):
             self._system_watcher_timer.stop()
             self._system_watcher_timer = None
         self._system_watcher_active = False
+
+    def _check_system_theme_update_once(self) -> None:
+        """Check system theme once on startup. Start watcher only if system theme is available."""
+        if not self._system_theme:
+            return
+        if self.theme != "system":
+            return
+        self._check_system_theme_update()
+        if self._system_theme:
+            self._start_system_theme_watcher()
 
     def _fallback_to_default_theme(self) -> None:
         """Fallback when system theme disappears or becomes invalid."""
