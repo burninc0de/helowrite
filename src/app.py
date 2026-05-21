@@ -283,6 +283,7 @@ class HeloWrite(App):
         self.markdown_highlighting_enabled = (
             self.config.get_markdown_highlighting_enabled()
         )
+        self._selection_style_override_active = False
 
     @property
     def find_query(self) -> str:
@@ -576,6 +577,24 @@ class HeloWrite(App):
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
         self.update_status()
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            has_selection = self._has_editor_selection(editor)
+            if has_selection != self._selection_style_override_active:
+                highlight_color = (
+                    self.current_theme.primary
+                    if self.cursor_color.lower() == "theme"
+                    else self.cursor_color
+                )
+                self._apply_editor_syntax_styles(
+                    editor,
+                    highlight_color,
+                    force_plain_markdown_snippet=has_selection,
+                )
+                self._selection_style_override_active = has_selection
+                editor.refresh(layout=True)
+        except Exception:
+            pass
 
     def update_status(self):
         """Update the status bar with current information."""
@@ -655,6 +674,14 @@ class HeloWrite(App):
                 # For hex colors, append opacity
                 cursor_line_color = f"{color}20"
 
+            highlight_color = (
+                self.current_theme.primary
+                if self.cursor_color.lower() == "theme"
+                else self.cursor_color
+            )
+            has_selection = self._has_editor_selection(editor)
+            self._selection_style_override_active = has_selection
+
             # Simple approach: add CSS that will apply on restart
             cursor_css = f"""
             TextArea .text-area--cursor {{
@@ -677,55 +704,11 @@ class HeloWrite(App):
             # Add CSS to the app's stylesheet (will apply on next restart)
             self.stylesheet.add_source(cursor_css)
 
-            highlight_color = (
-                self.current_theme.primary
-                if self.cursor_color.lower() == "theme"
-                else self.cursor_color
-            )
             try:
-                editor._theme.syntax_styles["snippet"] = Style(
-                    color=highlight_color,
-                    bold=True,
-                )
-                editor._theme.syntax_styles["markdown_heading"] = Style(
-                    color=highlight_color,
-                    bold=True,
-                )
-                editor._theme.syntax_styles["markdown_link"] = Style(
-                    color=highlight_color,
-                    underline=True,
-                )
-                editor._theme.syntax_styles["markdown_image"] = Style(
-                    color=highlight_color,
-                    italic=True,
-                )
-                editor._theme.syntax_styles["markdown_blockquote"] = Style(
-                    color=highlight_color,
-                    dim=True,
-                )
-                editor._theme.syntax_styles["markdown_italic"] = Style(
-                    color=highlight_color,
-                    italic=True,
-                )
-                editor._theme.syntax_styles["markdown_bold"] = Style(
-                    color=highlight_color,
-                    bold=True,
-                )
-                editor._theme.syntax_styles["markdown_code"] = Style(
-                    color=highlight_color,
-                )
-                editor._theme.syntax_styles["markdown_codeblock"] = Style(
-                    color=highlight_color,
-                    bold=True,
-                )
-                editor._theme.syntax_styles["search_result"] = Style(
-                    bgcolor=highlight_color,
-                    color=self.current_theme.background,
-                )
-                editor._theme.syntax_styles["search_result_current"] = Style(
-                    bgcolor=highlight_color,
-                    color=self.current_theme.background,
-                    bold=True,
+                self._apply_editor_syntax_styles(
+                    editor,
+                    highlight_color,
+                    force_plain_markdown_snippet=has_selection,
                 )
             except Exception:
                 pass
@@ -738,6 +721,78 @@ class HeloWrite(App):
         except Exception:
             # If dynamic CSS fails, the static CSS will be used
             pass
+
+    def _apply_editor_syntax_styles(
+        self,
+        editor: HeloWriteTextArea,
+        highlight_color: str,
+        force_plain_markdown_snippet: bool = False,
+    ) -> None:
+        """Apply syntax styles and optionally normalize markdown/snippet colors."""
+        token_color = (
+            self.current_theme.foreground
+            if force_plain_markdown_snippet
+            else highlight_color
+        )
+
+        editor._theme.syntax_styles["snippet"] = Style(
+            color=token_color,
+            bold=True,
+        )
+        editor._theme.syntax_styles["markdown_heading"] = Style(
+            color=token_color,
+            bold=True,
+        )
+        editor._theme.syntax_styles["markdown_link"] = Style(
+            color=token_color,
+            underline=True,
+        )
+        editor._theme.syntax_styles["markdown_image"] = Style(
+            color=token_color,
+            italic=True,
+        )
+        editor._theme.syntax_styles["markdown_blockquote"] = Style(
+            color=token_color,
+            dim=True,
+        )
+        editor._theme.syntax_styles["markdown_italic"] = Style(
+            color=token_color,
+            italic=True,
+        )
+        editor._theme.syntax_styles["markdown_bold"] = Style(
+            color=token_color,
+            bold=True,
+        )
+        editor._theme.syntax_styles["markdown_code"] = Style(
+            color=token_color,
+        )
+        editor._theme.syntax_styles["markdown_codeblock"] = Style(
+            color=token_color,
+            bold=True,
+        )
+        editor._theme.syntax_styles["search_result"] = Style(
+            bgcolor=highlight_color,
+            color=self.current_theme.background,
+        )
+        editor._theme.syntax_styles["search_result_current"] = Style(
+            bgcolor=highlight_color,
+            color=self.current_theme.background,
+            bold=True,
+        )
+
+    @staticmethod
+    def _has_editor_selection(editor: HeloWriteTextArea) -> bool:
+        """Return True if the editor currently has a non-empty text selection."""
+        selection = getattr(editor, "selection", None)
+        if selection is None:
+            return False
+        if isinstance(selection, tuple) and len(selection) == 2:
+            return selection[0] != selection[1]
+        start = getattr(selection, "start", None)
+        end = getattr(selection, "end", None)
+        if start is not None and end is not None:
+            return start != end
+        return False
 
     def update_distraction_word_count(self, *args):
         """Update the distraction-free word count display."""
