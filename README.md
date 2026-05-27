@@ -16,7 +16,7 @@
 
 One word at a time. No distractions, no detours.
 
-https://user-images.githubusercontent.com/44199273/593093499-68de2681-1e60-4a1f-a917-88775902fc22.mp4
+![screenshot](https://andreklein.net/wp-content/uploads/2026/05/screenshot-2026-05-27_08-22-35.png)
 
 ## Why HeloWrite?
 
