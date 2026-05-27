@@ -221,8 +221,8 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_BLOCKQUOTE_RE = re.compile(r"^\s{0,3}(>\s?.+)$")
     MARKDOWN_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^\)]+\)")
     MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\([^\)]+\)")
-    MARKDOWN_ITALIC_RE = re.compile(r"(?<!\*)\*(?!\*)((?!\s).)*?(?<!\*)\*(?!\*)")
-    MARKDOWN_BOLD_RE = re.compile(r"\*\*(?!\s)((?!\s).)*?\*\*")
+    MARKDOWN_ITALIC_RE = re.compile(r"(?<!\*)\*(?!\*)(?!\s).+?(?<!\s)(?<!\*)\*(?!\*)")
+    MARKDOWN_BOLD_RE = re.compile(r"\*\*(?!\s).+?(?<!\s)\*\*")
     MARKDOWN_CODE_RE = re.compile(r"(`+)(.*?)\1")
     MARKDOWN_CODEBLOCK_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
 
