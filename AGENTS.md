@@ -13,14 +13,14 @@ HeloWrite is a fast, terminal-based text editor built with Python and Textual. I
 - **ASCII Art**: Pyfiglet (>=1.0.0) for generating application title
 - **Build System**: setuptools with pyproject.toml configuration
 - **Packaging**: Standard Python packaging with entry points
-- **Virtual Environment**: Managed via venv (project includes helowrite_env directory)
+- **Virtual Environment**: Managed via venv (project includes venv directory)
 
 ## Build & Development Commands
 
 ### Development
 ```bash
 # Activate virtual environment first
-source helowrite_env/bin/activate
+source venv/bin/activate
 
 # Then run commands
 python dev.py src/app.py [filename.txt]

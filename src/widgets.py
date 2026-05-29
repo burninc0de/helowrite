@@ -288,6 +288,8 @@ class HeloWriteTextArea(TextArea):
         self._typewriter_center_scheduled = False
         self._last_typewriter_center_state = None
         self._typewriter_recently_preserved = False
+        self._snippet_pattern_cache_key: tuple[str, ...] = ()
+        self._snippet_pattern_cache: list[re.Pattern[str]] = []
         self._typewriter_debug_enabled = bool(
             os.environ.get("HELOWRITE_TYPEWRITER_DEBUG", "")
         )
@@ -333,21 +335,38 @@ class HeloWriteTextArea(TextArea):
         if not isinstance(snippets, dict) or not snippets:
             return
 
-        replacement_values = sorted(
-            (value for value in snippets.values() if value), key=len, reverse=True
-        )
-        if not replacement_values:
+        patterns = self._get_snippet_highlight_patterns(snippets)
+        if not patterns:
             return
 
         for line_number, line in enumerate(self.text.splitlines()):
-            for replacement in replacement_values:
-                pattern = self._build_snippet_highlight_pattern(replacement)
-                if not pattern:
-                    continue
-                for match in re.finditer(pattern, line):
+            for pattern in patterns:
+                for match in pattern.finditer(line):
                     start = self._char_to_utf8_byte_index(line, match.start())
                     end = self._char_to_utf8_byte_index(line, match.end())
                     self._highlights[line_number].append((start, end, "snippet"))
+
+    def _get_snippet_highlight_patterns(
+        self, snippets: dict[str, str]
+    ) -> list[re.Pattern[str]]:
+        """Return cached compiled snippet highlight regexes for the current snippets."""
+        replacement_values = tuple(
+            sorted(
+                (value for value in snippets.values() if value), key=len, reverse=True
+            )
+        )
+        if replacement_values == self._snippet_pattern_cache_key:
+            return self._snippet_pattern_cache
+
+        patterns: list[re.Pattern[str]] = []
+        for replacement in replacement_values:
+            pattern = self._build_snippet_highlight_pattern(replacement)
+            if pattern:
+                patterns.append(re.compile(pattern))
+
+        self._snippet_pattern_cache_key = replacement_values
+        self._snippet_pattern_cache = patterns
+        return patterns
 
     def _char_to_utf8_byte_index(self, line: str, index: int) -> int:
         """Convert a character offset into a UTF-8 byte offset for Textual highlights."""
@@ -403,6 +422,17 @@ class HeloWriteTextArea(TextArea):
             self._build_snippet_highlights()
         if getattr(self.app, "markdown_highlighting_enabled", True):
             self._build_markdown_highlights()
+        self._build_search_highlights()
+
+    def refresh_search_highlights(self) -> None:
+        """Refresh only search highlight tokens without rebuilding other highlights."""
+        search_tokens = {"search_result", "search_result_current"}
+        for line_number, highlights in self._highlights.items():
+            self._highlights[line_number] = [
+                highlight
+                for highlight in highlights
+                if highlight[2] not in search_tokens
+            ]
         self._build_search_highlights()
 
     def _build_search_highlights(self) -> None:
@@ -721,8 +751,17 @@ class HeloWriteTextArea(TextArea):
             current_line = cursor_pos[0]
             text_before = self.get_text_range((current_line, 0), cursor_pos)
 
-            triggers = list(snippets.keys())
-            trigger, start_pos, end_pos = find_trigger(text_before, triggers)
+            app_sorted_triggers = getattr(self.app, "_snippet_triggers_sorted", ())
+            triggers = (
+                app_sorted_triggers
+                if app_sorted_triggers
+                else tuple(sorted(snippets.keys(), key=len, reverse=True))
+            )
+            trigger, start_pos, end_pos = find_trigger(
+                text_before,
+                triggers,
+                presorted=True,
+            )
 
             if trigger is None:
                 if event.key != "enter":

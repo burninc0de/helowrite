@@ -26,6 +26,7 @@ from screens import (
     WelcomeScreen,
 )
 from search import SearchMatch, SearchState
+from snippets import sorted_triggers
 from styles import APP_DEFAULT_CSS
 from themes import (
     apply_system_theme_update,
@@ -236,6 +237,12 @@ class HeloWrite(App):
         self.distraction_free = False
         self.language = "text"
         self._word_count_timer: Optional[Timer] = None
+        self._status_update_timer: Optional[Timer] = None
+        self._status_update_debounce_seconds: float = 0.06
+        self._status_needs_word_recount: bool = False
+        self._cached_word_count: int = 0
+        self._find_refresh_timer: Optional[Timer] = None
+        self._find_refresh_debounce_seconds: float = 0.12
         self.search_state = SearchState()
         # Load editor settings
         self.editor_width = self.config.get_editor_width()
@@ -277,6 +284,7 @@ class HeloWrite(App):
 
         # Snippets
         self._snippets = self.config.get_snippets()
+        self._snippet_triggers_sorted = sorted_triggers(list(self._snippets.keys()))
         self.snippet_highlighting_enabled = (
             self.config.get_snippet_highlighting_enabled()
         )
@@ -315,6 +323,7 @@ class HeloWrite(App):
     def reload_snippets(self) -> None:
         """Reload snippets from config file."""
         self._snippets = self.config.get_snippets()
+        self._snippet_triggers_sorted = sorted_triggers(list(self._snippets.keys()))
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
             editor._build_highlight_map()
@@ -551,10 +560,9 @@ class HeloWrite(App):
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
-        editor = self.query_one("#editor", HeloWriteTextArea)
-        if editor.text != self._original_text:
+        if not self.is_dirty:
             self.is_dirty = True
-        self.update_status()
+        self._schedule_status_update(recalculate_word_count=True)
         # In distraction-free mode, hide word count while typing and show after inactivity
         if self.distraction_free:
             word_count_widget = self.query_one("#distraction-word-count", Static)
@@ -572,11 +580,11 @@ class HeloWrite(App):
             )
 
         if self.find_query:
-            self.apply_find_query(self.find_query)
+            self._schedule_find_refresh()
 
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
-        self.update_status()
+        self._schedule_status_update(recalculate_word_count=False)
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
             has_selection = self._has_editor_selection(editor)
@@ -592,26 +600,67 @@ class HeloWrite(App):
                     force_plain_markdown_snippet=has_selection,
                 )
                 self._selection_style_override_active = has_selection
-                editor.refresh(layout=True)
+                editor.refresh()
         except Exception:
             pass
 
-    def update_status(self):
+    @staticmethod
+    def _count_words(text: str) -> int:
+        """Count words in editor content."""
+        return len(text.split())
+
+    def _flush_status_update(self) -> None:
+        """Apply a debounced status update."""
+        self._status_update_timer = None
+        recalculate_word_count = self._status_needs_word_recount
+        self._status_needs_word_recount = False
+        self.update_status(recalculate_word_count=recalculate_word_count)
+
+    def _schedule_status_update(self, recalculate_word_count: bool) -> None:
+        """Debounce expensive status recomputation during rapid typing/cursor movement."""
+        self._status_needs_word_recount = (
+            self._status_needs_word_recount or recalculate_word_count
+        )
+        if self._status_update_timer is not None:
+            self._status_update_timer.stop()
+        self._status_update_timer = self.set_timer(
+            self._status_update_debounce_seconds,
+            self._flush_status_update,
+        )
+
+    def _run_scheduled_find_refresh(self) -> None:
+        """Apply the latest find query to current editor text."""
+        self._find_refresh_timer = None
+        if self.find_query:
+            self.apply_find_query(self.find_query)
+
+    def _schedule_find_refresh(self) -> None:
+        """Debounce find/highlight recomputation while typing in the editor."""
+        if self._find_refresh_timer is not None:
+            self._find_refresh_timer.stop()
+        self._find_refresh_timer = self.set_timer(
+            self._find_refresh_debounce_seconds,
+            self._run_scheduled_find_refresh,
+        )
+
+    def _cancel_find_refresh(self) -> None:
+        """Stop any pending find refresh timer."""
+        if self._find_refresh_timer is not None:
+            self._find_refresh_timer.stop()
+            self._find_refresh_timer = None
+
+    def update_status(self, recalculate_word_count: bool = True):
         """Update the status bar with current information."""
         editor = self.query_one("#editor", HeloWriteTextArea)
         status_bar = self.query_one(StatusBar)
 
-        text = editor.text
-        lines = text.split("\n")
-
-        # Count words
-        words = [word for line in lines for word in line.split() if word.strip()]
-        word_count = len(words)
+        if recalculate_word_count:
+            self._cached_word_count = self._count_words(editor.text)
 
         status_bar.update_status(
             self.file_path,
             self.is_dirty,
-            word_count,
+            self._cached_word_count,
             self.language,
         )
 
@@ -797,11 +846,8 @@ class HeloWrite(App):
     def update_distraction_word_count(self, *args):
         """Update the distraction-free word count display."""
         editor = self.query_one("#editor", HeloWriteTextArea)
-        text = editor.text
-        words = [
-            word for line in text.split("\n") for word in line.split() if word.strip()
-        ]
-        word_count = len(words)
+        word_count = self._count_words(editor.text)
+        self._cached_word_count = word_count
         widget = self.query_one("#distraction-word-count", Static)
         widget.update(f"{word_count} words")
 
@@ -855,6 +901,9 @@ class HeloWrite(App):
         # Stop timers to allow clean exit
         if self._word_count_timer:
             self._word_count_timer.stop()
+        if self._status_update_timer:
+            self._status_update_timer.stop()
+        self._cancel_find_refresh()
         self.stop_auto_save()
         self._stop_system_theme_watcher()
         self.exit()
@@ -923,6 +972,7 @@ class HeloWrite(App):
 
     def close_find_bar(self, clear_query: bool = True) -> None:
         """Close the find bar and optionally clear search highlights."""
+        self._cancel_find_refresh()
         find_bar = self.query_one("#find-bar", FindBar)
         find_bar.remove_class("visible")
         find_input = find_bar.query_one("#find-input", Input)
@@ -940,8 +990,11 @@ class HeloWrite(App):
         """Rebuild highlights and update find-bar metadata."""
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
-            editor._build_highlight_map()
-            editor.refresh(layout=True)
+            if hasattr(editor, "refresh_search_highlights"):
+                editor.refresh_search_highlights()
+            else:
+                editor._build_highlight_map()
+            editor.refresh()
         except Exception:
             pass
 

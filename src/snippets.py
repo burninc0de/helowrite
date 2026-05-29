@@ -48,14 +48,24 @@ def _is_word_char(char: str) -> bool:
     return category in ("Ll", "Lv", "Lm", "Lo", "Lt", "Lu", "Nd")
 
 
+def sorted_triggers(triggers: list[str]) -> tuple[str, ...]:
+    """Return triggers sorted by length (longest first), excluding empty values."""
+    return tuple(
+        sorted((trigger for trigger in triggers if trigger), key=len, reverse=True)
+    )
+
+
 def find_trigger(
-    text_before_cursor: str, triggers: list[str]
+    text_before_cursor: str,
+    triggers: list[str] | tuple[str, ...],
+    presorted: bool = False,
 ) -> tuple[Optional[str], int, int]:
     """Find a matching trigger in text before cursor.
 
     Args:
         text_before_cursor: Text from the start up to (but not including) the cursor.
-        triggers: List of trigger strings to match.
+        triggers: Trigger strings to match.
+        presorted: If True, assume triggers are already length-sorted descending.
 
     Returns:
         Tuple of (trigger, start_pos, end_pos) if found, or (None, -1, -1) if not found.
@@ -64,10 +74,14 @@ def find_trigger(
     if not text_before_cursor or not triggers:
         return None, -1, -1
 
-    for trigger in sorted(triggers, key=len, reverse=True):
-        if not trigger:
-            continue
-        text_len = len(text_before_cursor)
+    ordered_triggers: tuple[str, ...]
+    if presorted and isinstance(triggers, tuple):
+        ordered_triggers = triggers
+    else:
+        ordered_triggers = sorted_triggers(list(triggers))
+
+    text_len = len(text_before_cursor)
+    for trigger in ordered_triggers:
         trigger_len = len(trigger)
         for pos in range(text_len - trigger_len + 1):
             if text_before_cursor[pos : pos + trigger_len] != trigger:
