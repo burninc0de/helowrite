@@ -286,6 +286,7 @@ class HeloWriteTextArea(TextArea):
         self.typewriter_bottom_slack_lines = 0
         self._typewriter_adjusting = False
         self._typewriter_center_scheduled = False
+        self._typewriter_skip_scroll_visible_once = False
         self._last_typewriter_center_state = None
         self._typewriter_recently_preserved = False
         self._snippet_pattern_cache_key: tuple[str, ...] = ()
@@ -540,7 +541,12 @@ class HeloWriteTextArea(TextArea):
         )
 
     def _clear_typewriter_hidden(self) -> None:
-        self.remove_class("typewriter-hidden")
+        if self.has_class("typewriter-hidden"):
+            self.remove_class("typewriter-hidden")
+
+    def _set_typewriter_hidden(self) -> None:
+        if not self.has_class("typewriter-hidden"):
+            self.add_class("typewriter-hidden")
 
     def _schedule_typewriter_center(self) -> None:
         if not self._typewriter_center_scheduled:
@@ -554,6 +560,10 @@ class HeloWriteTextArea(TextArea):
         defer to our own centering logic and suppress repeated follow-up calls
         after a recent typewriter center.
         """
+        if self._typewriter_skip_scroll_visible_once:
+            self._typewriter_skip_scroll_visible_once = False
+            self._clear_typewriter_hidden()
+            return None
         if self._last_typewriter_center_state:
             last = self._last_typewriter_center_state
             if self.cursor_location == last["cursor"] and (
@@ -565,7 +575,19 @@ class HeloWriteTextArea(TextArea):
                     self._clear_typewriter_hidden()
                     return None
                 if abs(self.scroll_y - last["scroll_y"]) > 1e-6:
-                    self.scroll_y = last["scroll_y"]
+                    # User likely scrolled manually while cursor stayed on the same
+                    # line. Respect that scroll position instead of forcing a recentre.
+                    self._last_typewriter_center_state = {
+                        "cursor": self.cursor_location,
+                        "scroll_y": float(self.scroll_y),
+                        "target": float(self.scroll_y),
+                        "max_scroll_y": float(self.max_scroll_y),
+                        "view_height": int(self.scrollable_content_region.height),
+                    }
+                    self._typewriter_recently_preserved = False
+                    self._write_typewriter_debug("manual_scroll_preserved")
+                    self._clear_typewriter_hidden()
+                    return None
                 if not self._typewriter_recently_preserved:
                     self._write_typewriter_debug("recent_center_preserved")
                     self._typewriter_recently_preserved = True
@@ -608,7 +630,7 @@ class HeloWriteTextArea(TextArea):
                     }
                     self._clear_typewriter_hidden()
                     return None
-        self.add_class("typewriter-hidden")
+        self._set_typewriter_hidden()
         self._write_typewriter_debug("hide")
         self._schedule_typewriter_center()
         return None
@@ -793,7 +815,7 @@ class HeloWriteTextArea(TextArea):
             if event.key == "enter":
                 self.insert("\n\n" if self.app.space_between_paragraphs else "\n")
                 if self.app.typewriter_mode:
-                    self.add_class("typewriter-hidden")
+                    self._set_typewriter_hidden()
                     self._write_typewriter_debug(
                         "snippet_enter" if trigger else "key_enter"
                     )
@@ -815,7 +837,7 @@ class HeloWriteTextArea(TextArea):
             event.prevent_default()
             event.stop()
             if self.app.typewriter_mode:
-                self.add_class("typewriter-hidden")
+                self._set_typewriter_hidden()
                 self._write_typewriter_debug("key_enter")
                 self._schedule_typewriter_center()
                 if self.app.typewriter_sounds:
@@ -831,10 +853,15 @@ class HeloWriteTextArea(TextArea):
             return
 
         if self.app.typewriter_mode and event.key in ("up", "down"):
-            self.add_class("typewriter-hidden")
+            self._set_typewriter_hidden()
             self._write_typewriter_debug(f"hide_key_{event.key}")
-            self._schedule_typewriter_center()
+            # Cursor-motion keys don't change document layout, so we can avoid
+            # an extra call_after_refresh hop and recentre immediately after
+            # the key action completes.
+            self._typewriter_center_scheduled = True
             await super()._on_key(event)
+            self._center_cursor_typewriter()
+            self._typewriter_skip_scroll_visible_once = True
             return
 
         await super()._on_key(event)
