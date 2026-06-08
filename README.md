@@ -16,7 +16,7 @@
 
 One word at a time. No distractions, no detours.
 
-![screenshot](https://andreklein.net/wp-content/uploads/2026/05/screenshot-2026-05-27_08-22-35.png)
+
 
 ## Why HeloWrite?
 
@@ -39,6 +39,9 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message. Sound credit: [nahmandub on freesound.org](https://freesound.org/people/nahmandub/sounds/131348/)
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter. This was inspired by [a fork](https://github.com/gabinetenoturno/helowrite) by gabinetenoturno. Optional sounds for new line and backspace by [Gate13](https://freesound.org/people/Gate13/sounds/697389/).
+
+![screenshot](https://andreklein.net/wp-content/uploads/2026/06/helowrite_grid.png)
+Extensive theming, Git Sync, Pomodoro Timer and more
 
 ## Quick Start
 
