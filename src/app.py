@@ -819,6 +819,10 @@ class HeloWrite(App):
             color=token_color,
             bold=True,
         )
+        editor._theme.syntax_styles["markdown_strikethrough"] = Style(
+            color=token_color,
+            strike=True,
+        )
         editor._theme.syntax_styles["search_result"] = Style(
             bgcolor=highlight_color,
             color=self.current_theme.background,

@@ -225,6 +225,7 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_BOLD_RE = re.compile(r"\*\*(?!\s).+?(?<!\s)\*\*")
     MARKDOWN_CODE_RE = re.compile(r"(`+)(.*?)\1")
     MARKDOWN_CODEBLOCK_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
+    MARKDOWN_STRIKETHROUGH_RE = re.compile(r"~~(?!\s).+?(?<!\s)~~")
 
     DEFAULT_CSS = """
     TextArea {
@@ -503,6 +504,13 @@ class HeloWriteTextArea(TextArea):
                 start = self._char_to_utf8_byte_index(line, italic_match.start())
                 end = self._char_to_utf8_byte_index(line, italic_match.end())
                 self._highlights[line_number].append((start, end, "markdown_italic"))
+
+            for strike_match in self.MARKDOWN_STRIKETHROUGH_RE.finditer(line):
+                start = self._char_to_utf8_byte_index(line, strike_match.start())
+                end = self._char_to_utf8_byte_index(line, strike_match.end())
+                self._highlights[line_number].append(
+                    (start, end, "markdown_strikethrough")
+                )
 
         for match in self.MARKDOWN_CODEBLOCK_RE.finditer(self.text):
             start_offset = match.start()
