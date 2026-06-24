@@ -295,6 +295,7 @@ class HeloWriteTextArea(TextArea):
         self._typewriter_debug_enabled = bool(
             os.environ.get("HELOWRITE_TYPEWRITER_DEBUG", "")
         )
+        kwargs.setdefault("tab_behavior", "indent")
         super().__init__(**kwargs)
         self.language = None
 
