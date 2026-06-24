@@ -400,9 +400,6 @@ class SettingsScreen(ModalScreen):
             self.query_one("#smart-quotes-checkbox", Checkbox).value
         )
 
-        # Focus first focusable widget
-        self.query_one("#open-last-file-checkbox", Checkbox).focus()
-
     def on_key(self, event):
         """Handle key presses."""
         if event.key == "escape":
