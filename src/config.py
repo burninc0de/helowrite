@@ -59,6 +59,17 @@ class Config:
         config["editor_width"] = str(width)
         self._save_config(config)
 
+    def get_indent_width(self) -> int:
+        """Get indent width in spaces, defaulting to 4."""
+        config = self._load_config()
+        return int(config.get("indent_width", 4))
+
+    def set_indent_width(self, width: int):
+        """Save indent width."""
+        config = self._load_config()
+        config["indent_width"] = str(width)
+        self._save_config(config)
+
     def get_bottom_padding(self) -> int:
         """Get bottom padding, defaulting to 0."""
         config = self._load_config()

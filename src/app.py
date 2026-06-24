@@ -246,6 +246,7 @@ class HeloWrite(App):
         self.search_state = SearchState()
         # Load editor settings
         self.editor_width = self.config.get_editor_width()
+        self.indent_width = self.config.get_indent_width()
         self.cursor_color = self.config.get_cursor_color()
         # Auto-save settings
         self.auto_save_enabled = self.config.get_auto_save_enabled()
@@ -671,6 +672,9 @@ class HeloWrite(App):
 
         # Apply width
         editor.styles.width = f"{self.editor_width}%"
+
+        # Apply indent width
+        editor.indent_width = self.indent_width
 
         # Apply distraction-free top padding if in distraction-free mode
         if self.distraction_free:

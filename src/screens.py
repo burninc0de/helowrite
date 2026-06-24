@@ -230,6 +230,12 @@ class SettingsScreen(ModalScreen):
                                 " Show scrollbar", id="show-scrollbar-checkbox"
                             )
                         with Horizontal(classes="setting-row"):
+                            yield Static("Indent width:", classes="setting-label")
+                            yield Input(
+                                id="indent-width-input", classes="setting-input"
+                            )
+                            yield Static(" spaces", classes="setting-value")
+                        with Horizontal(classes="setting-row"):
                             yield Checkbox(
                                 "Space between paragraphs",
                                 id="space-between-paragraphs-checkbox",
@@ -367,6 +373,9 @@ class SettingsScreen(ModalScreen):
             "#show-scrollbar-checkbox", Checkbox
         ).value = app.config.get_scrollbar_enabled()
         self.query_one("#width-input", Input).value = str(app.editor_width)
+        self.query_one("#indent-width-input", Input).value = str(
+            app.config.get_indent_width()
+        )
         self.query_one(
             "#space-between-paragraphs-checkbox", Checkbox
         ).value = app.config.get_space_between_paragraphs()
@@ -427,6 +436,9 @@ class SettingsScreen(ModalScreen):
             ).value
             auto_save_enabled = self.query_one("#auto-save-checkbox", Checkbox).value
             width_str = self.query_one("#width-input", Input).value.strip()
+            indent_width_str = self.query_one(
+                "#indent-width-input", Input
+            ).value.strip()
             space_between_paragraphs = self.query_one(
                 "#space-between-paragraphs-checkbox", Checkbox
             ).value
@@ -460,6 +472,7 @@ class SettingsScreen(ModalScreen):
 
             # Parse values
             width = int(width_str) if width_str else app.editor_width
+            indent_width = int(indent_width_str) if indent_width_str else 4
             auto_save_interval = (
                 int(auto_save_interval_str) if auto_save_interval_str else 5
             )
@@ -467,6 +480,9 @@ class SettingsScreen(ModalScreen):
             # Validate ranges
             if not (10 <= width <= 90):
                 app.show_message("Width must be between 10-90%")
+                return
+            if not (1 <= indent_width <= 16):
+                app.show_message("Indent width must be between 1-16")
                 return
             if auto_save_interval not in [1, 5, 10]:
                 app.show_message("Auto-save interval must be 1, 5, or 10 minutes")
@@ -524,6 +540,7 @@ class SettingsScreen(ModalScreen):
             )
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_editor_width(width)
+            app.config.set_indent_width(indent_width)
             app.config.set_space_between_paragraphs(space_between_paragraphs)
             app.config.set_cursor_color(cursor_color)
             app.config.set_obsidian_vault_path(vault_path)
@@ -539,6 +556,7 @@ class SettingsScreen(ModalScreen):
 
             # Update app settings
             app.editor_width = width
+            app.indent_width = indent_width
             app.space_between_paragraphs = space_between_paragraphs
             app.cursor_color = cursor_color
             app.snippet_highlighting_enabled = self.query_one(
