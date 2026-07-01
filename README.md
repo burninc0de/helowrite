@@ -16,7 +16,7 @@
 
 One word at a time. No distractions, no detours.
 
-
+![](https://andreklein.net/wp-content/uploads/2026/07/focus.png)
 
 ## Why HeloWrite?
 
