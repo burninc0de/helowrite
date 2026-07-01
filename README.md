@@ -192,7 +192,18 @@ python src/app.py [filename.txt]
 ## Environment Variables
 
 <details>
-    <summary>Typewriter Mode Debugging</summary>
+    <summary>HELOWWRITE_CONFIG_DIR — Custom Config Path</summary>
+
+Override the config directory (defaults to `~/.config/helowrite`):
+
+```bash
+HELOWWRITE_CONFIG_DIR=/path/to/config python src/app.py
+```
+
+</details>
+
+<details>
+    <summary>HELOWRITE_TYPEWRITER_DEBUG — Typewriter Debug Logs</summary>
 
 For debugging cursor positioning and centering logic in typewriter mode:
 
@@ -202,17 +213,6 @@ HELOWRITE_TYPEWRITER_DEBUG=1 python dev.py src/app.py  # hot reload
 ```
 
 Logs go to `~/.config/helowrite/typewriter_debug.log`.
-
-</details>
-
-<details>
-    <summary>HELOWWRITE_CONFIG_DIR — Custom Config Path</summary>
-
-Override the config directory (defaults to `~/.config/helowrite`):
-
-```bash
-HELOWWRITE_CONFIG_DIR=/path/to/config python src/app.py
-```
 
 </details>
 
