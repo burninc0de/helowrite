@@ -60,7 +60,7 @@ If you want `helowrite` to work in every new terminal without activating a virtu
 Install `pipx` first (if you do not already have it):
 
 <details>
-<summary>Arch Linux</summary>
+<summary>Arch Linux</summary><br/>
 
 ```bash
 sudo pacman -S python-pipx
@@ -68,7 +68,7 @@ sudo pacman -S python-pipx
 </details>
 
 <details>
-<summary>macOS (Homebrew)</summary>
+<summary>macOS (Homebrew)</summary><br/>
 
 ```bash
 brew install pipx
@@ -76,7 +76,7 @@ brew install pipx
 </details>
 
 <details>
-<summary>Debian/Ubuntu</summary>
+<summary>Debian/Ubuntu</summary><br/>
 
 ```bash
 sudo apt install pipx
@@ -84,7 +84,7 @@ sudo apt install pipx
 </details>
 
 <details>
-<summary>Fedora</summary>
+<summary>Fedora</summary><br/>
 
 ```bash
 sudo dnf install pipx
@@ -92,7 +92,7 @@ sudo dnf install pipx
 </details>
 
 <details>
-<summary>Generic Fallback</summary>
+<summary>Generic Fallback</summary><br/>
 
 ```bash
 python -m pip install --user pipx
@@ -192,7 +192,7 @@ python src/app.py [filename.txt]
 ## Environment Variables
 
 <details>
-    <summary>HELOWWRITE_CONFIG_DIR — Custom Config Path</summary>
+    <summary>HELOWWRITE_CONFIG_DIR — Custom Config Path</summary><br/>
 
 Override the config directory (defaults to `~/.config/helowrite`):
 
@@ -203,7 +203,7 @@ HELOWWRITE_CONFIG_DIR=/path/to/config python src/app.py
 </details>
 
 <details>
-    <summary>HELOWRITE_TYPEWRITER_DEBUG — Typewriter Debug Logs</summary>
+    <summary>HELOWRITE_TYPEWRITER_DEBUG — Typewriter Debug Logs</summary><br/>
 
 For debugging cursor positioning and centering logic in typewriter mode:
 
@@ -217,7 +217,7 @@ Logs go to `~/.config/helowrite/typewriter_debug.log`.
 </details>
 
 <details>
-    <summary>HELOWWRITE_SYSTEM_THEME_FILE — System Theme Colors</summary>
+    <summary>HELOWWRITE_SYSTEM_THEME_FILE — System Theme Colors</summary><br/>
 
 Point to a custom colors file in TOML format (e.g. `background`, `foreground`, `accent` keys). Overrides the built-in search paths.
 
@@ -228,7 +228,7 @@ HELOWWRITE_SYSTEM_THEME_FILE=/path/to/colors.toml python src/app.py
 </details>
 
 <details>
-    <summary>HELOWWRITE_SYSTEM_THEME_NAME_FILE — Theme Display Name</summary>
+    <summary>HELOWWRITE_SYSTEM_THEME_NAME_FILE — Theme Display Name</summary><br/>
 
 Path to a file whose contents are used as the theme display name. Falls back to `theme.name` beside the colors file.
 
@@ -239,7 +239,7 @@ HELOWWRITE_SYSTEM_THEME_NAME_FILE=/path/to/theme.name python src/app.py
 </details>
 
 <details>
-    <summary>HELOWRITE_RUN_PERF — Latency Profiling Tests</summary>
+    <summary>HELOWRITE_RUN_PERF — Latency Profiling Tests</summary><br/>
 
 Run performance/latency profiling tests that are skipped by default:
 
