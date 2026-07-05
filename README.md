@@ -322,6 +322,31 @@ Supported placeholders:
 
 After editing `snippets.conf`, restart HeloWrite to load your changes.
 
+## Markdown Scope
+
+HeloWrite is for prose. Journaling, drafts, essays, braindumps — the stuff you're scraping out of your skull, not typesetting. Syntax highlighting exists so raw markdown stays readable while you write, not so you can format as you go.
+
+It is not a technical or academic writing tool. There's no support for math notation, chemistry formulas, citations, footnotes, tables, sub/superscript, or Pandoc-style rendering — and there won't be. That's a different job, for different software.
+
+What we highlight, and why: enough to keep structure legible at a glance, nothing more.
+
+| Element | Example |
+|---|---|
+| Headings | `# H1` `## H2` `### H3` |
+| Bold | `**text**` |
+| Italic | `*text*` |
+| Strikethrough | `~~text~~` |
+| Inline code | `` `code` `` |
+| Fenced code blocks | ` ``` ... ``` ` |
+| Links | `[title](url)` |
+| Images | `![alt](src)` |
+| Blockquotes | `> text` |
+| Unordered lists | `- item` `* item` `+ item` |
+| Ordered lists | `1. item` `1) item` |
+| Task lists | `- [ ] todo` `- [x] done` |
+
+If you need real typesetting — LaTeX-style math, citations, footnotes, Pandoc's extended syntax — that tooling already exists and does it properly. Write your prose here, then hand it off.
+
 ## Architecture
 
 HeloWrite is built using:

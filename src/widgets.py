@@ -226,6 +226,8 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_CODE_RE = re.compile(r"(`+)(.*?)\1")
     MARKDOWN_CODEBLOCK_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
     MARKDOWN_STRIKETHROUGH_RE = re.compile(r"~~(?!\s).+?(?<!\s)~~")
+    MARKDOWN_LIST_RE = re.compile(r"^\s{0,3}((?:[-+*]|\d+[.)])\s+)")
+    MARKDOWN_TASK_LIST_RE = re.compile(r"^\s{0,3}(?:[-+*]|\d+[.)])\s+(\[[ xX]\])")
 
     DEFAULT_CSS = """
     TextArea {
@@ -375,6 +377,23 @@ class HeloWriteTextArea(TextArea):
         """Convert a character offset into a UTF-8 byte offset for Textual highlights."""
         return len(line[: max(0, index)].encode("utf-8"))
 
+    def _append_highlight_span(
+        self,
+        line_number: int,
+        line: str,
+        start_col: int,
+        end_col: int,
+        token: str,
+    ) -> None:
+        """Append a Textual highlight span, using cheap offsets for ASCII lines."""
+        if line.isascii():
+            start = max(0, start_col)
+            end = max(0, end_col)
+        else:
+            start = self._char_to_utf8_byte_index(line, start_col)
+            end = self._char_to_utf8_byte_index(line, end_col)
+        self._highlights[line_number].append((start, end, token))
+
     def _build_snippet_highlight_pattern(self, replacement: str) -> Optional[str]:
         """Build a regex that matches the expanded snippet text."""
         if not replacement:
@@ -469,48 +488,96 @@ class HeloWriteTextArea(TextArea):
         for line_number, line in enumerate(self.text.splitlines()):
             heading_match = self.MARKDOWN_HEADING_RE.match(line)
             if heading_match:
-                start = self._char_to_utf8_byte_index(line, heading_match.start(1))
-                end = self._char_to_utf8_byte_index(line, heading_match.end(1))
-                self._highlights[line_number].append((start, end, "markdown_heading"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    heading_match.start(1),
+                    heading_match.end(1),
+                    "markdown_heading",
+                )
 
             quote_match = self.MARKDOWN_BLOCKQUOTE_RE.match(line)
             if quote_match:
-                start = self._char_to_utf8_byte_index(line, quote_match.start(1))
-                end = self._char_to_utf8_byte_index(line, quote_match.end(1))
-                self._highlights[line_number].append(
-                    (start, end, "markdown_blockquote")
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    quote_match.start(1),
+                    quote_match.end(1),
+                    "markdown_blockquote",
+                )
+
+            list_match = self.MARKDOWN_LIST_RE.match(line)
+            if list_match:
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    list_match.start(1),
+                    list_match.end(1),
+                    "markdown_list",
+                )
+
+            task_match = self.MARKDOWN_TASK_LIST_RE.match(line) if "[" in line else None
+            if task_match:
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    task_match.start(1),
+                    task_match.end(1),
+                    "markdown_task",
                 )
 
             for image_match in self.MARKDOWN_IMAGE_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, image_match.start())
-                end = self._char_to_utf8_byte_index(line, image_match.end())
-                self._highlights[line_number].append((start, end, "markdown_image"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    image_match.start(),
+                    image_match.end(),
+                    "markdown_image",
+                )
 
             for link_match in self.MARKDOWN_LINK_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, link_match.start())
-                end = self._char_to_utf8_byte_index(line, link_match.end())
-                self._highlights[line_number].append((start, end, "markdown_link"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    link_match.start(),
+                    link_match.end(),
+                    "markdown_link",
+                )
 
             for code_match in self.MARKDOWN_CODE_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, code_match.start())
-                end = self._char_to_utf8_byte_index(line, code_match.end())
-                self._highlights[line_number].append((start, end, "markdown_code"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    code_match.start(),
+                    code_match.end(),
+                    "markdown_code",
+                )
 
             for bold_match in self.MARKDOWN_BOLD_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, bold_match.start())
-                end = self._char_to_utf8_byte_index(line, bold_match.end())
-                self._highlights[line_number].append((start, end, "markdown_bold"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    bold_match.start(),
+                    bold_match.end(),
+                    "markdown_bold",
+                )
 
             for italic_match in self.MARKDOWN_ITALIC_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, italic_match.start())
-                end = self._char_to_utf8_byte_index(line, italic_match.end())
-                self._highlights[line_number].append((start, end, "markdown_italic"))
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    italic_match.start(),
+                    italic_match.end(),
+                    "markdown_italic",
+                )
 
             for strike_match in self.MARKDOWN_STRIKETHROUGH_RE.finditer(line):
-                start = self._char_to_utf8_byte_index(line, strike_match.start())
-                end = self._char_to_utf8_byte_index(line, strike_match.end())
-                self._highlights[line_number].append(
-                    (start, end, "markdown_strikethrough")
+                self._append_highlight_span(
+                    line_number,
+                    line,
+                    strike_match.start(),
+                    strike_match.end(),
+                    "markdown_strikethrough",
                 )
 
         for match in self.MARKDOWN_CODEBLOCK_RE.finditer(self.text):
@@ -529,11 +596,13 @@ class HeloWriteTextArea(TextArea):
                     if ln == line_end
                     else len(line_content)
                 )
-                start = self._char_to_utf8_byte_index(line_content, max(0, rel_start))
-                end = self._char_to_utf8_byte_index(
-                    line_content, min(len(line_content), rel_end)
+                self._append_highlight_span(
+                    ln,
+                    line_content,
+                    max(0, rel_start),
+                    min(len(line_content), rel_end),
+                    "markdown_codeblock",
                 )
-                self._highlights[ln].append((start, end, "markdown_codeblock"))
 
     def set_typewriter_bottom_slack(self, lines: int) -> None:
         """Set extra virtual lines at EOF for typewriter centering."""

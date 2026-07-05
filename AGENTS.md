@@ -9,7 +9,7 @@ HeloWrite is a fast, terminal-based text editor built with Python and Textual. I
 - **UI Framework**: Textual (>=0.80.0) for building terminal user interfaces
 - **Terminal Styling**: Rich (>=14.0.0) for beautiful terminal output and styling
 - **File Watching**: Watchdog (>=3.0.0) for hot reload in development
-- **Syntax Highlighting**: Pygments (>=2.0.0) for code syntax highlighting
+- **Syntax Highlighting**: Custom regex-based markdown highlighting in TextArea
 - **ASCII Art**: Pyfiglet (>=1.0.0) for generating application title
 - **Build System**: setuptools with pyproject.toml configuration
 - **Packaging**: Standard Python packaging with entry points

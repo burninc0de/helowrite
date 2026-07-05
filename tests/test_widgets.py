@@ -88,3 +88,37 @@ def test_markdown_highlights_headings_links_images_and_blockquotes() -> None:
         assert any(span[2] == "markdown_image" for span in widget._highlights[2])
     finally:
         mp.active_app.reset(token)
+
+
+def test_markdown_highlights_list_and_task_markers() -> None:
+    app = _SnippetApp()
+    app.language = "markdown"
+    token = mp.active_app.set(app)
+    try:
+        widget = HeloWriteTextArea()
+        widget.text = "\n".join(
+            [
+                "- Unordered",
+                "+ Plus",
+                "* Star",
+                "1. Ordered",
+                "2) Ordered",
+                "- [ ] Todo",
+                "- [x] Done",
+                "1. [X] Ordered task",
+            ]
+        )
+        widget._highlights.clear()
+        widget._build_markdown_highlights()
+
+        assert any(span[2] == "markdown_list" for span in widget._highlights[0])
+        assert any(span[2] == "markdown_list" for span in widget._highlights[1])
+        assert any(span[2] == "markdown_list" for span in widget._highlights[2])
+        assert any(span[2] == "markdown_list" for span in widget._highlights[3])
+        assert any(span[2] == "markdown_list" for span in widget._highlights[4])
+        assert any(span[2] == "markdown_list" for span in widget._highlights[5])
+        assert any(span[2] == "markdown_task" for span in widget._highlights[5])
+        assert any(span[2] == "markdown_task" for span in widget._highlights[6])
+        assert any(span[2] == "markdown_task" for span in widget._highlights[7])
+    finally:
+        mp.active_app.reset(token)
