@@ -332,6 +332,64 @@ class HeloWriteTextArea(TextArea):
             else:
                 self.insert(close_single)
 
+    AUTO_PAIRS = {
+        "*": "*",
+        "~": "~",
+        "`": "`",
+        "[": "]",
+        "(": ")",
+    }
+
+    def _handle_auto_pair(self, event) -> bool:
+        """Auto-close markdown pairs like **, *, ~~, [], and backticks.
+        Returns True if the event was consumed.
+        """
+        char = event.character
+        close = self.AUTO_PAIRS[char]
+
+        sel = self.selection
+        if not sel.is_empty:
+            text = self.get_text_range(sel.start, sel.end)
+            self.delete(sel.start, sel.end)
+            self.insert(char + text + close)
+            event.prevent_default()
+            event.stop()
+            return True
+
+        cursor = self.cursor_location
+        row, col = cursor
+
+        next_char = self.get_text_range((row, col), (row, col + 1))
+        if next_char == close:
+            if col > 0 and close == char:
+                pre_char = self.get_text_range((row, col - 1), (row, col))
+                if pre_char == char:
+                    text_before = self.get_text_range((row, 0), (row, col - 1))
+                    is_opening = (
+                        not text_before or text_before[-1] in " \t\n\r([{'\"])!"
+                    )
+                    if is_opening:
+                        self.insert(char + close)
+                        self.move_cursor((row, col + 1))
+                        event.prevent_default()
+                        event.stop()
+                        return True
+            self.move_cursor((row, col + 1))
+            event.prevent_default()
+            event.stop()
+            return True
+
+        text_before = self.get_text_range((row, 0), (row, col))
+        is_opening = not text_before or text_before[-1] in " \t\n\r([{'\"])!"
+        if is_opening:
+            self.insert(char + close)
+            self.move_cursor((row, col + 1))
+            event.prevent_default()
+            event.stop()
+            return True
+
+        return False
+
     def _build_snippet_highlights(self) -> None:
         app = getattr(self, "app", None) or getattr(self, "_app", None)
         snippets: Any = getattr(app, "_snippets", None)
@@ -826,6 +884,13 @@ class HeloWriteTextArea(TextArea):
                 self._insert_smart_quote("'")
                 event.prevent_default()
                 event.stop()
+                return
+
+        if (
+            getattr(self.app, "auto_pair_enabled", True)
+            and event.character in self.AUTO_PAIRS
+        ):
+            if self._handle_auto_pair(event):
                 return
 
         app = getattr(self.app, "_snippets", None)

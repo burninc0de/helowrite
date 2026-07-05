@@ -264,6 +264,11 @@ class SettingsScreen(ModalScreen):
                             )
                         with Horizontal(classes="setting-row"):
                             yield Checkbox(
+                                " Markdown auto-pair",
+                                id="auto-pair-checkbox",
+                            )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
                                 " Typographic quotes",
                                 id="smart-quotes-checkbox",
                             )
@@ -351,6 +356,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#markdown-coloring-checkbox", Checkbox
         ).value = app.config.get_markdown_highlighting_enabled()
+        self.query_one(
+            "#auto-pair-checkbox", Checkbox
+        ).value = app.config.get_auto_pair_enabled()
         self.query_one(
             "#smart-quotes-checkbox", Checkbox
         ).value = app.config.get_smart_quotes()
@@ -532,6 +540,9 @@ class SettingsScreen(ModalScreen):
             app.config.set_markdown_highlighting_enabled(
                 self.query_one("#markdown-coloring-checkbox", Checkbox).value
             )
+            app.config.set_auto_pair_enabled(
+                self.query_one("#auto-pair-checkbox", Checkbox).value
+            )
             app.config.set_smart_quotes(
                 self.query_one("#smart-quotes-checkbox", Checkbox).value
             )
@@ -561,6 +572,9 @@ class SettingsScreen(ModalScreen):
             ).value
             app.markdown_highlighting_enabled = self.query_one(
                 "#markdown-coloring-checkbox", Checkbox
+            ).value
+            app.auto_pair_enabled = self.query_one(
+                "#auto-pair-checkbox", Checkbox
             ).value
             app.smart_quotes = self.query_one("#smart-quotes-checkbox", Checkbox).value
             app.smart_quote_open_single = smart_quote_open_single

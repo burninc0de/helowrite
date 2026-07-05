@@ -158,6 +158,17 @@ class Config:
         config["smart_quotes"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_auto_pair_enabled(self) -> bool:
+        """Return whether markdown auto-pair is enabled."""
+        config = self._load_config()
+        return config.get("auto_pair_enabled", "1") == "1"
+
+    def set_auto_pair_enabled(self, enabled: bool):
+        """Persist auto-pair preference."""
+        config = self._load_config()
+        config["auto_pair_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_smart_quote_open_single(self) -> str:
         """Return opening replacement character for single quote."""
         config = self._load_config()

@@ -259,6 +259,9 @@ class HeloWrite(App):
         # Space between paragraphs setting
         self.space_between_paragraphs = self.config.get_space_between_paragraphs()
 
+        # Auto-pair setting
+        self.auto_pair_enabled = self.config.get_auto_pair_enabled()
+
         # Smart quotes setting
         self.smart_quotes = self.config.get_smart_quotes()
         self.smart_quote_open_single = self.config.get_smart_quote_open_single()

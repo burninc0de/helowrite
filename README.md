@@ -345,6 +345,8 @@ What we highlight, and why: enough to keep structure legible at a glance, nothin
 | Ordered lists | `1. item` `1) item` |
 | Task lists | `- [ ] todo` `- [x] done` |
 
+When you type an opening syntax marker (`*`, `~`, `` ` ``, `[`, `(`), the matching close is auto-inserted and your cursor lands between them. Type `**` and you get `**|**`, ready for bold text. Typing the closing marker skips past the auto-inserted one instead of duplicating it. Toggle in Settings > Content > "Markdown auto-pair".
+
 If you need real typesetting — LaTeX-style math, citations, footnotes, Pandoc's extended syntax — that tooling already exists and does it properly. Write your prose here, then hand it off.
 
 ## Architecture
