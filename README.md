@@ -356,7 +356,8 @@ HeloWrite is built using:
 - **Rich** - Beautiful terminal output and styling
 - **Python** - Clean, readable, and maintainable code
 
-## Project Structure
+<details>
+    <summary>Project Structure</summary><br/>
 
 ```
 helowrite/
@@ -413,6 +414,8 @@ helowrite/
 ├── release.py
 └── .gitignore
 ```
+
+</details>
 
 ## Contributing
 
