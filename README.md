@@ -360,36 +360,58 @@ HeloWrite is built using:
 
 ```
 helowrite/
-├── dev.py                 # Development server with hot reload
-├── src/                   # Source code package
+├── dev.py                    # Development server with hot reload
+├── scripts/                  # Utility scripts
+├── src/                      # Source code package
 │   ├── __init__.py
-│   ├── app.py             # Main application module
-│   ├── config.py          # Configuration management
-│   ├── constants.py       # Constants and help text
-│   ├── screens.py         # UI screens and dialogs
-│   ├── utils.py           # Utility functions
-│   ├── widgets.py         # Custom widgets
-│   └── css/               # Stylesheets
-│       ├── __init__.py
-│       ├── app.tcss       # Main app styles
-│       ├── screens.tcss   # Screen styles
-│       └── widgets.tcss   # Widget styles
-├── tests/                 # Test suite
+│   ├── app.py                # Main application module
+│   ├── audio_playback.py     # Audio playback for notifications
+│   ├── audio/                # Sound assets
+│   ├── config.py             # Configuration management
+│   ├── constants.py          # Constants and help text
+│   ├── css/                  # Stylesheets
+│   │   ├── __init__.py
+│   │   ├── app.tcss
+│   │   ├── screens.tcss
+│   │   └── widgets.tcss
+│   ├── git_sync.py           # Git operations
+│   ├── pomodoro.py           # Pomodoro timer
+│   ├── screens.py            # UI screens and dialogs
+│   ├── search.py             # Find/replace functionality
+│   ├── snippets.py           # Snippet expansion engine
+│   ├── styles.py             # Style definitions
+│   ├── themes.py             # Theme management
+│   ├── utils.py              # Utility functions
+│   └── widgets.py            # Custom widgets
+├── tests/                    # Test suite
 │   ├── __init__.py
-│   ├── conftest.py        # Pytest configuration
-│   ├── test_app.py        # Integration tests
-│   ├── test_settings_interaction.py # UI interaction tests
-│   └── test_*.py          # Unit tests
-├── venv/                  # Virtual environment (created by user)
-├── requirements.txt       # Python dependencies
-├── pyproject.toml         # Project configuration
-├── pytest.ini             # Pytest configuration
-├── git_sync_errors.log    # Git operation error log (created as needed)
-├── AGENTS.md              # Agent instructions (internal)
-├── CONTRIBUTING.md        # Contribution guidelines
-├── LICENSE                # MIT license
-├── README.md              # This file
-└── .gitignore             # Git ignore patterns
+│   ├── conftest.py
+│   ├── test_app.py
+│   ├── test_audio_playback.py
+│   ├── test_config.py
+│   ├── test_git_sync.py
+│   ├── test_lint.py
+│   ├── test_markdown_highlight_perf.py
+│   ├── test_pomodoro.py
+│   ├── test_search.py
+│   ├── test_settings_interaction.py
+│   ├── test_snippets.py
+│   ├── test_themes.py
+│   ├── test_typecheck.py
+│   ├── test_typewriter_scroll_perf.py
+│   ├── test_utils.py
+│   └── test_widgets.py
+├── venv/                     # Virtual environment (created by user)
+├── command_palette_template.md
+├── requirements.txt
+├── pyproject.toml
+├── pytest.ini
+├── AGENTS.md                 # Agent instructions (internal)
+├── CONTRIBUTING.md
+├── LICENSE                   # MIT license
+├── README.md                 # This file
+├── release.py
+└── .gitignore
 ```
 
 ## Contributing
