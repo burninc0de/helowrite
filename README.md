@@ -94,6 +94,7 @@ sudo dnf install pipx
 <details>
 <summary>Generic Fallback</summary><br/>
 
+
 ```bash
 python -m pip install --user pipx
 python -m pipx ensurepath
@@ -345,8 +346,6 @@ What we highlight, and why: enough to keep structure legible at a glance, nothin
 | Ordered lists | `1. item` `1) item` |
 | Task lists | `- [ ] todo` `- [x] done` |
 
-When you type an opening syntax marker (`*`, `~`, `` ` ``, `[`, `(`), the matching close is auto-inserted and your cursor lands between them. Type `**` and you get `**|**`, ready for bold text. Typing the closing marker skips past the auto-inserted one instead of duplicating it. Toggle in Settings > Content > "Markdown auto-pair".
-
 If you need real typesetting — LaTeX-style math, citations, footnotes, Pandoc's extended syntax — that tooling already exists and does it properly. Write your prose here, then hand it off.
 
 ## Architecture
@@ -395,11 +394,7 @@ helowrite/
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
