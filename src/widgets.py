@@ -226,8 +226,8 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_CODE_RE = re.compile(r"(`+)(.*?)\1")
     MARKDOWN_CODEBLOCK_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
     MARKDOWN_STRIKETHROUGH_RE = re.compile(r"~~(?!\s).+?(?<!\s)~~")
-    MARKDOWN_LIST_RE = re.compile(r"^\s{0,3}((?:[-+*]|\d+[.)])\s+)")
-    MARKDOWN_TASK_LIST_RE = re.compile(r"^\s{0,3}(?:[-+*]|\d+[.)])\s+(\[[ xX]\])")
+    MARKDOWN_LIST_RE = re.compile(r"^\s{0,12}((?:[-+*]|\d+[.)])\s+)")
+    MARKDOWN_TASK_LIST_RE = re.compile(r"^\s{0,12}(?:[-+*]|\d+[.)])\s+(\[[ xX]\])")
 
     DEFAULT_CSS = """
     TextArea {
