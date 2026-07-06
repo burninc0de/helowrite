@@ -1,6 +1,8 @@
 # Contributing to HeloWrite
 
-Thanks for wanting to help. Setup instructions are in the [README](README.md) — same as what you'd run to use the app, plus `pip install -e .[dev]` for dev dependencies.
+PRs always welcome. If unsure about scope, just open an issue. 
+
+Setup instructions are in the [README](README.md) — same as what you'd run to use the app, plus `pip install -e .[dev]` for dev dependencies.
 
 A few pointers:
 
@@ -15,9 +17,9 @@ PR process:
 3. Run tests and make sure everything passes
 4. Open a PR with a description of what and why
 
-## AI Contributions
+## The Heresy Check
 
-Use whatever tools you like — hand-stenciled code, agents, arcane invocations, whatever. As long as you understand what the code does and it passes tests, we don't judge.
+Use whatever tools you want: IDEs, LLMs, typewriters, abacuses, arcane invocations. We don’t care. As long as you actually understand the code you’re shipping and it passes tests, we don't require an affidavit of manual labor or a signed testament of non-AI taint.
 
 ## Reporting Issues
 
