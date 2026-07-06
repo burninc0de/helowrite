@@ -395,9 +395,7 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#space-between-paragraphs-checkbox", Checkbox
         ).value = app.config.get_space_between_paragraphs()
-        typewriter_sounds_box = self.query_one(
-            "#typewriter-sounds-checkbox", Checkbox
-        )
+        typewriter_sounds_box = self.query_one("#typewriter-sounds-checkbox", Checkbox)
         typewriter_sounds_box.value = app.config.get_typewriter_sounds()
         typewriter_sounds_box.disabled = not app.typewriter_mode
         self.query_one("#cursor-color-input", Input).value = app.cursor_color
