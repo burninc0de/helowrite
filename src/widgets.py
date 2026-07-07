@@ -369,8 +369,11 @@ class HeloWriteTextArea(TextArea):
                         not text_before or text_before[-1] in " \t\n\r([{'\"])!"
                     )
                     if is_opening:
-                        self.insert(char + close)
-                        self.move_cursor((row, col + 1))
+                        if char == "`":
+                            self.move_cursor((row, col + 1))
+                        else:
+                            self.insert(char + close)
+                            self.move_cursor((row, col + 1))
                         event.prevent_default()
                         event.stop()
                         return True
