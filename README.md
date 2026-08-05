@@ -28,19 +28,19 @@ HeloWrite treats prose with the same rigor developers treat code, minus the stee
 
 Writing is hard. Focus is paramount. Everything else is secondary.
 
-- **0.5s Startup**: From Enter to blinking cursor in 500ms.
+- **Fast Startup**: Near-instant on modern Python. No bloat, no delays.
 - **The Void**: High-contrast, minimalist UI designed to stop flashlighting your retinas.
 - **Git-First Workflow**: Don't just "sync"—stage, commit, and push your work only when it is worth keeping.
 
 ## Operational Essentials
 - **Pure Focus**: F11 toggles distraction-free mode. No icons, no ribbons, just you and the text.
-- **Adjustable Optics**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
-- **Directory Navigation**: Alt+Up/Down to navigate directory hierarchy with undo-like history. Move up to parent directories and back down through your navigation path.
-- **Git Push** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Git operations are based on the opened file's directory, not the vault path in settings.
+- **Dynamic Padding**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
+- **File Explorer**: Ctrl+O to toggle explorer. Enter to open files. Alt+Up/Down to navigate directory hierarchy. 
+- **Git Sync** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Auto pull on startup if desired.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message. Sound credit: [nahmandub on freesound.org](https://freesound.org/people/nahmandub/sounds/131348/)
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter. This was inspired by [a fork](https://github.com/gabinetenoturno/helowrite) by gabinetenoturno. Optional sounds for new line and backspace by [Gate13](https://freesound.org/people/Gate13/sounds/697389/).
 
-![screenshot](https://andreklein.net/wp-content/uploads/2026/06/helowrite_grid3.png)
+![screenshot](https://andreklein.net/wp-content/uploads/2026/08/helowrite_grid4.png)
 Extensive themes, distraction-free mode, Git Sync, Pomodoro Timer and more
 
 ## Quick Start
