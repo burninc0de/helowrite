@@ -41,7 +41,7 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter. This was inspired by [a fork](https://github.com/gabinetenoturno/helowrite) by gabinetenoturno. Optional sounds for new line and backspace by [Gate13](https://freesound.org/people/Gate13/sounds/697389/).
 
 ![screenshot](https://andreklein.net/wp-content/uploads/2026/08/helowrite_grid4.png)
-Extensive themes, distraction-free mode, Git Sync, Pomodoro Timer and more
+Distraction-free mode, custom settings, built-in themes, file explorer and more
 
 ## Quick Start
 
