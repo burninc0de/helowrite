@@ -11,6 +11,7 @@ from app import HeloWrite
 from config import Config
 from screens import WelcomeScreen
 from widgets import FindBar
+from search import apply_find_query
 
 
 @pytest.mark.asyncio
@@ -64,7 +65,7 @@ async def test_find_bar_navigation_and_enter_close(temp_config_dir: Path):
 
         find_input = app.query_one("#find-input", Input)
         find_input.value = "alpha"
-        app.apply_find_query("alpha")
+        apply_find_query(app, "alpha")
         await pilot.pause()
 
         assert len(app.find_matches) == 2
@@ -355,7 +356,9 @@ async def test_system_theme_auto_selected_on_first_launch(
     }
     monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
     monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
-    monkeypatch.setattr("app.is_system_theme_available", lambda: True)
+    monkeypatch.setattr("themes.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("themes.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("themes.is_system_theme_available", lambda: True)
 
     app = HeloWrite()
     async with app.run_test() as pilot:
@@ -380,7 +383,9 @@ async def test_system_theme_does_not_override_saved_user_choice(
     }
     monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
     monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
-    monkeypatch.setattr("app.is_system_theme_available", lambda: True)
+    monkeypatch.setattr("themes.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("themes.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("themes.is_system_theme_available", lambda: True)
 
     app = HeloWrite()
     async with app.run_test() as pilot:
@@ -392,6 +397,8 @@ async def test_system_theme_does_not_override_saved_user_choice(
 async def test_system_theme_falls_back_when_source_disappears(
     temp_config_dir: Path, monkeypatch
 ):
+    import themes
+
     Config(config_dir=temp_config_dir).set_theme("system")
     state = {"available": True}
     system_theme = {
@@ -406,13 +413,15 @@ async def test_system_theme_falls_back_when_source_disappears(
 
     monkeypatch.setattr("app.create_system_theme", lambda: system_theme)
     monkeypatch.setattr("app.get_system_theme_last_modified", lambda: 123.0)
-    monkeypatch.setattr("app.is_system_theme_available", lambda: state["available"])
+    monkeypatch.setattr("themes.create_system_theme", lambda: system_theme)
+    monkeypatch.setattr("themes.get_system_theme_last_modified", lambda: 123.0)
+    monkeypatch.setattr("themes.is_system_theme_available", lambda: state["available"])
 
     app = HeloWrite()
     async with app.run_test() as pilot:
         assert app.theme == "system"
         state["available"] = False
-        app._check_system_theme_update()
+        themes.check_system_theme_update(app)
         assert app.theme == "helowrite-dark"
         assert Config(config_dir=temp_config_dir).get_theme() == "helowrite-dark"
         assert app._system_watcher_active is False
@@ -423,6 +432,8 @@ async def test_system_theme_falls_back_when_source_disappears(
 async def test_system_theme_update_reapplies_dynamic_highlight_styles(
     temp_config_dir: Path, monkeypatch
 ):
+    import themes
+
     Config(config_dir=temp_config_dir).set_theme("system")
     state = {
         "available": True,
@@ -443,7 +454,9 @@ async def test_system_theme_update_reapplies_dynamic_highlight_styles(
 
     monkeypatch.setattr("app.create_system_theme", make_theme)
     monkeypatch.setattr("app.get_system_theme_last_modified", lambda: state["mtime"])
-    monkeypatch.setattr("app.is_system_theme_available", lambda: state["available"])
+    monkeypatch.setattr("themes.create_system_theme", make_theme)
+    monkeypatch.setattr("themes.get_system_theme_last_modified", lambda: state["mtime"])
+    monkeypatch.setattr("themes.is_system_theme_available", lambda: state["available"])
 
     app = HeloWrite()
     async with app.run_test() as pilot:
@@ -460,7 +473,7 @@ async def test_system_theme_update_reapplies_dynamic_highlight_styles(
 
         state["primary"] = "#ff8a00"
         state["mtime"] = 101.0
-        app._check_system_theme_update()
+        themes.check_system_theme_update(app)
 
         assert calls["count"] == 1
         assert app._system_theme is not None

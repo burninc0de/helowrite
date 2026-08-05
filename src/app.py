@@ -25,20 +25,31 @@ from screens import (
     TimerCompleteScreen,
     WelcomeScreen,
 )
-from search import SearchMatch, SearchState
+from search import (
+    SearchMatch,
+    SearchState,
+    cancel_find_refresh,
+    close_find_bar,
+    handle_find_input,
+    handle_find_key,
+    jump_to_find_result,
+    refresh_find_highlights,
+    schedule_find_refresh,
+)
 from snippets import sorted_triggers
 from styles import APP_DEFAULT_CSS
 from themes import (
-    apply_system_theme_update,
+    check_system_theme_update_once,
     choose_startup_theme,
     register_builtin_themes,
     register_system_theme,
+    start_system_theme_watcher,
+    stop_system_theme_watcher,
 )
 from utils import (
     create_system_theme,
     detect_language,
     get_system_theme_last_modified,
-    is_system_theme_available,
 )
 from widgets import CenteredEditor, FileOpenPanel, FindBar, HeloWriteTextArea, StatusBar
 
@@ -470,47 +481,7 @@ class HeloWrite(App):
 
         # Start system theme watcher only if system theme is currently selected
         if self._system_theme and self.theme == "system":
-            self._check_system_theme_update_once()
-
-    def _start_system_theme_watcher(self) -> None:
-        """Enable periodic checks for active system theme changes."""
-        if self._system_watcher_active:
-            return
-        if not self._system_theme:
-            return
-        self._system_watcher_timer = self.set_interval(
-            self._system_watch_interval_seconds, self._check_system_theme_update
-        )
-        self._system_watcher_active = True
-
-    def _stop_system_theme_watcher(self) -> None:
-        """Disable periodic checks for system theme changes."""
-        if self._system_watcher_timer:
-            self._system_watcher_timer.stop()
-            self._system_watcher_timer = None
-        self._system_watcher_active = False
-
-    def _check_system_theme_update_once(self) -> None:
-        """Check system theme once on startup. Start watcher only if system theme is available."""
-        if not self._system_theme:
-            return
-        if self.theme != "system":
-            return
-        self._check_system_theme_update()
-        if self._system_theme:
-            self._start_system_theme_watcher()
-
-    def _fallback_to_default_theme(self) -> None:
-        """Fallback when system theme disappears or becomes invalid."""
-        self._system_theme = None
-        self._system_last_check = 0.0
-        self._stop_system_theme_watcher()
-        self.theme = "helowrite-dark"
-        self.config.set_theme("helowrite-dark")
-        self.notify(
-            "System theme unavailable. Falling back to helowrite-dark.",
-            severity="warning",
-        )
+            check_system_theme_update_once(self)
 
     def watch_theme(self, old_theme: str, new_theme: str) -> None:
         """Called when the theme changes - save it to config."""
@@ -520,47 +491,10 @@ class HeloWrite(App):
             self.config.set_theme(new_theme)
             self.notify(f"Theme changed to {new_theme}", severity="information")
             self.apply_cursor_color()
-            # Start/stop system theme watcher based on selection
             if new_theme == "system" and self._system_theme:
-                self._start_system_theme_watcher()
+                start_system_theme_watcher(self)
             elif old_theme == "system":
-                self._stop_system_theme_watcher()
-
-    def _check_system_theme_update(self) -> None:
-        """Check if system theme has changed and update if needed."""
-        if not is_system_theme_available():
-            if self.theme == "system":
-                self._fallback_to_default_theme()
-            return
-
-        if not self._system_theme:
-            self._system_theme = create_system_theme()
-            self._system_last_check = get_system_theme_last_modified() or 0.0
-            if not self._system_theme:
-                return
-
-        try:
-            current_mtime = get_system_theme_last_modified() or 0.0
-            if current_mtime > self._system_last_check:
-                new_system_theme = create_system_theme()
-                if new_system_theme:
-                    self._system_theme = new_system_theme
-                    self._system_last_check = current_mtime
-                    if self.theme == "system":
-                        self._applying_system_update = True
-                        try:
-                            apply_system_theme_update(self, new_system_theme)
-                        finally:
-                            self._applying_system_update = False
-
-                        self.refresh_css()
-                        self.screen.refresh()
-                        # Re-apply dynamic cursor/syntax styles that depend on current theme.
-                        self.apply_cursor_color()
-                elif self.theme == "system":
-                    self._fallback_to_default_theme()
-        except Exception:
-            pass
+                stop_system_theme_watcher(self)
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
@@ -584,7 +518,7 @@ class HeloWrite(App):
             )
 
         if self.find_query:
-            self._schedule_find_refresh()
+            schedule_find_refresh(self)
 
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         """Called when cursor/selection changes."""
@@ -631,27 +565,6 @@ class HeloWrite(App):
             self._status_update_debounce_seconds,
             self._flush_status_update,
         )
-
-    def _run_scheduled_find_refresh(self) -> None:
-        """Apply the latest find query to current editor text."""
-        self._find_refresh_timer = None
-        if self.find_query:
-            self.apply_find_query(self.find_query)
-
-    def _schedule_find_refresh(self) -> None:
-        """Debounce find/highlight recomputation while typing in the editor."""
-        if self._find_refresh_timer is not None:
-            self._find_refresh_timer.stop()
-        self._find_refresh_timer = self.set_timer(
-            self._find_refresh_debounce_seconds,
-            self._run_scheduled_find_refresh,
-        )
-
-    def _cancel_find_refresh(self) -> None:
-        """Stop any pending find refresh timer."""
-        if self._find_refresh_timer is not None:
-            self._find_refresh_timer.stop()
-            self._find_refresh_timer = None
 
     def update_status(self, recalculate_word_count: bool = True):
         """Update the status bar with current information."""
@@ -922,9 +835,9 @@ class HeloWrite(App):
             self._word_count_timer.stop()
         if self._status_update_timer:
             self._status_update_timer.stop()
-        self._cancel_find_refresh()
+        cancel_find_refresh(self)
         self.stop_auto_save()
-        self._stop_system_theme_watcher()
+        stop_system_theme_watcher(self)
         self.exit()
 
     def action_open(self):
@@ -961,7 +874,7 @@ class HeloWrite(App):
         """Toggle the top search bar and focus the search input."""
         find_bar = self.query_one("#find-bar", FindBar)
         if find_bar.has_class("visible"):
-            self.close_find_bar(clear_query=True)
+            close_find_bar(self, clear_query=True)
             return
 
         find_bar.add_class("visible")
@@ -977,8 +890,8 @@ class HeloWrite(App):
             return
 
         match_index = self.search_state.select_next()
-        self.jump_to_find_result(match_index)
-        self.refresh_find_highlights()
+        jump_to_find_result(self, match_index)
+        refresh_find_highlights(self)
 
     def action_find_previous(self) -> None:
         """Jump to the previous search result."""
@@ -986,98 +899,16 @@ class HeloWrite(App):
             return
 
         match_index = self.search_state.select_previous()
-        self.jump_to_find_result(match_index)
-        self.refresh_find_highlights()
-
-    def close_find_bar(self, clear_query: bool = True) -> None:
-        """Close the find bar and optionally clear search highlights."""
-        self._cancel_find_refresh()
-        find_bar = self.query_one("#find-bar", FindBar)
-        find_bar.remove_class("visible")
-        find_input = find_bar.query_one("#find-input", Input)
-        find_input.value = ""
-        find_bar.set_query("")
-
-        if clear_query:
-            self.search_state.clear()
-            self.refresh_find_highlights()
-
-        editor = self.query_one("#editor", HeloWriteTextArea)
-        editor.focus()
-
-    def refresh_find_highlights(self) -> None:
-        """Rebuild highlights and update find-bar metadata."""
-        try:
-            editor = self.query_one("#editor", HeloWriteTextArea)
-            if hasattr(editor, "refresh_search_highlights"):
-                editor.refresh_search_highlights()
-            else:
-                editor._build_highlight_map()
-            editor.refresh()
-        except Exception:
-            pass
-
-        try:
-            find_bar = self.query_one("#find-bar", FindBar)
-            find_bar.set_match_count(
-                len(self.find_matches), self.find_active_match_index
-            )
-        except Exception:
-            pass
-
-    def apply_find_query(self, query: str) -> None:
-        """Compute all matches for the active query and update highlights."""
-        editor = self.query_one("#editor", HeloWriteTextArea)
-        self.search_state.apply_query(editor.text, query)
-        self.refresh_find_highlights()
-
-    def jump_to_find_result(self, index: int) -> None:
-        """Move cursor and scroll to a specific find result."""
-        if index < 0 or index >= len(self.find_matches):
-            return
-
-        line, col, _ = self.find_matches[index]
-        editor = self.query_one("#editor", HeloWriteTextArea)
-        editor.cursor_location = (line, col)
-        editor.scroll_cursor_visible()
-        self.show_message(f"Match {index + 1}/{len(self.find_matches)}")
+        jump_to_find_result(self, match_index)
+        refresh_find_highlights(self)
 
     def on_input_changed(self, event: Input.Changed) -> None:
-        """Update find matches while typing in the find input."""
-        if event.input.id == "find-input":
-            find_bar = self.query_one("#find-bar", FindBar)
-            find_bar.set_query(event.value)
-            self.apply_find_query(event.value)
+        """Handle input changes including find-bar typing."""
+        handle_find_input(self, event)
 
     def on_key(self, event) -> None:
-        """Handle find-bar key controls while focus is in the find input."""
-        try:
-            focused = self.screen.focused
-        except Exception:
-            focused = None
-
-        if isinstance(focused, Input) and focused.id == "find-input":
-            if event.key == "escape":
-                event.prevent_default()
-                event.stop()
-                self.close_find_bar(clear_query=True)
-                return
-            if event.key == "down":
-                event.prevent_default()
-                event.stop()
-                self.action_find_next()
-                return
-            if event.key == "up":
-                event.prevent_default()
-                event.stop()
-                self.action_find_previous()
-                return
-            if event.key in ("enter", "return"):
-                event.prevent_default()
-                event.stop()
-                self.action_find_next()
-                self.close_find_bar(clear_query=True)
-                return
+        """Handle key press including find-bar navigation."""
+        handle_find_key(self, event)
 
     def action_settings(self):
         """Open settings dialog."""

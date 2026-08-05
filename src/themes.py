@@ -1,11 +1,18 @@
 """Textual theme registration helpers for HeloWrite."""
 
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from textual.theme import Theme
 
 from config import Config
-from utils import create_system_theme, get_system_theme_last_modified
+from utils import (
+    create_system_theme,
+    get_system_theme_last_modified,
+    is_system_theme_available,
+)
+
+if TYPE_CHECKING:
+    from app import HeloWrite
 
 
 def register_builtin_themes(app: Any) -> None:
@@ -99,3 +106,84 @@ def apply_system_theme_update(app: Any, system_theme: dict) -> None:
     app.register_theme(theme_from_system_theme(system_theme))
     app.theme = "textual-dark"
     app.theme = "system"
+
+
+def start_system_theme_watcher(app: "HeloWrite") -> None:
+    """Enable periodic checks for active system theme changes."""
+    if app._system_watcher_active:
+        return
+    if not app._system_theme:
+        return
+    app._system_watcher_timer = app.set_interval(
+        app._system_watch_interval_seconds,
+        lambda: check_system_theme_update(app),
+    )
+    app._system_watcher_active = True
+
+
+def stop_system_theme_watcher(app: "HeloWrite") -> None:
+    """Disable periodic checks for system theme changes."""
+    if app._system_watcher_timer:
+        app._system_watcher_timer.stop()
+        app._system_watcher_timer = None
+    app._system_watcher_active = False
+
+
+def check_system_theme_update_once(app: "HeloWrite") -> None:
+    """Check system theme once on startup; start watcher if system theme is available."""
+    if not app._system_theme:
+        return
+    if app.theme != "system":
+        return
+    check_system_theme_update(app)
+    if app._system_theme:
+        start_system_theme_watcher(app)
+
+
+def fallback_to_default_theme(app: "HeloWrite") -> None:
+    """Fallback when system theme disappears or becomes invalid."""
+    app._system_theme = None
+    app._system_last_check = 0.0
+    stop_system_theme_watcher(app)
+    app.theme = "helowrite-dark"
+    app.config.set_theme("helowrite-dark")
+    app.notify(
+        "System theme unavailable. Falling back to helowrite-dark.",
+        severity="warning",
+    )
+
+
+def check_system_theme_update(app: "HeloWrite") -> None:
+    """Check if system theme has changed and update if needed."""
+    if not is_system_theme_available():
+        if app.theme == "system":
+            fallback_to_default_theme(app)
+        return
+
+    if not app._system_theme:
+        app._system_theme = create_system_theme()
+        app._system_last_check = get_system_theme_last_modified() or 0.0
+        if not app._system_theme:
+            return
+
+    try:
+        current_mtime = get_system_theme_last_modified() or 0.0
+        if current_mtime > app._system_last_check:
+            new_system_theme = create_system_theme()
+            if new_system_theme:
+                app._system_theme = new_system_theme
+                app._system_last_check = current_mtime
+                if app.theme == "system":
+                    app._applying_system_update = True
+                    try:
+                        apply_system_theme_update(app, new_system_theme)
+                    finally:
+                        app._applying_system_update = False
+
+                    app.refresh_css()
+                    app.screen.refresh()
+                    app.apply_cursor_color()
+            elif app.theme == "system":
+                fallback_to_default_theme(app)
+    except Exception:
+        pass
