@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pyfiglet
 from textual.app import ComposeResult
@@ -20,6 +20,9 @@ from textual.widgets import (
 from pomodoro import parse_pomodoro_minutes
 from utils import detect_language
 from widgets import HeloWriteTextArea
+
+if TYPE_CHECKING:
+    from app import HeloWrite
 
 
 class FileOpenScreen(ModalScreen):
@@ -71,27 +74,25 @@ class FileOpenScreen(ModalScreen):
         """Handle file selection and close the panel."""
         file_path = Path(event.path)
         if file_path.is_file():
-            app = self.app
-            app.file_path = file_path  # type: ignore
-            app.language = detect_language(file_path)  # type: ignore
+            app = cast("HeloWrite", self.app)
+            app.file_path = file_path
+            app.language = detect_language(file_path)
             try:
-                content = app.read_text_file(  # type: ignore[attr-defined]
-                    file_path, show_encoding_notice=True
-                )
+                content = app.read_text_file(file_path, show_encoding_notice=True)
                 editor = app.query_one("#editor", HeloWriteTextArea)
                 editor.language = app.language
                 editor.load_text(content)
-                app._original_text = content  # type: ignore
-                app.show_message(f"Loaded: {file_path}")  # type: ignore
-                app.is_dirty = False  # type: ignore
-                app.update_status()  # type: ignore
+                app._original_text = content
+                app.show_message(f"Loaded: {file_path}")
+                app.is_dirty = False
+                app.update_status()
                 # Save as last file if setting is enabled
-                if app.config.get_open_last_file():  # type: ignore
-                    app.config.set_last_file_path(str(file_path))  # type: ignore
+                if app.config.get_open_last_file():
+                    app.config.set_last_file_path(str(file_path))
                 # Add to recent files
-                app.config.add_recent_file(str(file_path))  # type: ignore
+                app.config.add_recent_file(str(file_path))
             except Exception as e:
-                app.show_message(f"Error loading file: {e}")  # type: ignore
+                app.show_message(f"Error loading file: {e}")
         self.app.pop_screen()
 
     def on_key(self, event) -> None:
@@ -1158,8 +1159,9 @@ Customize your keybindings in: [bold $primary]~/.config/helowrite/keybindings.co
             )
 
     def on_key(self, event) -> None:
+        app = cast("HeloWrite", self.app)
         if event.key.lower() == "x":
-            self.app.config.set_show_welcome(False)
-        self.app.editor_width = self.app.config.get_editor_width()
-        self.app.apply_editor_settings()
+            app.config.set_show_welcome(False)
+        app.editor_width = app.config.get_editor_width()
+        app.apply_editor_settings()
         self.app.pop_screen()

@@ -1,14 +1,14 @@
 import datetime
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional, cast
 
 from rich.console import Console
 from rich.style import Style
 from textual.app import App, ComposeResult, SystemCommand
 from textual.command import CommandPalette
 from textual.timer import Timer
-from textual.widgets import Footer, Header, Input, Static, TextArea
+from textual.widgets import DirectoryTree, Footer, Header, Input, Static, TextArea
 
 from audio_playback import play_sound
 from config import Config
@@ -276,7 +276,7 @@ class HeloWrite(App):
         self._typewriter_log_path = self.config.config_dir / "typewriter_debug.log"
 
         # Directory navigation stack
-        self.dir_stack = []
+        self.dir_stack: list[str] = []
 
         # System theme integration
         self._system_theme: Optional[dict] = None
@@ -1360,7 +1360,7 @@ class HeloWrite(App):
     def _feedback(
         self,
         message: str,
-        severity: str = "information",
+        severity: Literal["information", "warning", "error"] = "information",
         timeout: int = 5,
         show_in_distraction_free: bool = True,
         distraction_free_message: Optional[str] = None,
@@ -1412,7 +1412,7 @@ class HeloWrite(App):
             # Refresh file manager if open
             try:
                 panel = self.query_one("#file-open-panel")
-                tree = panel.query_one("#file-tree-panel")
+                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
                 tree.reload()
             except Exception:
                 pass
@@ -1428,7 +1428,7 @@ class HeloWrite(App):
             # Refresh file manager if open
             try:
                 panel = self.query_one("#file-open-panel")
-                tree = panel.query_one("#file-tree-panel")
+                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
                 tree.reload()
             except Exception:
                 pass
@@ -1459,7 +1459,7 @@ class HeloWrite(App):
         if result.refresh_file_panel:
             try:
                 panel = self.query_one("#file-open-panel")
-                tree = panel.query_one("#file-tree-panel")
+                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
                 tree.reload()
             except Exception:
                 pass

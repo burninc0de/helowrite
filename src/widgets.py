@@ -4,7 +4,7 @@ import datetime
 import os
 import re
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
@@ -13,6 +13,9 @@ from textual.widgets import DirectoryTree, Input, Static, TextArea
 
 from snippets import PLACEHOLDER_PATTERN
 from utils import detect_language, has_nerd_fonts
+
+if TYPE_CHECKING:
+    from app import HeloWrite
 
 
 class StatusBar(Static):
@@ -1095,7 +1098,7 @@ class FileOpenPanel(Vertical):
     ) -> None:
         file_path = Path(event.path)
         if file_path.is_file():
-            app = self.app
+            app = cast("HeloWrite", self.app)
             app.file_path = file_path
             app.language = detect_language(file_path)
             try:

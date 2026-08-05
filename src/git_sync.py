@@ -4,7 +4,7 @@ import asyncio
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 LOG_FILE = Path(__file__).with_name("git_sync_errors.log")
 
@@ -14,7 +14,7 @@ class GitSyncResult:
     """Result of a git synchronization action."""
 
     message: str
-    severity: str = "information"
+    severity: Literal["information", "warning", "error"] = "information"
     timeout: int = 2
     reload_current_file: bool = False
     refresh_file_panel: bool = False

@@ -96,7 +96,7 @@ def get_system_theme_name(name_file: Optional[Path] = None) -> Optional[str]:
 
 def parse_system_theme_colors(theme_file: Optional[Path] = None) -> dict[str, str]:
     """Parse system theme colors into a dict."""
-    colors = {}
+    colors: dict[str, str] = {}
     resolved_theme_file, _ = _resolve_system_theme_files()
     candidate = theme_file or resolved_theme_file
     if not candidate:
