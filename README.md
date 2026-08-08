@@ -40,8 +40,9 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message. Sound credit: [nahmandub on freesound.org](https://freesound.org/people/nahmandub/sounds/131348/)
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter. This was inspired by [a fork](https://github.com/gabinetenoturno/helowrite) by gabinetenoturno. Optional sounds for new line and backspace by [Gate13](https://freesound.org/people/Gate13/sounds/697389/).
 
-![screenshot](https://andreklein.net/wp-content/uploads/2026/08/helowrite_grid4.png)
-Distraction-free mode, custom settings, built-in themes, file explorer and more
+<img width="1920" height="1080" alt="animation (1)" src="https://github.com/user-attachments/assets/b325ce54-be24-4b20-9bae-03bb9f011401" />
+
+Ships with built-in themes or follows your system theme.
 
 ## Quick Start
 
