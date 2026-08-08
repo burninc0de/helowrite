@@ -193,12 +193,12 @@ python src/app.py [filename.txt]
 ## Environment Variables
 
 <details>
-    <summary>HELOWWRITE_CONFIG_DIR — Custom Config Path</summary><br/>
+    <summary>HELOWRITE_CONFIG_DIR — Custom Config Path</summary><br/>
 
 Override the config directory (defaults to `~/.config/helowrite`):
 
 ```bash
-HELOWWRITE_CONFIG_DIR=/path/to/config python src/app.py
+HELOWRITE_CONFIG_DIR=/path/to/config python src/app.py
 ```
 
 </details>
@@ -218,23 +218,23 @@ Logs go to `~/.config/helowrite/typewriter_debug.log`.
 </details>
 
 <details>
-    <summary>HELOWWRITE_SYSTEM_THEME_FILE — System Theme Colors</summary><br/>
+    <summary>HELOWRITE_SYSTEM_THEME_FILE — System Theme Colors</summary><br/>
 
 Point to a custom colors file in TOML format (e.g. `background`, `foreground`, `accent` keys). Overrides the built-in search paths.
 
 ```bash
-HELOWWRITE_SYSTEM_THEME_FILE=/path/to/colors.toml python src/app.py
+HELOWRITE_SYSTEM_THEME_FILE=/path/to/colors.toml python src/app.py
 ```
 
 </details>
 
 <details>
-    <summary>HELOWWRITE_SYSTEM_THEME_NAME_FILE — Theme Display Name</summary><br/>
+    <summary>HELOWRITE_SYSTEM_THEME_NAME_FILE — Theme Display Name</summary><br/>
 
 Path to a file whose contents are used as the theme display name. Falls back to `theme.name` beside the colors file.
 
 ```bash
-HELOWWRITE_SYSTEM_THEME_NAME_FILE=/path/to/theme.name python src/app.py
+HELOWRITE_SYSTEM_THEME_NAME_FILE=/path/to/theme.name python src/app.py
 ```
 
 </details>
