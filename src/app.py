@@ -1131,7 +1131,8 @@ class HeloWrite(App):
 
     def start_timer(self, minutes: int):
         """Start the countdown timer."""
-        self.show_message(f"Timer set for {minutes} minutes")
+        label = "minute" if minutes == 1 else "minutes"
+        self._feedback(f"Timer set for {minutes} {label}")
 
         def on_timer_complete() -> None:
             self.play_sound("bell")
