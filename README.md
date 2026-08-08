@@ -37,8 +37,8 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Dynamic Padding**: Alt+Left/Right to tune your horizontal padding. Spare your eyes the long trek across the screen.
 - **File Explorer**: Ctrl+O to toggle explorer. Enter to open files. Alt+Up/Down to navigate directory hierarchy. 
 - **Git Sync** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Auto pull on startup if desired.
-- **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message. Sound credit: [nahmandub on freesound.org](https://freesound.org/people/nahmandub/sounds/131348/)
-- **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter. This was inspired by [a fork](https://github.com/gabinetenoturno/helowrite) by gabinetenoturno. Optional sounds for new line and backspace by [Gate13](https://freesound.org/people/Gate13/sounds/697389/).
+- **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message.
+- **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter.
 
 <img width="1920" height="1080" alt="animation (1)" src="https://github.com/user-attachments/assets/b325ce54-be24-4b20-9bae-03bb9f011401" />
 
@@ -421,6 +421,12 @@ helowrite/
 ## Contributing
 
 PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Acknowledgments
+
+- Typewriter mode inspired by [gabinetenoturno's fork](https://github.com/gabinetenoturno/helowrite)
+- Pomodoro timer sound by [nahmandub](https://freesound.org/people/nahmandub/sounds/131348/)
+- Typewriter sounds by [Gate13](https://freesound.org/people/Gate13/sounds/697389/)
 
 ## License
 
