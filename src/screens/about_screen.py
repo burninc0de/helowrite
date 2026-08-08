@@ -15,6 +15,10 @@ class AboutScreen(ModalScreen):
     DEFAULT_CSS = """
     AboutScreen {
         align: center middle;
+        scrollbar-size: 1 1;
+        scrollbar-color: $surface-lighten-2;
+        scrollbar-color-hover: $surface-lighten-1;
+        scrollbar-background: $surface;
     }
 
     #about-container {
