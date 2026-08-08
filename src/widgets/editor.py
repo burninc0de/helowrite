@@ -320,6 +320,7 @@ class HeloWriteTextArea(TextArea):
                 if highlight[2] not in search_tokens
             ]
         self._build_search_highlights()
+        self._line_cache.clear()
 
     def _build_search_highlights(self) -> None:
         app = getattr(self, "app", None) or getattr(self, "_app", None)
