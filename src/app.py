@@ -238,6 +238,10 @@ class HeloWrite(App):
         self.console = Console()
         self.config = Config()
         self._bind_keybindings()
+        self._init_state()
+
+    def _init_state(self) -> None:
+        """Initialise all reactive editor state and config-derived settings."""
         self.distraction_free = False
         self.language = "text"
         self._word_count_timer: Optional[Timer] = None
@@ -248,41 +252,34 @@ class HeloWrite(App):
         self._find_refresh_timer: Optional[Timer] = None
         self._find_refresh_debounce_seconds: float = 0.12
         self.search_state = SearchState()
-        # Load editor settings
+
         self.editor_width = self.config.get_editor_width()
         self.indent_width = self.config.get_indent_width()
         self.cursor_color = self.config.get_cursor_color()
-        # Auto-save settings
+
         self.auto_save_enabled = self.config.get_auto_save_enabled()
         self.auto_save_interval = self.config.get_auto_save_interval()
         self.auto_save_timer = None
 
-        # Scrollbar setting
         self.scrollbar_enabled = self.config.get_scrollbar_enabled()
 
-        # Space between paragraphs setting
         self.space_between_paragraphs = self.config.get_space_between_paragraphs()
 
-        # Auto-pair setting
         self.auto_pair_enabled = self.config.get_auto_pair_enabled()
 
-        # Smart quotes setting
         self.smart_quotes = self.config.get_smart_quotes()
         self.smart_quote_open_single = self.config.get_smart_quote_open_single()
         self.smart_quote_close_single = self.config.get_smart_quote_close_single()
         self.smart_quote_open_double = self.config.get_smart_quote_open_double()
         self.smart_quote_close_double = self.config.get_smart_quote_close_double()
 
-        # Typewriter mode setting
         self.typewriter_mode = self.config.get_typewriter_mode()
         self.typewriter_sounds = self.config.get_typewriter_sounds()
         self._typewriter_adjusting = False
         self._typewriter_log_path = self.config.config_dir / "typewriter_debug.log"
 
-        # Directory navigation stack
         self.dir_stack: list[str] = []
 
-        # System theme integration
         self._system_theme: Optional[dict] = None
         self._system_last_check: float = 0.0
         self._applying_system_update: bool = False
@@ -290,7 +287,6 @@ class HeloWrite(App):
         self._system_watcher_timer: Optional[Timer] = None
         self._system_watch_interval_seconds: float = 1.0
 
-        # Snippets
         self._snippets = self.config.get_snippets()
         self._snippet_triggers_sorted = sorted_triggers(list(self._snippets.keys()))
         self.snippet_highlighting_enabled = (
