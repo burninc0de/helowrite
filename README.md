@@ -363,12 +363,19 @@ HeloWrite is built using:
 ```
 helowrite/
 ├── dev.py                    # Development server with hot reload
-├── scripts/                  # Utility scripts
+├── release.py                # Release automation
 ├── src/                      # Source code package
 │   ├── __init__.py
 │   ├── app.py                # Main application module
 │   ├── audio_playback.py     # Audio playback for notifications
 │   ├── audio/                # Sound assets
+│   │   ├── bell.wav
+│   │   ├── newline1.wav
+│   │   ├── newline2.wav
+│   │   ├── newline3.wav
+│   │   ├── ratchet1.wav
+│   │   ├── ratchet2.wav
+│   │   └── ratchet3.wav
 │   ├── config.py             # Configuration management
 │   ├── constants.py          # Constants and help text
 │   ├── css/                  # Stylesheets
@@ -378,13 +385,29 @@ helowrite/
 │   │   └── widgets.tcss
 │   ├── git_sync.py           # Git operations
 │   ├── pomodoro.py           # Pomodoro timer
-│   ├── screens.py            # UI screens and dialogs
+│   ├── screens/              # UI screens and dialogs
+│   │   ├── __init__.py
+│   │   ├── about_screen.py
+│   │   ├── help_screen.py
+│   │   ├── pomodoro_timer_screen.py
+│   │   ├── quit_confirm_screen.py
+│   │   ├── recent_files_screen.py
+│   │   ├── save_as_screen.py
+│   │   ├── settings_screen.py
+│   │   ├── timer_complete_screen.py
+│   │   └── welcome_screen.py
 │   ├── search.py             # Find/replace functionality
 │   ├── snippets.py           # Snippet expansion engine
 │   ├── styles.py             # Style definitions
 │   ├── themes.py             # Theme management
 │   ├── utils.py              # Utility functions
-│   └── widgets.py            # Custom widgets
+│   └── widgets/              # Custom widgets
+│       ├── __init__.py
+│       ├── centered_editor.py
+│       ├── editor.py
+│       ├── file_open_panel.py
+│       ├── find_bar.py
+│       └── status_bar.py
 ├── tests/                    # Test suite
 │   ├── __init__.py
 │   ├── conftest.py
@@ -403,17 +426,16 @@ helowrite/
 │   ├── test_typewriter_scroll_perf.py
 │   ├── test_utils.py
 │   └── test_widgets.py
-├── venv/                     # Virtual environment (created by user)
 ├── command_palette_template.md
 ├── requirements.txt
 ├── pyproject.toml
 ├── pytest.ini
-├── AGENTS.md                 # Agent instructions (internal)
+├── MANIFEST.in
+├── .pre-commit-config.yaml
+├── AGENTS.md
 ├── CONTRIBUTING.md
-├── LICENSE                   # MIT license
-├── README.md                 # This file
-├── release.py
-└── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 </details>
