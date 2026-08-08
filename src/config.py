@@ -70,28 +70,6 @@ class Config:
         config["indent_width"] = str(width)
         self._save_config(config)
 
-    def get_bottom_padding(self) -> int:
-        """Get bottom padding, defaulting to 0."""
-        config = self._load_config()
-        return int(config.get("bottom_padding", 0))
-
-    def set_bottom_padding(self, padding: int):
-        """Save bottom padding."""
-        config = self._load_config()
-        config["bottom_padding"] = str(padding)
-        self._save_config(config)
-
-    def get_distraction_top_padding(self) -> int:
-        """Get distraction-free top padding, defaulting to 2."""
-        config = self._load_config()
-        return int(config.get("distraction_top_padding", 2))
-
-    def set_distraction_top_padding(self, padding: int):
-        """Save distraction-free top padding."""
-        config = self._load_config()
-        config["distraction_top_padding"] = str(padding)
-        self._save_config(config)
-
     def get_distraction_free(self) -> bool:
         """Return whether distraction-free mode should be enabled on startup."""
         config = self._load_config()

@@ -10,7 +10,6 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import (
     Checkbox,
-    DirectoryTree,
     Input,
     Static,
     TabbedContent,
@@ -23,82 +22,6 @@ from widgets import HeloWriteTextArea
 
 if TYPE_CHECKING:
     from app import HeloWrite
-
-
-class FileOpenScreen(ModalScreen):
-    """Modal panel for opening files using a directory tree.
-
-    This appears as a right-side panel so it doesn't block the whole UI.
-    """
-
-    DEFAULT_CSS = """
-    FileOpenScreen {
-        width: 40%;
-        height: 100%;
-        dock: right;
-        align: center middle;
-        background: $surface;
-        padding: 1 1;
-    }
-
-    #file-open-header {
-        padding-bottom: 1;
-    }
-
-    #file-tree {
-        height: 1fr;
-        overflow: auto;
-        scrollbar-size: 1 1;
-        scrollbar-color: $surface-lighten-2;
-        scrollbar-color-hover: $surface-lighten-1;
-        scrollbar-background: $surface;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        from config import Config
-
-        config = Config()
-        default_dir = config.get_default_working_directory()
-        tree_path = default_dir if default_dir else "./"
-
-        with Vertical():
-            yield Static(
-                "Select a file to open (press Escape to cancel)", id="file-open-header"
-            )
-            yield DirectoryTree(tree_path, id="file-tree")
-
-    def on_directory_tree_file_selected(
-        self, event: DirectoryTree.FileSelected
-    ) -> None:
-        """Handle file selection and close the panel."""
-        file_path = Path(event.path)
-        if file_path.is_file():
-            app = cast("HeloWrite", self.app)
-            app.file_path = file_path
-            app.language = detect_language(file_path)
-            try:
-                content = app.read_text_file(file_path, show_encoding_notice=True)
-                editor = app.query_one("#editor", HeloWriteTextArea)
-                editor.language = app.language
-                editor.load_text(content)
-                app._original_text = content
-                app.show_message(f"Loaded: {file_path}")
-                app.is_dirty = False
-                app.update_status()
-                # Save as last file if setting is enabled
-                if app.config.get_open_last_file():
-                    app.config.set_last_file_path(str(file_path))
-                # Add to recent files
-                app.config.add_recent_file(str(file_path))
-            except Exception as e:
-                app.show_message(f"Error loading file: {e}")
-        self.app.pop_screen()
-
-    def on_key(self, event) -> None:
-        """Allow closing the file-open panel with Escape."""
-        if getattr(event, "key", None) == "escape":
-            self.app.pop_screen()
 
 
 class SettingsScreen(ModalScreen):

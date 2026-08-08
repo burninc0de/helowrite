@@ -21,8 +21,6 @@ if TYPE_CHECKING:
 class StatusBar(Static):
     """Status bar widget showing file and cursor information."""
 
-    can_focus = True
-
     DEFAULT_CSS = """
     StatusBar {
         background: $primary-darken-2;
@@ -31,20 +29,10 @@ class StatusBar(Static):
         height: 1;
         margin: 0;
     }
-
-    StatusBar.find-mode {
-        background: $primary;
-    }
-
-    StatusBar:focus {
-        background: $primary;
-    }
     """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.find_mode = False
-        self.find_text = ""
         self._last_rendered_text = ""
 
     def update_status(
@@ -55,66 +43,12 @@ class StatusBar(Static):
         language: str = "text",
     ):
         """Update the status bar with current information."""
-        if self.find_mode:
-            # Show find prompt
-            prompt = f" Find: {self.find_text}_  (Enter=next, Esc=close)"
-            self._last_rendered_text = prompt
-            self.update(prompt)
-        else:
-            filename = f"{file_path.name if file_path else 'untitled'}{' *' if is_dirty else ''}"
-            status = f" {filename} | {language.capitalize()} | Words: {word_count} "
-            self._last_rendered_text = status
-            self.update(status)
-
-    def enable_find_mode(self):
-        """Enable find mode in status bar."""
-        self.find_mode = True
-        self.find_text = ""
-        self.add_class("find-mode")
-        self.update_status(None, False, 0, "text")
-
-    def disable_find_mode(self):
-        """Disable find mode and restore normal status."""
-        self.find_mode = False
-        self.find_text = ""
-        self.remove_class("find-mode")
-        # Trigger status update from app
-        app = getattr(self, "_app", None) or getattr(self, "app", None)
-        if app and hasattr(app, "update_status"):
-            app.update_status()
-
-    def on_key(self, event) -> None:
-        """Handle key presses when in find mode."""
-        if not self.find_mode:
-            return
-
-        if event.key == "escape":
-            self.disable_find_mode()
-            # Return focus to editor
-            try:
-                editor = self.app.query_one("#editor")
-                editor.focus()
-            except Exception:
-                pass
-        elif event.key in ("enter", "return"):
-            # Trigger find next
-            app = getattr(self, "app", None)
-            action_find_next = getattr(app, "action_find_next", None) if app else None
-            if callable(action_find_next):
-                action_find_next()
-            # Exit find mode and return focus to editor
-            self.disable_find_mode()
-            try:
-                editor = self.app.query_one("#editor")
-                editor.focus()
-            except Exception:
-                pass
-        elif event.key == "backspace":
-            self.find_text = self.find_text[:-1]
-            self.update_status(None, False, 0, "text")
-        elif len(event.key) == 1 and event.key.isprintable():
-            self.find_text += event.key
-            self.update_status(None, False, 0, "text")
+        filename = (
+            f"{file_path.name if file_path else 'untitled'}{' *' if is_dirty else ''}"
+        )
+        status = f" {filename} | {language.capitalize()} | Words: {word_count} "
+        self._last_rendered_text = status
+        self.update(status)
 
 
 class CenteredEditor(Horizontal):
@@ -1014,10 +948,6 @@ class HeloWriteTextArea(TextArea):
             return
 
         await super()._on_key(event)
-
-    def action_home(self):
-        """Override Ctrl+A to select all instead of going to start of line."""
-        self.select_all()
 
     def select_all(self):
         """Select all text in the editor."""
