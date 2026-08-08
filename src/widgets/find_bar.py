@@ -5,6 +5,15 @@ from textual.containers import Horizontal
 from textual.widgets import Input, Static
 
 
+class FindInput(Input):
+    """An Input that passes Ctrl+F through to the app find action."""
+
+    def action_delete_right_word(self) -> None:
+        app = self.screen.app
+        if hasattr(app, "action_find"):
+            app.action_find()
+
+
 class FindBar(Horizontal):
     """Top search bar for in-buffer find navigation."""
 
@@ -56,7 +65,7 @@ class FindBar(Horizontal):
 
     def compose(self) -> ComposeResult:
         yield Static("Find:", id="find-text")
-        yield Input(placeholder="Type to search...", id="find-input")
+        yield FindInput(placeholder="Type to search...", id="find-input")
         yield Static("0 matches", id="find-meta")
         yield Static("", id="find-spacer")
         yield Static("ESC ↑ ↓", id="find-arrows")

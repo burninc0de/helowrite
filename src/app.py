@@ -29,7 +29,6 @@ from search import (
     SearchMatch,
     SearchState,
     cancel_find_refresh,
-    close_find_bar,
     handle_find_input,
     handle_find_key,
     jump_to_find_result,
@@ -860,10 +859,13 @@ class HeloWrite(App):
         self.show_message("New file created")
 
     def action_find(self):
-        """Toggle the top search bar and focus the search input."""
+        """Open the find bar. If already open, clear the query and focus input."""
         find_bar = self.query_one("#find-bar", FindBar)
+
         if find_bar.has_class("visible"):
-            close_find_bar(self, clear_query=True)
+            find_input = find_bar.query_one("#find-input", Input)
+            find_input.value = ""
+            find_input.focus()
             return
 
         find_bar.add_class("visible")
