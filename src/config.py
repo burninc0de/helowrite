@@ -4,17 +4,19 @@ import os
 from pathlib import Path
 from typing import Optional, Union
 
+from utils import read_text_with_fallback
+
 
 class Config:
     """Configuration management for HeloWrite.
 
     The config directory defaults to ``~/.config/helowrite`` but can be
-    overridden via the ``HELOWWRITE_CONFIG_DIR`` environment variable or by
+    overridden via the ``HELOWRITE_CONFIG_DIR`` environment variable or by
     passing a custom path. This makes the class simpler to test.
     """
 
     def __init__(self, config_dir: Optional[Union[Path, str]] = None):
-        custom_dir = config_dir or os.environ.get("HELOWWRITE_CONFIG_DIR")
+        custom_dir = config_dir or os.environ.get("HELOWRITE_CONFIG_DIR")
         if custom_dir:
             self.config_dir = Path(custom_dir)
         else:
@@ -23,14 +25,6 @@ class Config:
         self.keybindings_file = self.config_dir / "keybindings.conf"
         self.snippets_file = self.config_dir / "snippets.conf"
         self.config_dir.mkdir(parents=True, exist_ok=True)
-
-    @staticmethod
-    def _read_text_with_fallback(path: Path) -> str:
-        """Read text as UTF-8, falling back to cp1252 for legacy files."""
-        try:
-            return path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            return path.read_text(encoding="cp1252")
 
     def get_theme(self) -> str:
         """Get the saved theme, defaulting to 'helowrite-dark'."""
@@ -378,7 +372,7 @@ class Config:
             return {}
 
         try:
-            content = self._read_text_with_fallback(self.keybindings_file)
+            content, _ = read_text_with_fallback(self.keybindings_file)
             keybindings: dict[str, str] = {}
             for line in content.strip().split("\n"):
                 line = line.strip()
@@ -457,7 +451,7 @@ class Config:
         """Load config from file."""
         if self.config_file.exists():
             try:
-                content = self._read_text_with_fallback(self.config_file)
+                content, _ = read_text_with_fallback(self.config_file)
                 config = {}
                 for line in content.strip().split("\n"):
                     if "=" in line:

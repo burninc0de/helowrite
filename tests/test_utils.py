@@ -32,7 +32,7 @@ def test_create_system_theme_uses_env_source_and_detects_light_mode(
 ):
     colors_file = tmp_path / "colors.toml"
     colors_file.write_text(
-        '\n'.join(
+        "\n".join(
             [
                 'accent = "#0066cc"',
                 'background = "#f7f7f7"',
@@ -42,9 +42,8 @@ def test_create_system_theme_uses_env_source_and_detects_light_mode(
     )
     name_file = tmp_path / "theme.name"
     name_file.write_text("Solar")
-
-    monkeypatch.setenv("HELOWWRITE_SYSTEM_THEME_FILE", str(colors_file))
-    monkeypatch.setenv("HELOWWRITE_SYSTEM_THEME_NAME_FILE", str(name_file))
+    monkeypatch.setenv("HELOWRITE_SYSTEM_THEME_FILE", str(colors_file))
+    monkeypatch.setenv("HELOWRITE_SYSTEM_THEME_NAME_FILE", str(name_file))
     importlib.reload(utils)
 
     theme = utils.create_system_theme()
@@ -64,7 +63,7 @@ def test_create_system_theme_supports_parent_theme_name_layout(
 
     colors_file = theme_dir / "colors.toml"
     colors_file.write_text(
-        '\n'.join(
+        "\n".join(
             [
                 'accent = "#7aa2f7"',
                 'background = "#1a1b26"',
@@ -74,8 +73,8 @@ def test_create_system_theme_supports_parent_theme_name_layout(
     )
     (current_dir / "theme.name").write_text("Tokyo Night")
 
-    monkeypatch.setenv("HELOWWRITE_SYSTEM_THEME_FILE", str(colors_file))
-    monkeypatch.delenv("HELOWWRITE_SYSTEM_THEME_NAME_FILE", raising=False)
+    monkeypatch.setenv("HELOWRITE_SYSTEM_THEME_FILE", str(colors_file))
+    monkeypatch.delenv("HELOWRITE_SYSTEM_THEME_NAME_FILE", raising=False)
     importlib.reload(utils)
 
     theme = utils.create_system_theme()

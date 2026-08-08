@@ -17,8 +17,8 @@ def temp_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
 
     config_dir = tmp_path / "helowrite-config"
     config_dir.mkdir()
-    previous = os.environ.get("HELOWWRITE_CONFIG_DIR")
-    os.environ["HELOWWRITE_CONFIG_DIR"] = str(config_dir)
+    previous = os.environ.get("HELOWRITE_CONFIG_DIR")
+    os.environ["HELOWRITE_CONFIG_DIR"] = str(config_dir)
 
     # Disable the welcome screen for headless test runs.
     Config().set_show_welcome(False)
@@ -27,6 +27,6 @@ def temp_config_dir(tmp_path: Path) -> Generator[Path, None, None]:
         yield config_dir
     finally:
         if previous is None:
-            os.environ.pop("HELOWWRITE_CONFIG_DIR", None)
+            os.environ.pop("HELOWRITE_CONFIG_DIR", None)
         else:
-            os.environ["HELOWWRITE_CONFIG_DIR"] = previous
+            os.environ["HELOWRITE_CONFIG_DIR"] = previous

@@ -50,6 +50,7 @@ from utils import (
     create_system_theme,
     detect_language,
     get_system_theme_last_modified,
+    read_text_with_fallback,
 )
 from widgets import CenteredEditor, FileOpenPanel, FindBar, HeloWriteTextArea, StatusBar
 
@@ -139,17 +140,9 @@ class HeloWrite(App):
 
     BINDINGS = []
 
-    @staticmethod
-    def _read_text_with_fallback(path: Path) -> tuple[str, str]:
-        """Read UTF-8 text with fallback for legacy cp1252-encoded files."""
-        try:
-            return path.read_text(encoding="utf-8"), "utf-8"
-        except UnicodeDecodeError:
-            return path.read_text(encoding="cp1252"), "cp1252"
-
     def read_text_file(self, path: Path, show_encoding_notice: bool = False) -> str:
         """Read file text safely for editor content and optional encoding notice."""
-        content, encoding = self._read_text_with_fallback(path)
+        content, encoding = read_text_with_fallback(path)
         if show_encoding_notice and encoding != "utf-8":
             self._feedback(
                 "Loaded with legacy cp1252 encoding. Save to convert to UTF-8.",

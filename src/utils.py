@@ -11,6 +11,18 @@ SYSTEM_THEME_SOURCES = [
 ]
 
 
+def read_text_with_fallback(path: Path) -> tuple[str, str]:
+    """Read a file as UTF-8, falling back to cp1252 for legacy files.
+
+    Returns a tuple of (content, encoding) so callers can detect non-UTF-8
+    files and surface a notice to the user.
+    """
+    try:
+        return path.read_text(encoding="utf-8"), "utf-8"
+    except UnicodeDecodeError:
+        return path.read_text(encoding="cp1252"), "cp1252"
+
+
 def has_nerd_fonts() -> bool:
     """Check if Nerd Fonts are installed."""
     try:
@@ -24,7 +36,7 @@ def _resolve_system_theme_files() -> tuple[Optional[Path], Optional[Path]]:
     """Resolve colors and name files for the active system theme source."""
     custom_colors = (
         Path(env).expanduser()
-        if (env := os.environ.get("HELOWWRITE_SYSTEM_THEME_FILE"))
+        if (env := os.environ.get("HELOWRITE_SYSTEM_THEME_FILE"))
         else None
     )
     colors_candidates = []
@@ -40,7 +52,7 @@ def _resolve_system_theme_files() -> tuple[Optional[Path], Optional[Path]]:
 
     custom_name = (
         Path(env).expanduser()
-        if (env := os.environ.get("HELOWWRITE_SYSTEM_THEME_NAME_FILE"))
+        if (env := os.environ.get("HELOWRITE_SYSTEM_THEME_NAME_FILE"))
         else None
     )
     if custom_name and custom_name.exists():
