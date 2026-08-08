@@ -40,7 +40,7 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message.
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter.
 
-<img width="1920" height="1080" alt="animation (1)" src="https://github.com/user-attachments/assets/b325ce54-be24-4b20-9bae-03bb9f011401" />
+<img width="1920" height="1080" alt="animation" src="https://github.com/user-attachments/assets/5fe85980-d1ae-4285-9d36-6729657bb724" />
 
 Ships with built-in themes or follows your system theme.
 
