@@ -52,13 +52,26 @@ pip install -e .[dev]
 # Run all tests
 pytest
 
-# Run type checking
-mypy
+# Run a single test file
+pytest tests/test_utils.py -q
 
-# Run linting
+# Type checking (must target the package; bare `mypy` errors)
+mypy src/
+
+# Linting / formatting
 ruff check src/
 ruff format --check src/
 ```
+
+Notes:
+- Perf/latency tests are opt-in and skipped by default: `HELOWRITE_RUN_PERF=1 pytest`.
+- Commits run `pre-commit` (ruff-format only). Set up once with `pip install pre-commit && pre-commit install`; otherwise use `git commit --no-verify`.
+
+### Runtime & Configuration
+- User data lives in `~/.config/helowrite/` (`config.conf`, `keybindings.conf`, `snippets.conf`); override with `HELOWRITE_CONFIG_DIR`.
+- Runtime logs go to that same dir: `git_sync_errors.log`, `typewriter_debug.log`.
+- Env flags: `HELOWRITE_TYPEWRITER_DEBUG=1` enables typewriter cursor logs; `HELOWRITE_SYSTEM_THEME_FILE` points to a TOML colors file.
+- Git sync (Alt+G/H/J) stashes local changes, commits, and pushes. On failure it fails loudly and leaves resolution to the user — do not try to auto-resolve conflicts for them.
 
 ## Code Style Guidelines
 
@@ -206,41 +219,15 @@ def compose(self) -> ComposeResult:
     yield Footer()
 ```
 
-### File Organization
+### Source Layout
 
-```
-helowrite/
-├── app.py                 # Main application entry point
-├── dev.py                 # Development server with hot reload
-├── src/                   # Source code package
-│   ├── __init__.py
-│   ├── config.py          # Configuration management
-│   ├── constants.py       # Constants and help text
-│   ├── screens.py         # UI screens and dialogs
-│   ├── utils.py           # Utility functions
-│   ├── widgets.py         # Custom widgets
-│   └── css/               # Stylesheets
-│       ├── __init__.py
-│       ├── app.tcss       # Main app styles
-│       ├── screens.tcss   # Screen styles
-│       └── widgets.tcss   # Widget styles
-├── tests/                 # Test suite
-│   ├── __init__.py
-│   ├── conftest.py        # Pytest configuration
-│   ├── test_config.py     # Config tests
-│   ├── test_utils.py      # Utils tests
-│   ├── test_widgets.py    # Widget tests
-│   ├── test_lint.py       # Linting tests
-│   └── test_typecheck.py  # Type checking tests
-├── requirements.txt       # Python dependencies
-├── pyproject.toml         # Project configuration
-├── pytest.ini             # Pytest configuration
-├── README.md              # Project documentation
-├── CONTRIBUTING.md        # Contribution guidelines
-├── LICENSE                # MIT license
-├── AGENTS.md              # Agent instructions
-└── .gitignore             # Git ignore patterns
-```
+- `src/app.py` — entry point and main coordinator class (`HeloWrite`). Large but cohesive; contains all `action_*` handlers, mounting, theming glue, and git/pomodoro orchestration. Don't split it into mixins just to shrink it.
+- `src/screens/` — modal UI screens (settings, help, save-as, pomodoro, recent-files, welcome, quit-confirm, ...)
+- `src/widgets/` — custom widgets; `editor.py` holds the markdown-highlighting TextArea, find bar, status bar, file-open panel
+- `src/css/` — Textual stylesheets (`.tcss`)
+- `src/audio/` — sound assets (`.wav`)
+- Feature modules: `config.py` (persistence), `themes.py`/`styles.py`, `search.py` (find), `snippets.py`, `git_sync.py`, `pomodoro.py`, `audio_playback.py`, `utils.py`, `constants.py`
+- `tests/` — pytest suite; `test_lint.py`/`test_typecheck.py` shell out to ruff/mypy
 
 ### Performance Considerations
 
@@ -251,16 +238,14 @@ helowrite/
 
 ### Testing Patterns
 
-```python
-# Unit test structure
-def test_config_save():
-    """Test config saving functionality."""
-    config = Config()
-    config.set("editor.width", 80)
-    config.save()
+Tests use the shared `temp_config_dir` fixture (from `tests/conftest.py`) for isolation — it sets `HELOWRITE_CONFIG_DIR` and disables the welcome screen. Config uses typed getters/setters, not `set()`/`get()`.
 
-    loaded = Config()
-    assert loaded.get("editor.width") == 80
+```python
+def test_config_uses_custom_directory(temp_config_dir: Path) -> None:
+    config = Config(config_dir=temp_config_dir)
+    config.set_theme("textual-light")
+
+    assert "theme=textual-light" in read_raw_config(temp_config_dir)
 ```
 
 ### Commit Message Conventions
@@ -301,5 +286,5 @@ chore: update dependencies
 - **Textual Documentation**: Check examples in the Textual repository
 - **Rich Documentation**: Reference for styling and console output
 - **Python Documentation**: For language features and standard library
-- **Existing Code**: Look at `src/widgets.py` and `src/screens.py` for examples</content>
+- **Existing Code**: Look at `src/app.py`, `src/widgets/editor.py`, and `src/screens/` for examples</content>
 <parameter name="filePath">/home/zeno/Dev/eloscribe/AGENTS.md
