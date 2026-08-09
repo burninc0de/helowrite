@@ -162,6 +162,10 @@ Depending on your terminal or environment, some key combinations may get eaten b
 - If you installed with `pipx` but the command is still missing, ensure `~/.local/bin` is on your PATH.
 - You can run `pipx ensurepath`, then restart your shell.
 
+#### `Git Sync Failed`
+
+If `Alt+G`/`Alt+H`/`Alt+J` reports a failure, details are logged to `~/.config/helowrite/git_sync_errors.log`.
+
 ### Development
 
 Run with hot reload during development:
