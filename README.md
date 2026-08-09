@@ -365,7 +365,6 @@ HeloWrite is built using:
 ```
 helowrite/
 ├── dev.py                    # Development server with hot reload
-├── release.py                # Release automation
 ├── src/                      # Source code package
 │   ├── __init__.py
 │   ├── app.py                # Main application module
