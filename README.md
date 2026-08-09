@@ -48,7 +48,7 @@ Ships with built-in themes or follows your system theme.
 
 ### Try It Out — No Commitment (UVX)
 
-Just curious? Run HeloWrite once without installing anything. UVX creates a temporary environment, runs the app, and cleans up after itself. Nothing sticks to your system.
+Just curious? Run HeloWrite once without installing. UVX creates a temporary environment, runs the app, and cleans up after itself. Config is written to `~/.config/helowrite/`.
 
 ```bash
 uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
