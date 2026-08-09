@@ -46,7 +46,9 @@ Ships with built-in themes or follows your system theme.
 
 ## Quick Start
 
-### One-Liner (No Setup Required)
+### Try It Out — No Commitment (UVX)
+
+Just curious? Run HeloWrite once without installing anything. UVX creates a temporary environment, runs the app, and cleans up after itself. Nothing sticks to your system.
 
 ```bash
 uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
@@ -54,9 +56,9 @@ uvx --from "git+https://github.com/burninc0de/helowrite.git" helowrite
 
 Requires [UV](https://astral.sh/uv) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
-### Persistent CLI Install (Recommended)
+### Keep It — Persistent Install (PIPX)
 
-If you want `helowrite` to work in every new terminal without activating a virtual environment, install with `pipx`:
+Like what you see? Install with `pipx` to make `helowrite` available in every terminal as a permanent CLI command in an isolated environment. This is your daily driver install.
 
 Install `pipx` first (if you do not already have it):
 
