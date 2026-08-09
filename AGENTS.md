@@ -289,7 +289,7 @@ chore: update dependencies
 ### Common Anti-patterns to Avoid
 
 1. **Direct file I/O in UI threads** - Use async operations for file handling
-2. **Large classes** - Break into smaller, focused classes
+2. **Classes with mixed responsibilities** - Break into smaller, focused classes. Large but *cohesive* coordinator classes (e.g. the app class, a feature widget) are fine.
 3. **Deep nesting in compose methods** - Extract sub-widgets
 4. **Magic numbers** - Use named constants
 5. **Missing type hints** - Add type annotations
