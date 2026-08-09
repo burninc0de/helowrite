@@ -13,6 +13,7 @@ class TestExpandPlaceholders:
     def test_currenttime(self) -> None:
         result = expand_placeholders("Time: %CURRENTTIME")
         import re
+
         assert re.search(r"\d{2}:\d{2}", result)
 
     def test_escaped_percent(self) -> None:
@@ -105,7 +106,10 @@ class TestSnippetEngine:
 
         engine.save_snippets()
         reloaded = SnippetEngine(config_dir=config_dir)
-        assert reloaded.get_snippets() == {"ttt": "**%CURRENTTIME**", "sig": "Best regards"}
+        assert reloaded.get_snippets() == {
+            "ttt": "**%CURRENTTIME**",
+            "sig": "Best regards",
+        }
 
     def test_add_snippet(self) -> None:
         engine = SnippetEngine()

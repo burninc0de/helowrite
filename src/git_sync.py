@@ -1,12 +1,15 @@
 """Git synchronization helpers for HeloWrite."""
 
 import asyncio
+import logging
+import os
 import subprocess
 from dataclasses import dataclass
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Literal, Optional
 
-LOG_FILE = Path(__file__).with_name("git_sync_errors.log")
+LOGGER = logging.getLogger("helowrite.git_sync")
 
 
 @dataclass
@@ -266,6 +269,27 @@ def _is_up_to_date(error: subprocess.CalledProcessError) -> bool:
     )
 
 
+def _configure_log_file() -> None:
+    """Attach a rotating file handler so failure details land in user data."""
+    if any(isinstance(handler, RotatingFileHandler) for handler in LOGGER.handlers):
+        return
+    config_dir = Path(
+        os.environ.get("HELOWRITE_CONFIG_DIR", Path.home() / ".config" / "helowrite")
+    )
+    log_file = config_dir / "git_sync_errors.log"
+    try:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        handler = RotatingFileHandler(
+            log_file, maxBytes=100_000, backupCount=1, encoding="utf-8"
+        )
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        LOGGER.addHandler(handler)
+    except OSError:
+        # Logging is best-effort; failures still surface on stderr via the root logger.
+        pass
+
+
 def _write_log(message: str) -> None:
-    with LOG_FILE.open("a", encoding="utf-8") as log_file:
-        log_file.write(message + "\n")
+    """Record git sync failure details for later diagnosis."""
+    _configure_log_file()
+    LOGGER.error("%s", message)

@@ -1,14 +1,35 @@
 """Custom TextArea with markdown highlighting, snippets, and typewriter mode."""
 
-import datetime
+import logging
 import os
 import re
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import Any, List, Optional
 
 from textual.geometry import Size
 from textual.widgets import TextArea
 
 from snippets import PLACEHOLDER_PATTERN
+
+LOGGER = logging.getLogger("helowrite.typewriter")
+
+
+def _configure_typewriter_log(config_dir: Path) -> None:
+    """Attach a rotating file handler so debug lines land in user data."""
+    if any(isinstance(handler, RotatingFileHandler) for handler in LOGGER.handlers):
+        return
+    log_file = config_dir / "typewriter_debug.log"
+    try:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        handler = RotatingFileHandler(
+            log_file, maxBytes=100_000, backupCount=1, encoding="utf-8"
+        )
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        LOGGER.addHandler(handler)
+    except OSError:
+        # Logging is best-effort; failures surface on stderr via the root logger.
+        pass
 
 
 class HeloWriteTextArea(TextArea):
@@ -640,24 +661,23 @@ class HeloWriteTextArea(TextArea):
         if not getattr(self, "_typewriter_debug_enabled", False):
             return
         try:
-            path = getattr(self.app, "_typewriter_log_path", None)
-            if path is None:
+            config = getattr(self.app, "config", None)
+            if config is None:
                 return
-            path.parent.mkdir(parents=True, exist_ok=True)
             cursor_row, cursor_col = self.cursor_location
             vp = self.scrollable_content_region.height
             scroll_y = getattr(self, "scroll_y", "?")
             max_scroll_y = getattr(self, "max_scroll_y", "?")
-            line = (
-                f"{datetime.datetime.now().isoformat(timespec='milliseconds')}"
-                f" source={source}"
-                f" cursor=({cursor_row},{cursor_col})"
-                f" scroll_y={scroll_y}"
-                f" max_scroll_y={max_scroll_y}"
-                f" view_height={vp}\n"
+            _configure_typewriter_log(config.config_dir)
+            LOGGER.info(
+                "source=%s cursor=(%d,%d) scroll_y=%s max_scroll_y=%s view_height=%d",
+                source,
+                cursor_row,
+                cursor_col,
+                scroll_y,
+                max_scroll_y,
+                vp,
             )
-            with path.open("a", encoding="utf-8") as handle:
-                handle.write(line)
         except Exception:
             pass
 

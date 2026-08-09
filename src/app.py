@@ -275,7 +275,6 @@ class HeloWrite(App):
         self.typewriter_mode = self.config.get_typewriter_mode()
         self.typewriter_sounds = self.config.get_typewriter_sounds()
         self._typewriter_adjusting = False
-        self._typewriter_log_path = self.config.config_dir / "typewriter_debug.log"
 
         self.dir_stack: list[str] = []
 
