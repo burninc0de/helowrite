@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 SYSTEM_THEME_SOURCES = [
+    Path.home() / ".local/state/omarchy/current/theme/colors.toml",
     Path.home() / ".config/omarchy/current/theme/colors.toml",
     Path.home() / ".config/helowrite/system-theme/colors.toml",
 ]
