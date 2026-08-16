@@ -264,6 +264,7 @@ HELOWRITE_RUN_PERF=1 pytest tests/test_typewriter_scroll_perf.py
 - `Ctrl+O` - Open file panel (toggle, auto-focuses for keyboard navigation)
 - `Ctrl+N` - Create new file
 - `Ctrl+F` - Find/Replace (toggle)
+- `Ctrl+R` - Reload current file from disk
 - `Ctrl+P` - Command palette
 - `Ctrl+T` - Pomodoro timer
 - `Ctrl+Shift+T` - Toggle typewriter mode

@@ -110,6 +110,7 @@ class HeloWrite(App):
         "toggle_insert_newline": "alt+i",
         "pomodoro_timer": "ctrl+t",
         "toggle_typewriter_mode": "ctrl+shift+t",
+        "reload_file": "ctrl+r",
     }
 
     DEFAULT_KEYBINDING_DESCRIPTIONS = {
@@ -135,6 +136,7 @@ class HeloWrite(App):
         "toggle_insert_newline": "Toggle Insert Newline",
         "pomodoro_timer": "Pomodoro Timer",
         "toggle_typewriter_mode": "Typewriter Mode",
+        "reload_file": "Reload File",
     }
 
     BINDINGS = []
@@ -1295,7 +1297,26 @@ class HeloWrite(App):
             timeout=result.timeout,
         )
 
-    def reload_file_content(self):
+    def action_reload_file(self):
+        """Reload the current file from disk, discarding in-memory changes."""
+        if not self.file_path:
+            self._feedback("No file open", severity="warning")
+            return
+        if not self.file_path.exists():
+            self._feedback(
+                f"File not found: {self.file_path}", severity="error", timeout=5
+            )
+            return
+        if self.is_dirty:
+            self._feedback(
+                "Unsaved changes - save (Ctrl+S) before reloading",
+                severity="warning",
+                timeout=5,
+            )
+            return
+        self.reload_file_content(show_feedback=True)
+
+    def reload_file_content(self, show_feedback: bool = False):
         """Reload the current file content into the editor after git pull."""
         if not self.file_path or not self.file_path.exists():
             return
@@ -1315,9 +1336,13 @@ class HeloWrite(App):
                 self._original_text = content
                 self.is_dirty = False
                 self.update_status()
+                if show_feedback:
+                    self._feedback(f"Reloaded: {self.file_path}", timeout=2)
+            elif show_feedback:
+                self._feedback("File unchanged", timeout=2)
         except Exception as e:
             self._feedback(
-                f"Error reloading file after pull: {e}", severity="error", timeout=5
+                f"Error reloading file: {e}", severity="error", timeout=5
             )
 
 
