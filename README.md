@@ -39,6 +39,7 @@ Writing is hard. Focus is paramount. Everything else is secondary.
 - **Git Sync** (The Staging Area): Use Alt+G (Option+G on macOS) or the Command Palette (Ctrl+P) to push your current file changes. It stashes local changes, adds/commits the current file, and pushes—all without leaving the editor. Auto pull on startup if desired.
 - **Pomodoro Timer**: Use Ctrl+T to launch a timer modal. Enter minutes, press Enter to start. When complete, a modal appears with success message.
 - **Typewriter Mode**: Toggle with `Ctrl+Shift+T`. When enabled, the cursor stays centered like an old-school typewriter.
+- **Hot Reload**: Enable in Settings (F3 → Behavior). When active, an event-based file watcher silently syncs external changes from disk into the editor — no notifications, no prompts. If the file is deleted from disk, hot reload pauses until it comes back. Disabled by default; manual reloads stay available via `Ctrl+R`.
 
 <img width="1920" height="1080" alt="animation" src="https://github.com/user-attachments/assets/5fe85980-d1ae-4285-9d36-6729657bb724" />
 
@@ -389,6 +390,7 @@ helowrite/
 │   │   ├── app.tcss
 │   │   ├── screens.tcss
 │   │   └── widgets.tcss
+│   ├── file_watcher.py       # Event-based file watching (hot reload)
 │   ├── git_sync.py           # Git operations
 │   ├── pomodoro.py           # Pomodoro timer
 │   ├── screens/              # UI screens and dialogs

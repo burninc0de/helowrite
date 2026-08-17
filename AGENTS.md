@@ -226,7 +226,7 @@ def compose(self) -> ComposeResult:
 - `src/widgets/` — custom widgets; `editor.py` holds the markdown-highlighting TextArea, find bar, status bar, file-open panel
 - `src/css/` — Textual stylesheets (`.tcss`)
 - `src/audio/` — sound assets (`.wav`)
-- Feature modules: `config.py` (persistence), `themes.py`/`styles.py`, `search.py` (find), `snippets.py`, `git_sync.py`, `pomodoro.py`, `audio_playback.py`, `utils.py`, `constants.py`
+- Feature modules: `config.py` (persistence), `themes.py`/`styles.py`, `search.py` (find), `snippets.py`, `git_sync.py`, `pomodoro.py`, `audio_playback.py`, `file_watcher.py` (event-based file watching for hot reload), `utils.py`, `constants.py`
 - `tests/` — pytest suite; `test_lint.py`/`test_typecheck.py` shell out to ruff/mypy
 
 ### Performance Considerations
