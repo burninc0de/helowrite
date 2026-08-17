@@ -95,6 +95,7 @@ class FileOpenPanel(Vertical):
                 app.show_message(f"Loaded: {file_path}")
                 app.is_dirty = False
                 app.update_status()
+                app._update_file_watcher()
                 # Save as last file if setting is enabled
                 if app.config.get_open_last_file():
                     app.config.set_last_file_path(str(file_path))

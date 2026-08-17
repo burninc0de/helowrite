@@ -297,6 +297,17 @@ class Config:
         config["auto_save_interval"] = str(interval)
         self._save_config(config)
 
+    def get_hot_reload_enabled(self) -> bool:
+        """Return whether external file changes should reload automatically."""
+        config = self._load_config()
+        return config.get("hot_reload_enabled", "0") == "1"
+
+    def set_hot_reload_enabled(self, enabled: bool):
+        """Persist the hot reload preference."""
+        config = self._load_config()
+        config["hot_reload_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_scrollbar_enabled(self) -> bool:
         """Return whether scrollbar is enabled."""
         config = self._load_config()

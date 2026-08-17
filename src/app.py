@@ -12,6 +12,7 @@ from textual.widgets import DirectoryTree, Footer, Header, Input, Static, TextAr
 
 from audio_playback import play_sound
 from config import Config
+from file_watcher import FileWatcher
 from git_sync import GitSyncResult, run_git_pull, run_git_pull_vault, run_git_push
 from pomodoro import schedule_pomodoro_timer
 from screens import (
@@ -235,6 +236,7 @@ class HeloWrite(App):
         super().__init__()
         self.file_path: Optional[Path] = Path(file_path) if file_path else None
         self.is_dirty = False
+        self._suppress_change_tracking = False
         self._original_text = ""
         self.console = Console()
         self.config = Config()
@@ -261,6 +263,8 @@ class HeloWrite(App):
         self.auto_save_enabled = self.config.get_auto_save_enabled()
         self.auto_save_interval = self.config.get_auto_save_interval()
         self.auto_save_timer = None
+        self.hot_reload_enabled = self.config.get_hot_reload_enabled()
+        self._file_watcher = FileWatcher(self._on_file_changed)
 
         self.scrollbar_enabled = self.config.get_scrollbar_enabled()
 
@@ -472,6 +476,8 @@ class HeloWrite(App):
         if self._system_theme and self.theme == "system":
             check_system_theme_update_once(self)
 
+        self._update_file_watcher()
+
     def watch_theme(self, old_theme: str, new_theme: str) -> None:
         """Called when the theme changes - save it to config."""
         if getattr(self, "_applying_system_update", False):
@@ -487,8 +493,10 @@ class HeloWrite(App):
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         """Called when text changes."""
-        if not self.is_dirty:
-            self.is_dirty = True
+        if self._suppress_change_tracking:
+            return
+        editor = self.query_one("#editor", HeloWriteTextArea)
+        self.is_dirty = editor.text != self._original_text
         self._schedule_status_update(recalculate_word_count=True)
         # In distraction-free mode, hide word count while typing and show after inactivity
         if self.distraction_free:
@@ -827,6 +835,7 @@ class HeloWrite(App):
         cancel_find_refresh(self)
         self.stop_auto_save()
         stop_system_theme_watcher(self)
+        self.stop_file_watcher()
         self.exit()
 
     def action_open(self):
@@ -855,6 +864,7 @@ class HeloWrite(App):
         editor.load_text("")
         self._original_text = ""
         self.file_path = None
+        self.stop_file_watcher()
         self.is_dirty = False
         self.update_status()
         self.show_message("New file created")
@@ -945,6 +955,7 @@ class HeloWrite(App):
             self.show_message(f"Loaded: {file_path}")
             self.is_dirty = False
             self.update_status()
+            self._update_file_watcher()
             # Save as last file if setting is enabled
             if self.config.get_open_last_file():
                 self.config.set_last_file_path(file_path)
@@ -1156,6 +1167,31 @@ class HeloWrite(App):
             self.auto_save_timer.stop()
             self.auto_save_timer = None
 
+    def _update_file_watcher(self) -> None:
+        """Start watching the current file when hot reload is enabled."""
+        self.stop_file_watcher()
+        if self.hot_reload_enabled and self.file_path and self.file_path.exists():
+            self._file_watcher.start(self.file_path)
+
+    def stop_file_watcher(self) -> None:
+        """Stop watching the current file."""
+        self._file_watcher.stop()
+
+    def _on_file_changed(self, path: Path) -> None:
+        """Handle a watchdog event on the Textual application thread."""
+        self.call_from_thread(self._reload_changed_file, path)
+
+    def _reload_changed_file(self, path: Path) -> None:
+        """Silently reload a file if it is still the active document."""
+        if not self.hot_reload_enabled or not self.file_path:
+            return
+        try:
+            if path.resolve() != self.file_path.resolve():
+                return
+        except OSError:
+            return
+        self.reload_file_content(show_feedback=False)
+
     def play_sound(self, sound_name: str) -> None:
         """Play a sound file using the same audio pipeline as the bell."""
         try:
@@ -1327,7 +1363,11 @@ class HeloWrite(App):
                 # Save current cursor position
                 saved_cursor = editor.cursor_location
                 # Load new content
-                editor.load_text(content)
+                self._suppress_change_tracking = True
+                try:
+                    editor.load_text(content)
+                finally:
+                    self._suppress_change_tracking = False
                 # Restore cursor position, clamped to new content bounds
                 lines = content.split("\n")
                 valid_line = max(0, min(saved_cursor[0], len(lines) - 1))
@@ -1341,7 +1381,10 @@ class HeloWrite(App):
             elif show_feedback:
                 self._feedback("File unchanged", timeout=2)
         except Exception as e:
-            self._feedback(f"Error reloading file: {e}", severity="error", timeout=5)
+            if show_feedback:
+                self._feedback(
+                    f"Error reloading file: {e}", severity="error", timeout=5
+                )
 
 
 def main():

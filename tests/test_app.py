@@ -10,8 +10,8 @@ from textual.widgets import Input
 from app import HeloWrite
 from config import Config
 from screens import WelcomeScreen
-from widgets import FindBar
 from search import apply_find_query
+from widgets import FindBar
 
 
 @pytest.mark.asyncio
@@ -129,6 +129,30 @@ async def test_app_loads_file(tmp_path: Path, temp_config_dir: Path):
         # Check editor content
         editor = app.query_one("#editor")
         assert editor.text == "Hello World"
+
+        await pilot.press("ctrl+q")
+
+
+@pytest.mark.asyncio
+async def test_hot_reload_syncs_external_file_changes(
+    tmp_path: Path, temp_config_dir: Path
+):
+    """Hot reload should silently replace editor content after an external write."""
+    test_file = tmp_path / "hot-reload.txt"
+    test_file.write_text("Original")
+    Config(config_dir=temp_config_dir).set_hot_reload_enabled(True)
+
+    app = HeloWrite(str(test_file))
+    async with app.run_test() as pilot:
+        message_bar = app.query_one("#message-bar")
+        before_message = str(message_bar.content)
+        test_file.write_text("Changed on disk")
+
+        await pilot.pause(0.5)
+
+        assert app.query_one("#editor").text == "Changed on disk"
+        assert not app.is_dirty
+        assert str(message_bar.content) == before_message
 
         await pilot.press("ctrl+q")
 

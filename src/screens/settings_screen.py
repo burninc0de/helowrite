@@ -237,6 +237,10 @@ class SettingsScreen(ModalScreen):
                         with Horizontal(classes="setting-row"):
                             yield Checkbox(" Enable auto-save", id="auto-save-checkbox")
                         with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Enable hot reload", id="hot-reload-checkbox"
+                            )
+                        with Horizontal(classes="setting-row"):
                             yield Static("Auto-save interval:", classes="setting-label")
                             yield Input(
                                 id="auto-save-interval-input", classes="setting-input"
@@ -301,6 +305,9 @@ class SettingsScreen(ModalScreen):
             "#auto-save-checkbox", Checkbox
         ).value = app.config.get_auto_save_enabled()
         self.query_one(
+            "#hot-reload-checkbox", Checkbox
+        ).value = app.config.get_hot_reload_enabled()
+        self.query_one(
             "#show-scrollbar-checkbox", Checkbox
         ).value = app.config.get_scrollbar_enabled()
         self.query_one("#width-input", Input).value = str(app.editor_width)
@@ -363,6 +370,7 @@ class SettingsScreen(ModalScreen):
                 "#show-word-count-checkbox", Checkbox
             ).value
             auto_save_enabled = self.query_one("#auto-save-checkbox", Checkbox).value
+            hot_reload_enabled = self.query_one("#hot-reload-checkbox", Checkbox).value
             width_str = self.query_one("#width-input", Input).value.strip()
             indent_width_str = self.query_one(
                 "#indent-width-input", Input
@@ -470,6 +478,7 @@ class SettingsScreen(ModalScreen):
                 self.query_one("#smart-quotes-checkbox", Checkbox).value
             )
             app.config.set_auto_save_enabled(auto_save_enabled)
+            app.config.set_hot_reload_enabled(hot_reload_enabled)
             app.config.set_editor_width(width)
             app.config.set_indent_width(indent_width)
             app.config.set_space_between_paragraphs(space_between_paragraphs)
@@ -512,6 +521,9 @@ class SettingsScreen(ModalScreen):
                 app.start_auto_save()
             else:
                 app.stop_auto_save()
+
+            app.hot_reload_enabled = hot_reload_enabled
+            app._update_file_watcher()
 
             # Update scrollbar setting
             app.scrollbar_enabled = scrollbar_enabled

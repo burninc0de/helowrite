@@ -74,6 +74,23 @@ async def test_settings_toggle_scrollbar(temp_config_dir: Path):
 
 
 @pytest.mark.asyncio
+async def test_settings_toggle_hot_reload(temp_config_dir: Path):
+    """Test enabling hot reload via the Settings screen."""
+    app = HeloWrite()
+    async with app.run_test() as pilot:
+        await pilot.press("f3")
+        await pilot.pause()
+
+        checkbox = app.screen.query_one("#hot-reload-checkbox", Checkbox)
+        checkbox.value = True
+        await pilot.press("enter")
+        await pilot.pause()
+
+        assert app.hot_reload_enabled
+        assert Config(config_dir=temp_config_dir).get_hot_reload_enabled()
+
+
+@pytest.mark.asyncio
 async def test_settings_toggle_markdown_coloring(temp_config_dir: Path):
     """Test toggling markdown coloring via Settings screen."""
     app = HeloWrite()
@@ -139,7 +156,7 @@ async def test_settings_validation_keeps_screen_open(temp_config_dir: Path):
 
 def test_app_creates_default_keybindings_file(temp_config_dir: Path) -> None:
     """Test that the app writes a default keybindings file on first startup."""
-    app = HeloWrite()
+    HeloWrite()
 
     keybindings_file = temp_config_dir / "keybindings.conf"
     assert keybindings_file.exists()

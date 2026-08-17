@@ -27,6 +27,7 @@ def test_config_uses_custom_directory(temp_config_dir: Path) -> None:
         ("set_cursor_color", "#ffffff", "cursor_color=#ffffff"),
         ("set_open_last_file", True, "open_last_file=1"),
         ("set_space_between_paragraphs", True, "space_between_paragraphs=1"),
+        ("set_hot_reload_enabled", True, "hot_reload_enabled=1"),
     ],
 )
 def test_config_setters_persist_values(temp_config_dir: Path, setter, value, expected):
@@ -42,6 +43,12 @@ def test_snippet_highlighting_setting_persists(temp_config_dir: Path) -> None:
 
     assert "snippet_highlighting_enabled=0" in read_raw_config(temp_config_dir)
     assert config.get_snippet_highlighting_enabled() is False
+
+
+def test_hot_reload_defaults_to_disabled(temp_config_dir: Path) -> None:
+    config = Config(config_dir=temp_config_dir)
+
+    assert not config.get_hot_reload_enabled()
 
 
 def test_markdown_highlighting_setting_persists(temp_config_dir: Path) -> None:

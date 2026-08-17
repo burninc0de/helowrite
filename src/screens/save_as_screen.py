@@ -93,6 +93,7 @@ class SaveAsScreen(ModalScreen):
             app.is_dirty = False
             app.update_status()
             app.show_message(f"Saved: {file_path}")
+            app._update_file_watcher()
             self.app.pop_screen()
         except Exception as e:
             app.show_message(f"Error saving file: {e}")
