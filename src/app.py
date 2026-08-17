@@ -1341,9 +1341,7 @@ class HeloWrite(App):
             elif show_feedback:
                 self._feedback("File unchanged", timeout=2)
         except Exception as e:
-            self._feedback(
-                f"Error reloading file: {e}", severity="error", timeout=5
-            )
+            self._feedback(f"Error reloading file: {e}", severity="error", timeout=5)
 
 
 def main():
