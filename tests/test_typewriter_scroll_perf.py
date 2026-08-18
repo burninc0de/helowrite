@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -23,7 +23,7 @@ async def _measure_manual_scroll_path(
     *,
     typewriter_enabled: bool,
     iterations: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     editor = app.query_one("#editor", HeloWriteTextArea)
 
     if app.typewriter_mode != typewriter_enabled:
@@ -43,7 +43,7 @@ async def _measure_manual_scroll_path(
         "view_height": int(editor.scrollable_content_region.height),
     }
 
-    stats: Dict[str, Any] = {
+    stats: dict[str, Any] = {
         "scroll_calls": 0,
         "scroll_total_seconds": 0.0,
         "center_calls": 0,
@@ -107,7 +107,7 @@ async def _measure_cursor_move_path(
     *,
     typewriter_enabled: bool,
     steps: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     editor = app.query_one("#editor", HeloWriteTextArea)
 
     if app.typewriter_mode != typewriter_enabled:
@@ -119,7 +119,7 @@ async def _measure_cursor_move_path(
     editor.cursor_location = (anchor_row, 0)
     await pilot.pause()
 
-    stats: Dict[str, Any] = {
+    stats: dict[str, Any] = {
         "steps": steps,
         "elapsed_seconds": 0.0,
         "center_calls": 0,
