@@ -5,20 +5,22 @@ from PyInstaller.utils.hooks import collect_all
 # Collect all textual submodules
 textual_datas, textual_binaries, textual_hiddenimports = collect_all('textual')
 
+# Collect all pyfiglet submodules (pyfiglet.fonts is loaded dynamically)
+pyfiglet_datas, pyfiglet_binaries, pyfiglet_hiddenimports = collect_all('pyfiglet')
+
 a = Analysis(
     ['src/app.py'],
     pathex=['src'],
-    binaries=textual_binaries,
+    binaries=textual_binaries + pyfiglet_binaries,
     datas=[
         ('src/audio', 'src/audio'),
-    ] + textual_datas,
+    ] + textual_datas + pyfiglet_datas,
     hiddenimports=[
         'rich',
-        'pyfiglet',
         'watchdog',
         'watchdog.observers',
         'watchdog.events',
-    ] + textual_hiddenimports,
+    ] + textual_hiddenimports + pyfiglet_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
