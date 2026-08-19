@@ -47,6 +47,15 @@ Ships with built-in themes or follows your system theme.
 
 ## Quick Start
 
+### Standalone Binary (No Python Required)
+
+Download the pre-built binary from [Releases](https://github.com/burninc0de/helowrite/releases). It's a single self-contained executable — no Python, no pip, no venv.
+
+```bash
+chmod +x helowrite
+./helowrite myfile.txt
+```
+
 ### Try It Out — No Commitment (UVX)
 
 Just curious? Run HeloWrite once without installing. UVX creates a temporary environment, runs the app, and cleans up after itself. Config is written to `~/.config/helowrite/`.

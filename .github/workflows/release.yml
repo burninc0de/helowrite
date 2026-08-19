@@ -10,20 +10,53 @@ on:
       - 'v*'
 
 jobs:
-  create_release:
-    name: Create GitHub release
+  build-linux:
+    name: Build Linux binary
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyinstaller textual rich pyfiglet watchdog
+
+      - name: Build binary
+        run: pyinstaller helowrite.spec
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helowrite-linux
+          path: dist/helowrite
+
+  create_release:
+    name: Create GitHub release
+    needs: build-linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: helowrite-linux
+          path: dist/
+
+      - name: Make binary executable
+        run: chmod +x dist/helowrite
+
       - name: Create GitHub release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          # body: "Release ${{ github.ref_name }}"
+          name: ${{ github.ref_name }}
           draft: false
           prerelease: false
+          files: dist/helowrite
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
