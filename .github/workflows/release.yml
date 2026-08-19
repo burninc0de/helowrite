@@ -26,6 +26,7 @@ jobs:
 
       - name: Build binary
         run: pyinstaller helowrite.spec
+        working-directory: ${{ github.workspace }}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
