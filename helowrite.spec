@@ -7,7 +7,7 @@ textual_datas, textual_binaries, textual_hiddenimports = collect_all('textual')
 
 a = Analysis(
     ['src/app.py'],
-    pathex=[],
+    pathex=['src'],
     binaries=textual_binaries,
     datas=[
         ('src/audio', 'src/audio'),
