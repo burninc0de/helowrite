@@ -841,12 +841,10 @@ class HeloWrite(App):
     def action_open(self):
         """Open a file dialog as a right-side panel (toggle)."""
         # Toggle the file panel mounted inside the `CenteredEditor` (left side)
-        try:
-            existing = self.query_one("#file-open-panel")
-            existing.remove()
+        existing = self.query("#file-open-panel")
+        if existing:
+            existing.first().remove()
             return
-        except Exception:
-            pass
         centered = self.query_one(CenteredEditor)
         editor = centered.query_one("#editor")
         # Mount the panel before the editor so it appears on the left
@@ -1014,11 +1012,9 @@ class HeloWrite(App):
                 "Typewriter mode disabled (Ctrl+Shift+T or Alt+T to enable)",
                 distraction_free_message="Typewriter off",
             )
-        try:
-            centered = self.query_one(CenteredEditor)
-            centered.styles.padding_top = 0
-        except Exception:
-            pass
+        centered = self.query(CenteredEditor)
+        if centered:
+            centered.first().styles.padding_top = 0
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
             editor._refresh_size()
@@ -1270,12 +1266,10 @@ class HeloWrite(App):
             os.chdir(parent_dir)
             self.show_message(f"Changed directory to: {parent_dir}")
             # Refresh file manager if open
-            try:
-                panel = self.query_one("#file-open-panel")
-                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
+            panel = self.query("#file-open-panel")
+            if panel:
+                tree = cast(DirectoryTree, panel.first().query_one("#file-tree-panel"))
                 tree.reload()
-            except Exception:
-                pass
         else:
             self.show_message("Already at root directory")
 
@@ -1286,12 +1280,10 @@ class HeloWrite(App):
             os.chdir(target_dir)
             self.show_message(f"Changed directory to: {target_dir}")
             # Refresh file manager if open
-            try:
-                panel = self.query_one("#file-open-panel")
-                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
+            panel = self.query("#file-open-panel")
+            if panel:
+                tree = cast(DirectoryTree, panel.first().query_one("#file-tree-panel"))
                 tree.reload()
-            except Exception:
-                pass
         else:
             self.show_message("No previous directory to go back to")
 
@@ -1317,12 +1309,10 @@ class HeloWrite(App):
     def _apply_git_sync_result(self, result: GitSyncResult) -> None:
         """Apply git sync side effects and show user feedback."""
         if result.refresh_file_panel:
-            try:
-                panel = self.query_one("#file-open-panel")
-                tree = cast(DirectoryTree, panel.query_one("#file-tree-panel"))
+            panel = self.query("#file-open-panel")
+            if panel:
+                tree = cast(DirectoryTree, panel.first().query_one("#file-tree-panel"))
                 tree.reload()
-            except Exception:
-                pass
 
         if result.reload_current_file:
             self.reload_file_content()
