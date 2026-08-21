@@ -154,7 +154,7 @@ helowrite
 
 Important: because this is a venv-local editable install, `helowrite` is available only while that venv is active.
 
-**Requirements**: Python 3.8+
+**Requirements**: Python 3.9+
 
 ### Troubleshooting: 
 

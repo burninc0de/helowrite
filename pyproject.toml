@@ -8,12 +8,12 @@ version = "0.8.85"
 description = "A fast, terminal-based text editor built with Python and Textual"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
-    {name = "André Klein", email = "andre@learnoutlive.com"},
+    {name = "André Klein", email = "dev@andreklein.net"},
 ]
 maintainers = [
-    {name = "André Klein", email = "andre@learnoutlive.com"},
+    {name = "André Klein", email = "dev@andreklein.net"},
 ]
 keywords = ["text-editor", "terminal", "tui", "textual"]
 classifiers = [
@@ -23,7 +23,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
