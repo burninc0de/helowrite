@@ -14,6 +14,8 @@ def expand_placeholders(text: str) -> str:
 
     Supported placeholders:
     - %CURRENTTIME: Current time (HH:MM)
+    - %DATE: Current date (YYYY-MM-DD)
+    - %DATETIME: Current date and time (YYYY-MM-DD HH:MM)
     - %%: Literal % character
 
     Supported escape sequences:
@@ -33,6 +35,10 @@ def expand_placeholders(text: str) -> str:
 
         if name == "CURRENTTIME":
             return datetime.datetime.now().strftime("%H:%M")
+        if name == "DATE":
+            return datetime.datetime.now().strftime("%Y-%m-%d")
+        if name == "DATETIME":
+            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         return match.group(0)
 
     result = PLACEHOLDER_PATTERN.sub(replace_placeholder, text)
