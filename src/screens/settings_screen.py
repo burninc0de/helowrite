@@ -192,13 +192,13 @@ class SettingsScreen(ModalScreen):
                             )
                         with Horizontal(classes="setting-row"):
                             yield Checkbox(
-                                " Typographic quotes",
-                                id="smart-quotes-checkbox",
+                                " Wrap link on paste",
+                                id="paste-wrap-link-checkbox",
                             )
                         with Horizontal(classes="setting-row"):
                             yield Checkbox(
-                                " Wrap link on paste",
-                                id="paste-wrap-link-checkbox",
+                                " Typographic quotes",
+                                id="smart-quotes-checkbox",
                             )
                         with Horizontal(
                             classes="setting-row", id="smart-quote-row-single"
