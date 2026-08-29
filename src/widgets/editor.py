@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, List, Optional
 
+from textual import events
 from textual.geometry import Size
 from textual.widgets import TextArea
 
@@ -52,6 +53,9 @@ class HeloWriteTextArea(TextArea):
     MARKDOWN_STRIKETHROUGH_RE = re.compile(r"~~(?!\s).+?(?<!\s)~~")
     MARKDOWN_LIST_RE = re.compile(r"^\s{0,12}((?:[-+*]|\d+[.)])\s+)")
     MARKDOWN_TASK_LIST_RE = re.compile(r"^\s{0,12}(?:[-+*]|\d+[.)])\s+(\[[ xX]\])")
+
+    _PASTE_URL_RE = re.compile(r"^https?://\S+$", re.IGNORECASE)
+    _WORD_CHAR_RE = re.compile(r"\w", re.UNICODE)
 
     DEFAULT_CSS = """
     TextArea {
@@ -155,6 +159,106 @@ class HeloWriteTextArea(TextArea):
                 self.insert(close_double)
             else:
                 self.insert(close_single)
+
+    def _is_paste_url(self, text: str) -> bool:
+        """Return True if text looks like an http(s) URL."""
+        stripped = text.strip()
+        if not stripped:
+            return False
+        return bool(self._PASTE_URL_RE.match(stripped))
+
+    def _is_word_char(self, ch: str) -> bool:
+        """Return True if character is considered part of a word."""
+        if not ch:
+            return False
+        return bool(self._WORD_CHAR_RE.match(ch))
+
+    def _try_wrap_paste(self, text: str) -> bool:
+        """Try to wrap pasted URL around word/selection.
+
+        Returns True if the paste was handled via wrapping.
+        """
+        app = getattr(self, "app", None) or getattr(self, "_app", None)
+        enabled = True
+        if app is not None:
+            if hasattr(app, "paste_wrap_link_enabled"):
+                try:
+                    enabled = bool(app.paste_wrap_link_enabled)  # type: ignore[attr-defined]
+                except Exception:
+                    enabled = True
+            elif hasattr(app, "config") and hasattr(
+                app.config, "get_paste_wrap_link_enabled"
+            ):
+                try:
+                    enabled = bool(app.config.get_paste_wrap_link_enabled())
+                except Exception:
+                    enabled = True
+        if not enabled:
+            return False
+        if self.read_only:
+            return False
+        if not self._is_paste_url(text):
+            return False
+        url = text.strip()
+        # If there is a selection, wrap it
+        try:
+            start, end = self.selection
+        except Exception:
+            return False
+        if start != end:
+            selected_text = self.selected_text
+            if not selected_text:
+                return False
+            # Normalise order
+            if start > end:
+                start, end = end, start
+            wrapped = f"[{selected_text}]({url})"
+            result = self.replace(wrapped, start, end, maintain_selection_offset=False)
+            if result is not None:
+                self.move_cursor(result.end_location)
+            return True
+        # No selection: try word at cursor
+        try:
+            row, col = self.cursor_location
+            line = self.document[row]
+        except Exception:
+            return False
+        if not line:
+            return False
+        effective_col = col
+        if effective_col >= len(line):
+            if (
+                effective_col == len(line)
+                and len(line) > 0
+                and self._is_word_char(line[-1])
+            ):
+                effective_col = len(line) - 1
+            else:
+                return False
+        if effective_col < 0 or effective_col >= len(line):
+            return False
+        if not self._is_word_char(line[effective_col]):
+            return False
+        left = effective_col
+        while left > 0 and self._is_word_char(line[left - 1]):
+            left -= 1
+        right = effective_col
+        while right < len(line) and self._is_word_char(line[right]):
+            right += 1
+        if left == right:
+            return False
+        word = line[left:right]
+        if not word:
+            return False
+        wrapped = f"[{word}]({url})"
+        start_loc = (row, left)
+        end_loc = (row, right)
+        result = self.replace(
+            wrapped, start_loc, end_loc, maintain_selection_offset=False
+        )
+        if result is not None:
+            self.move_cursor(result.end_location)
+        return True
 
     AUTO_PAIRS = {
         "*": "*",
@@ -845,3 +949,33 @@ class HeloWriteTextArea(TextArea):
         # Move cursor to end while selecting everything from start
         self.move_cursor((0, 0))
         self.move_cursor((last_row, last_col), select=True)
+
+    def action_paste(self) -> None:
+        """Paste from clipboard, wrapping link around word/selection if enabled."""
+        if self.read_only:
+            return
+        try:
+            clipboard = self.app.clipboard
+        except Exception:
+            clipboard = ""
+        if clipboard and self._try_wrap_paste(clipboard):
+            return
+        if clipboard and (
+            result := self._replace_via_keyboard(clipboard, *self.selection)
+        ):
+            self.move_cursor(result.end_location)
+
+    async def _on_paste(self, event: events.Paste) -> None:
+        """Handle system paste events with link wrapping."""
+        if self.read_only:
+            return
+        if self._try_wrap_paste(event.text):
+            event.prevent_default()
+            event.stop()
+            self.focus()
+            return
+        if result := self._replace_via_keyboard(event.text, *self.selection):
+            self.move_cursor(result.end_location)
+            self.focus()
+        event.prevent_default()
+        event.stop()

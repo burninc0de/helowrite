@@ -299,6 +299,7 @@ class HeloWrite(App):
         self.markdown_highlighting_enabled = (
             self.config.get_markdown_highlighting_enabled()
         )
+        self.paste_wrap_link_enabled = self.config.get_paste_wrap_link_enabled()
         self._selection_style_override_active = False
 
     @property

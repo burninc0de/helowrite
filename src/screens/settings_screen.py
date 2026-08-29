@@ -195,6 +195,11 @@ class SettingsScreen(ModalScreen):
                                 " Typographic quotes",
                                 id="smart-quotes-checkbox",
                             )
+                        with Horizontal(classes="setting-row"):
+                            yield Checkbox(
+                                " Wrap link on paste",
+                                id="paste-wrap-link-checkbox",
+                            )
                         with Horizontal(
                             classes="setting-row", id="smart-quote-row-single"
                         ):
@@ -289,6 +294,9 @@ class SettingsScreen(ModalScreen):
         self.query_one(
             "#smart-quotes-checkbox", Checkbox
         ).value = app.config.get_smart_quotes()
+        self.query_one(
+            "#paste-wrap-link-checkbox", Checkbox
+        ).value = app.config.get_paste_wrap_link_enabled()
         self.query_one(
             "#smart-quote-open-single-input", Input
         ).value = app.config.get_smart_quote_open_single()
@@ -477,6 +485,9 @@ class SettingsScreen(ModalScreen):
             app.config.set_smart_quotes(
                 self.query_one("#smart-quotes-checkbox", Checkbox).value
             )
+            app.config.set_paste_wrap_link_enabled(
+                self.query_one("#paste-wrap-link-checkbox", Checkbox).value
+            )
             app.config.set_auto_save_enabled(auto_save_enabled)
             app.config.set_hot_reload_enabled(hot_reload_enabled)
             app.config.set_editor_width(width)
@@ -509,6 +520,9 @@ class SettingsScreen(ModalScreen):
                 "#auto-pair-checkbox", Checkbox
             ).value
             app.smart_quotes = self.query_one("#smart-quotes-checkbox", Checkbox).value
+            app.paste_wrap_link_enabled = self.query_one(
+                "#paste-wrap-link-checkbox", Checkbox
+            ).value
             app.smart_quote_open_single = smart_quote_open_single
             app.smart_quote_close_single = smart_quote_close_single
             app.smart_quote_open_double = smart_quote_open_double

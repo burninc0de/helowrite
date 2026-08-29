@@ -341,6 +341,17 @@ class Config:
         config["markdown_highlighting_enabled"] = "1" if enabled else "0"
         self._save_config(config)
 
+    def get_paste_wrap_link_enabled(self) -> bool:
+        """Return whether pasting a link wraps the word under cursor."""
+        config = self._load_config()
+        return config.get("paste_wrap_link_enabled", "1") == "1"
+
+    def set_paste_wrap_link_enabled(self, enabled: bool):
+        """Persist paste link wrap preference."""
+        config = self._load_config()
+        config["paste_wrap_link_enabled"] = "1" if enabled else "0"
+        self._save_config(config)
+
     def get_default_working_directory(self) -> str:
         """Get the default working directory, defaulting to empty (current dir)."""
         config = self._load_config()
