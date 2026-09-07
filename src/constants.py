@@ -9,6 +9,8 @@ Keybindings:
 - Ctrl+O: Open file panel (toggle)
 - Ctrl+N: New file
 - Ctrl+F: Find/Replace (toggle)
+- Ctrl+B: Bold (wrap word/selection with **)
+- Ctrl+I: Italic (wrap word/selection with *)
 - Ctrl+P: Command palette
 - Alt+G: Git push current file (Option+G on macOS)
 - Alt+H: Git pull current file (Option+H on macOS)

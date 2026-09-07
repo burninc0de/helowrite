@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from textual import events
+from textual.binding import Binding
 from textual.geometry import Size
 from textual.widgets import TextArea
 
@@ -37,6 +38,9 @@ class HeloWriteTextArea(TextArea):
     """Custom TextArea with additional commands and paragraph spacing."""
 
     BINDINGS = [
+        Binding("ctrl+b", "wrap_bold", "Bold", show=False),
+        Binding("ctrl+i", "wrap_italic", "Italic", show=False),
+    ] + [
         binding
         for binding in TextArea.BINDINGS
         if getattr(binding, "key", "") != "ctrl+f"
@@ -259,6 +263,257 @@ class HeloWriteTextArea(TextArea):
         if result is not None:
             self.move_cursor(result.end_location)
         return True
+
+    def _word_range_at_cursor(self) -> Optional[tuple[int, int, int]]:
+        """Return (row, left, right) for word under cursor, or None."""
+        try:
+            row, col = self.cursor_location
+            line = self.document[row]
+        except Exception:
+            return None
+        if not line:
+            return None
+        effective_col = col
+        if effective_col >= len(line):
+            if (
+                effective_col == len(line)
+                and len(line) > 0
+                and self._is_word_char(line[-1])
+            ):
+                effective_col = len(line) - 1
+            else:
+                return None
+        if effective_col < 0 or effective_col >= len(line):
+            return None
+        if not self._is_word_char(line[effective_col]):
+            return None
+        left = effective_col
+        while left > 0 and self._is_word_char(line[left - 1]):
+            left -= 1
+        right = effective_col
+        while right < len(line) and self._is_word_char(line[right]):
+            right += 1
+        if left == right:
+            return None
+        return (row, left, right)
+
+    def _is_wrapped(self, text: str, delimiter: str) -> bool:
+        """Check if text is wrapped with delimiter (handles ** vs * distinction)."""
+        if delimiter == "**":
+            return text.startswith("**") and text.endswith("**") and len(text) >= 4
+        if delimiter == "*":
+            return (
+                text.startswith("*")
+                and text.endswith("*")
+                and len(text) >= 2
+                and not text.startswith("**")
+                and not text.endswith("**")
+            )
+        return (
+            text.startswith(delimiter)
+            and text.endswith(delimiter)
+            and len(text) >= 2 * len(delimiter)
+        )
+
+    def _toggle_wrap(self, delimiter: str) -> bool:
+        """Toggle wrapping of selection or word at cursor with delimiter.
+
+        Returns True if handled.
+        """
+        if self.read_only:
+            return False
+        try:
+            start, end = self.selection
+        except Exception:
+            return False
+
+        # --- Selection case ---
+        if start != end:
+            if start > end:
+                start, end = end, start
+            selected_text = self.selected_text
+            if selected_text is None:
+                selected_text = self.get_text_range(start, end)
+            if not selected_text:
+                return False
+
+            # Already wrapped (e.g. "**hello**" selected) -> unwrap
+            if self._is_wrapped(selected_text, delimiter):
+                inner = (
+                    selected_text[len(delimiter) : -len(delimiter)]
+                    if len(delimiter)
+                    else selected_text
+                )
+                result = self.replace(
+                    inner, start, end, maintain_selection_offset=False
+                )
+                if result is not None:
+                    self.move_cursor(result.end_location)
+                return True
+
+            # Check for surrounding delimiters outside selection (single-line only)
+            if start[0] == end[0]:
+                row = start[0]
+                try:
+                    line = self.document[row]
+                except Exception:
+                    line = ""
+                left_col = start[1]
+                right_col = end[1]
+                if delimiter == "**":
+                    if (
+                        left_col >= 2
+                        and right_col + 2 <= len(line)
+                        and line[left_col - 2 : left_col] == "**"
+                        and line[right_col : right_col + 2] == "**"
+                    ):
+                        unwrap_start = (row, left_col - 2)
+                        unwrap_end = (row, right_col + 2)
+                        result = self.replace(
+                            selected_text,
+                            unwrap_start,
+                            unwrap_end,
+                            maintain_selection_offset=False,
+                        )
+                        if result is not None:
+                            self.move_cursor(result.end_location)
+                        return True
+                elif delimiter == "*":
+                    if (
+                        left_col >= 1
+                        and right_col + 1 <= len(line)
+                        and line[left_col - 1 : left_col] == "*"
+                        and line[right_col : right_col + 1] == "*"
+                        and (left_col - 2 < 0 or line[left_col - 2] != "*")
+                        and (right_col + 1 >= len(line) or line[right_col + 1] != "*")
+                    ):
+                        unwrap_start = (row, left_col - 1)
+                        unwrap_end = (row, right_col + 1)
+                        result = self.replace(
+                            selected_text,
+                            unwrap_start,
+                            unwrap_end,
+                            maintain_selection_offset=False,
+                        )
+                        if result is not None:
+                            self.move_cursor(result.end_location)
+                        return True
+                else:
+                    dlen = len(delimiter)
+                    if (
+                        left_col >= dlen
+                        and right_col + dlen <= len(line)
+                        and line[left_col - dlen : left_col] == delimiter
+                        and line[right_col : right_col + dlen] == delimiter
+                    ):
+                        unwrap_start = (row, left_col - dlen)
+                        unwrap_end = (row, right_col + dlen)
+                        result = self.replace(
+                            selected_text,
+                            unwrap_start,
+                            unwrap_end,
+                            maintain_selection_offset=False,
+                        )
+                        if result is not None:
+                            self.move_cursor(result.end_location)
+                        return True
+
+            # Otherwise wrap selection
+            wrapped = f"{delimiter}{selected_text}{delimiter}"
+            result = self.replace(wrapped, start, end, maintain_selection_offset=False)
+            if result is not None:
+                self.move_cursor(result.end_location)
+            return True
+
+        # --- No selection: word at cursor ---
+        word_range = self._word_range_at_cursor()
+        if word_range is not None:
+            row, left, right = word_range
+            try:
+                line = self.document[row]
+            except Exception:
+                line = ""
+            word = line[left:right]
+            if delimiter == "**":
+                if (
+                    left >= 2
+                    and right + 2 <= len(line)
+                    and line[left - 2 : left] == "**"
+                    and line[right : right + 2] == "**"
+                ):
+                    unwrap_start = (row, left - 2)
+                    unwrap_end = (row, right + 2)
+                    result = self.replace(
+                        word, unwrap_start, unwrap_end, maintain_selection_offset=False
+                    )
+                    if result is not None:
+                        self.move_cursor(result.end_location)
+                    return True
+            elif delimiter == "*":
+                if (
+                    left >= 1
+                    and right + 1 <= len(line)
+                    and line[left - 1 : left] == "*"
+                    and line[right : right + 1] == "*"
+                    and (left - 2 < 0 or line[left - 2] != "*")
+                    and (right + 1 >= len(line) or line[right + 1] != "*")
+                ):
+                    unwrap_start = (row, left - 1)
+                    unwrap_end = (row, right + 1)
+                    result = self.replace(
+                        word, unwrap_start, unwrap_end, maintain_selection_offset=False
+                    )
+                    if result is not None:
+                        self.move_cursor(result.end_location)
+                    return True
+            else:
+                dlen = len(delimiter)
+                if (
+                    left >= dlen
+                    and right + dlen <= len(line)
+                    and line[left - dlen : left] == delimiter
+                    and line[right : right + dlen] == delimiter
+                ):
+                    unwrap_start = (row, left - dlen)
+                    unwrap_end = (row, right + dlen)
+                    result = self.replace(
+                        word, unwrap_start, unwrap_end, maintain_selection_offset=False
+                    )
+                    if result is not None:
+                        self.move_cursor(result.end_location)
+                    return True
+
+            wrapped = f"{delimiter}{word}{delimiter}"
+            result = self.replace(
+                wrapped, (row, left), (row, right), maintain_selection_offset=False
+            )
+            if result is not None:
+                self.move_cursor(result.end_location)
+            return True
+
+        # No word under cursor: insert empty pair and place cursor inside
+        try:
+            row, col = self.cursor_location
+        except Exception:
+            return False
+        if delimiter == "**":
+            self.insert("****")
+            self.move_cursor((row, col + 2))
+        elif delimiter == "*":
+            self.insert("**")
+            self.move_cursor((row, col + 1))
+        else:
+            self.insert(f"{delimiter}{delimiter}")
+            self.move_cursor((row, col + len(delimiter)))
+        return True
+
+    def action_wrap_bold(self) -> None:
+        """Wrap selection or word at cursor with ** for bold."""
+        self._toggle_wrap("**")
+
+    def action_wrap_italic(self) -> None:
+        """Wrap selection or word at cursor with * for italics."""
+        self._toggle_wrap("*")
 
     AUTO_PAIRS = {
         "*": "*",
