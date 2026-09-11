@@ -1,6 +1,6 @@
 """Textual theme registration helpers for HeloWrite."""
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional
 
 from textual.theme import Theme
 
@@ -10,9 +10,6 @@ from utils import (
     get_system_theme_last_modified,
     is_system_theme_available,
 )
-
-if TYPE_CHECKING:
-    from app import HeloWrite
 
 
 def register_builtin_themes(app: Any) -> None:
@@ -108,7 +105,7 @@ def apply_system_theme_update(app: Any, system_theme: dict) -> None:
     app.theme = "system"
 
 
-def start_system_theme_watcher(app: "HeloWrite") -> None:
+def start_system_theme_watcher(app: Any) -> None:
     """Enable periodic checks for active system theme changes."""
     if app._system_watcher_active:
         return
@@ -121,7 +118,7 @@ def start_system_theme_watcher(app: "HeloWrite") -> None:
     app._system_watcher_active = True
 
 
-def stop_system_theme_watcher(app: "HeloWrite") -> None:
+def stop_system_theme_watcher(app: Any) -> None:
     """Disable periodic checks for system theme changes."""
     if app._system_watcher_timer:
         app._system_watcher_timer.stop()
@@ -129,7 +126,7 @@ def stop_system_theme_watcher(app: "HeloWrite") -> None:
     app._system_watcher_active = False
 
 
-def check_system_theme_update_once(app: "HeloWrite") -> None:
+def check_system_theme_update_once(app: Any) -> None:
     """Check system theme once on startup; start watcher if system theme is available."""
     if not app._system_theme:
         return
@@ -140,7 +137,7 @@ def check_system_theme_update_once(app: "HeloWrite") -> None:
         start_system_theme_watcher(app)
 
 
-def fallback_to_default_theme(app: "HeloWrite") -> None:
+def fallback_to_default_theme(app: Any) -> None:
     """Fallback when system theme disappears or becomes invalid."""
     app._system_theme = None
     app._system_last_check = 0.0
@@ -153,7 +150,7 @@ def fallback_to_default_theme(app: "HeloWrite") -> None:
     )
 
 
-def check_system_theme_update(app: "HeloWrite") -> None:
+def check_system_theme_update(app: Any) -> None:
     """Check if system theme has changed and update if needed."""
     if not is_system_theme_available():
         if app.theme == "system":
