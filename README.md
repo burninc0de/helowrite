@@ -47,23 +47,6 @@ Ships with built-in themes or follows your system theme.
 
 ## Quick Start
 
-### Standalone Binary (No Python Required)
-
-Download the pre-built binary for your platform from [Releases](https://github.com/burninc0de/helowrite/releases). Each is a single self-contained executable — no Python, no pip, no venv.
-
-- `helowrite-linux-x86_64` — Linux (Intel/AMD)
-- `helowrite-linux-arm64` — Linux (ARM)
-- `helowrite-macos-arm64` — macOS (Apple Silicon)
-
-Intel Macs aren't shipped a binary — install via `pipx` below.
-
-```bash
-chmod +x helowrite-linux-x86_64
-./helowrite-linux-x86_64 myfile.txt
-```
-
-> macOS builds are unsigned — on first run, if Gatekeeper blocks it, run `xattr -d com.apple.quarantine <binary>`.
-
 ### Try It Out — No Commitment (UVX)
 
 Just curious? Run HeloWrite once without installing. UVX creates a temporary environment, runs the app, and cleans up after itself. Config is written to `~/.config/helowrite/`.
@@ -141,6 +124,10 @@ To uninstall:
 ```bash
 pipx uninstall helowrite
 ```
+
+### Standalone Binary (No Python Required)
+
+Download the pre-built binary for your platform from [Releases](https://github.com/burninc0de/helowrite/releases). Each is a single self-contained executable — no Python, no pip, no venv.
 
 ### Development Install (Editable Source Checkout)
 
