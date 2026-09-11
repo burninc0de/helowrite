@@ -11,9 +11,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    name: Build Linux binary
-    runs-on: ubuntu-latest
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Older Ubuntu for broader glibc compat across distros.
+          - os: ubuntu-22.04
+            target: linux-x86_64
+            asset: helowrite-linux-x86_64
+          - os: ubuntu-22.04-arm
+            target: linux-arm64
+            asset: helowrite-linux-arm64
+          # macos-13 is the last Intel runner image.
+          - os: macos-13
+            target: macos-x86_64
+            asset: helowrite-macos-x86_64
+          - os: macos-14
+            target: macos-arm64
+            asset: helowrite-macos-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -29,28 +47,37 @@ jobs:
         run: pyinstaller helowrite.spec
         working-directory: ${{ github.workspace }}
 
+      - name: Rename binary for target
+        shell: bash
+        run: |
+          mv dist/helowrite "dist/${{ matrix.asset }}"
+          chmod +x "dist/${{ matrix.asset }}"
+          ls -lh dist/
+
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helowrite-linux
-          path: dist/helowrite
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
 
   create_release:
     name: Create GitHub release
-    needs: build-linux
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download binary artifact
+      - name: Download all binary artifacts
         uses: actions/download-artifact@v4
         with:
-          name: helowrite-linux
           path: dist/
+          merge-multiple: true
 
-      - name: Make binary executable
-        run: chmod +x dist/helowrite
+      - name: Make binaries executable
+        run: |
+          chmod +x dist/helowrite-*
+          ls -lh dist/
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
@@ -59,6 +86,6 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: dist/helowrite
+          files: dist/helowrite-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

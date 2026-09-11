@@ -49,12 +49,19 @@ Ships with built-in themes or follows your system theme.
 
 ### Standalone Binary (No Python Required)
 
-Download the pre-built binary from [Releases](https://github.com/burninc0de/helowrite/releases). It's a single self-contained executable — no Python, no pip, no venv.
+Download the pre-built binary for your platform from [Releases](https://github.com/burninc0de/helowrite/releases). Each is a single self-contained executable — no Python, no pip, no venv.
+
+- `helowrite-linux-x86_64` — Linux (Intel/AMD)
+- `helowrite-linux-arm64` — Linux (ARM)
+- `helowrite-macos-arm64` — macOS (Apple Silicon)
+- `helowrite-macos-x86_64` — macOS (Intel)
 
 ```bash
-chmod +x helowrite
-./helowrite myfile.txt
+chmod +x helowrite-linux-x86_64
+./helowrite-linux-x86_64 myfile.txt
 ```
+
+> macOS builds are unsigned — on first run, if Gatekeeper blocks it, run `xattr -d com.apple.quarantine <binary>`.
 
 ### Try It Out — No Commitment (UVX)
 
