@@ -25,10 +25,8 @@ jobs:
           - os: ubuntu-22.04-arm
             target: linux-arm64
             asset: helowrite-linux-arm64
-          # macos-13 is the last Intel runner image.
-          - os: macos-13
-            target: macos-x86_64
-            asset: helowrite-macos-x86_64
+          # Intel Macs (macos-13) dropped: scarce runners, long queues.
+          # Intel Mac users can install via pipx instead.
           - os: macos-14
             target: macos-arm64
             asset: helowrite-macos-arm64
