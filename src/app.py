@@ -112,6 +112,9 @@ class HeloWrite(App):
         "pomodoro_timer": "ctrl+t",
         "toggle_typewriter_mode": "ctrl+shift+t",
         "reload_file": "ctrl+r",
+        "wrap_bold": "ctrl+b",
+        "wrap_italic": "ctrl+i",
+        "wrap_code": "ctrl+shift+x",
     }
 
     DEFAULT_KEYBINDING_DESCRIPTIONS = {
@@ -138,6 +141,9 @@ class HeloWrite(App):
         "pomodoro_timer": "Pomodoro Timer",
         "toggle_typewriter_mode": "Typewriter Mode",
         "reload_file": "Reload File",
+        "wrap_bold": "Bold",
+        "wrap_italic": "Italic",
+        "wrap_code": "Inline Code",
     }
 
     BINDINGS = []
@@ -1110,6 +1116,30 @@ class HeloWrite(App):
         """Select all text in the editor."""
         editor = self.query_one("#editor", HeloWriteTextArea)
         editor.select_all()
+
+    def action_wrap_bold(self):
+        """Wrap selection or word at cursor with ** for bold."""
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor.action_wrap_bold()
+        except Exception:
+            pass
+
+    def action_wrap_italic(self):
+        """Wrap selection or word at cursor with * for italics."""
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor.action_wrap_italic()
+        except Exception:
+            pass
+
+    def action_wrap_code(self):
+        """Wrap selection or word at cursor with ` for inline code."""
+        try:
+            editor = self.query_one("#editor", HeloWriteTextArea)
+            editor.action_wrap_code()
+        except Exception:
+            pass
 
     def action_toggle_insert_newline(self):
         """Toggle insert newline (space between paragraphs) on Enter key."""

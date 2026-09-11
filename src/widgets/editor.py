@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from textual import events
-from textual.binding import Binding
 from textual.geometry import Size
 from textual.widgets import TextArea
 
@@ -38,9 +37,6 @@ class HeloWriteTextArea(TextArea):
     """Custom TextArea with additional commands and paragraph spacing."""
 
     BINDINGS = [
-        Binding("ctrl+b", "wrap_bold", "Bold", show=False),
-        Binding("ctrl+i", "wrap_italic", "Italic", show=False),
-    ] + [
         binding
         for binding in TextArea.BINDINGS
         if getattr(binding, "key", "") != "ctrl+f"
@@ -514,6 +510,10 @@ class HeloWriteTextArea(TextArea):
     def action_wrap_italic(self) -> None:
         """Wrap selection or word at cursor with * for italics."""
         self._toggle_wrap("*")
+
+    def action_wrap_code(self) -> None:
+        """Wrap selection or word at cursor with ` for inline code."""
+        self._toggle_wrap("`")
 
     AUTO_PAIRS = {
         "*": "*",

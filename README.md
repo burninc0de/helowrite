@@ -276,6 +276,7 @@ HELOWRITE_RUN_PERF=1 pytest tests/test_typewriter_scroll_perf.py
 - `Ctrl+F` - Find/Replace (toggle)
 - `Ctrl+B` - Bold (wrap word/selection with `**`)
 - `Ctrl+I` - Italic (wrap word/selection with `*`)
+- `Ctrl+Shift+X` - Inline code (wrap word/selection with `` ` ``)
 - `Ctrl+R` - Reload current file from disk
 - `Ctrl+P` - Command palette
 - `Ctrl+T` - Pomodoro timer
