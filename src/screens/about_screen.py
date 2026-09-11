@@ -62,7 +62,7 @@ Designed for focused composition with minimal UI and keyboard-driven workflow.
 
 HeloWrite - Write without distraction.
 
-Version: 0.9.0
+Version: 0.9.1
 
 Press Escape to close"""
         with Vertical(id="about-container"):
