@@ -598,7 +598,7 @@ class HeloWrite(App):
 
         # Apply distraction-free top padding if in distraction-free mode
         if self.distraction_free:
-            centered_editor.styles.padding_top = 2
+            centered_editor.styles.padding_top = 2  # ty: ignore[unresolved-attribute]
             # Update word count visibility in distraction-free mode
             word_count_widget = self.query_one("#distraction-word-count", Static)
             if self.config.get_show_word_count_distraction_free():
@@ -607,7 +607,7 @@ class HeloWrite(App):
             else:
                 word_count_widget.remove_class("visible")
         else:
-            centered_editor.styles.padding_top = 0
+            centered_editor.styles.padding_top = 0  # ty: ignore[unresolved-attribute]
 
         # Apply scrollbar visibility
         try:
@@ -1021,7 +1021,7 @@ class HeloWrite(App):
             )
         centered = self.query(CenteredEditor)
         if centered:
-            centered.first().styles.padding_top = 0
+            centered.first().styles.padding_top = 0  # ty: ignore[unresolved-attribute]
         try:
             editor = self.query_one("#editor", HeloWriteTextArea)
             editor._refresh_size()
@@ -1057,8 +1057,8 @@ class HeloWrite(App):
                 word_count_widget.remove_class("visible")
             editor.styles.width = "100%"
             # Add horizontal padding so the editor doesn't touch edges
-            centered.styles.padding_left = 2
-            centered.styles.padding_right = 2
+            centered.styles.padding_left = 2  # ty: ignore[unresolved-attribute]
+            centered.styles.padding_right = 2  # ty: ignore[unresolved-attribute]
             # Hide scrollbar in distraction-free mode
             try:
                 editor.styles.scrollbar_visibility = "hidden"
@@ -1077,8 +1077,8 @@ class HeloWrite(App):
             word_count_widget.remove_class("visible")
             editor.styles.width = f"{self.editor_width}%"
             # Remove horizontal padding applied for distraction-free
-            centered.styles.padding_left = 0
-            centered.styles.padding_right = 0
+            centered.styles.padding_left = 0  # ty: ignore[unresolved-attribute]
+            centered.styles.padding_right = 0  # ty: ignore[unresolved-attribute]
             try:
                 editor.styles.scrollbar_visibility = (
                     "visible" if self.scrollbar_enabled else "hidden"

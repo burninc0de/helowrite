@@ -225,7 +225,7 @@ async def _abort_merge_or_rebase(repo_dir: Path) -> None:
 async def _run_subprocess(
     cmd: list[str], cwd: Path
 ) -> subprocess.CompletedProcess[str]:
-    return await asyncio.to_thread(
+    return await asyncio.to_thread(  # ty: ignore[invalid-return-type]
         subprocess.run,
         cmd,
         cwd=str(cwd),

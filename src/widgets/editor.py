@@ -5,7 +5,10 @@ import os
 import re
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
+
+if TYPE_CHECKING:
+    from app import HeloWrite
 
 from textual import events
 from textual.geometry import Size
@@ -35,6 +38,10 @@ def _configure_typewriter_log(config_dir: Path) -> None:
 
 class HeloWriteTextArea(TextArea):
     """Custom TextArea with additional commands and paragraph spacing."""
+
+    @property
+    def app(self) -> "HeloWrite":
+        return super().app  # type: ignore[return-value]  # ty: ignore[invalid-return-type]
 
     BINDINGS = [
         binding
@@ -894,10 +901,14 @@ class HeloWriteTextArea(TextArea):
             ):
                 # During refresh, max_scroll_y can briefly report a smaller value.
                 # Don't restore a preserved scroll position that is currently invalid.
-                if float(last["scroll_y"]) > float(self.max_scroll_y) + 1e-6:
+                if (
+                    float(last["scroll_y"]) > float(self.max_scroll_y) + 1e-6
+                ):  # ty: ignore[invalid-argument-type]
                     self._clear_typewriter_hidden()
                     return None
-                if abs(self.scroll_y - last["scroll_y"]) > 1e-6:
+                if (
+                    abs(self.scroll_y - last["scroll_y"]) > 1e-6
+                ):  # ty: ignore[unsupported-operator]
                     # User likely scrolled manually while cursor stayed on the same
                     # line. Respect that scroll position instead of forcing a recentre.
                     self._last_typewriter_center_state = {
@@ -940,7 +951,9 @@ class HeloWriteTextArea(TextArea):
             return None
         if self._last_typewriter_center_state:
             last_cursor = self._last_typewriter_center_state["cursor"]
-            same_row = self.cursor_location[0] == last_cursor[0]
+            same_row = (
+                self.cursor_location[0] == last_cursor[0]
+            )  # ty: ignore[not-subscriptable]
             if same_row:
                 target_scroll_y = self._get_typewriter_target_scroll_y()
                 if abs(float(self.scroll_y) - target_scroll_y) < 1e-6:
@@ -1110,8 +1123,7 @@ class HeloWriteTextArea(TextArea):
             )
             trigger, start_pos, end_pos = find_trigger(
                 text_before,
-                triggers,
-                presorted=True,
+                triggers,  # ty: ignore[invalid-argument-type]
             )
 
             if trigger is None:

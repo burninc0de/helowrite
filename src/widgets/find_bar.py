@@ -11,7 +11,7 @@ class FindInput(Input):
     def action_delete_right_word(self) -> None:
         app = self.screen.app
         if hasattr(app, "action_find"):
-            app.action_find()
+            app.action_find()  # ty: ignore[call-non-callable]
 
 
 class FindBar(Horizontal):

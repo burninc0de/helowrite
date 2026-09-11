@@ -43,12 +43,12 @@ dev = [
     "pytest>=8.3.0",
     "pytest-asyncio",
     "ruff>=0.1.0",
-    "mypy>=1.0.0",
+    "ty>=0.0.80",
 ]
 test = [
     "pytest>=8.3.0",
     "pytest-asyncio",
-    "mypy>=1.0.0",
+    "ty>=0.0.80",
 ]
 
 [project.scripts]
@@ -85,17 +85,12 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
-[tool.mypy]
-strict = false
-ignore_missing_imports = true
-warn_return_any = false
-warn_unused_configs = true
-disallow_untyped_defs = false
-exclude = "tests/"
+[tool.ty.environment]
+python = "venv"
+
+[tool.ty.src]
+include = ["src"]
+exclude = ["tests"]
 
 [tool.uv]
 exclude-newer = "7 days"
-
-[[tool.mypy.overrides]]
-module = "textual.*"
-ignore_errors = true
