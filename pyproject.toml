@@ -55,7 +55,7 @@ test = [
 helowrite = "app:main"
 
 [tool.setuptools]
-py-modules = ["app", "audio_playback", "config", "constants", "git_sync", "pomodoro", "search", "snippets", "styles", "themes", "utils"]
+py-modules = ["app", "audio_playback", "config", "constants", "file_watcher", "git_sync", "pomodoro", "search", "snippets", "styles", "themes", "utils"]
 package-dir = {"" = "src"}
 packages = ["css", "audio", "widgets", "screens"]
 
