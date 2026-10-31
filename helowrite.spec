@@ -13,7 +13,7 @@ a = Analysis(
     pathex=['src'],
     binaries=textual_binaries + pyfiglet_binaries,
     datas=[
-        ('src/audio', 'src/audio'),
+        ('src/audio', 'audio'),
     ] + textual_datas + pyfiglet_datas,
     hiddenimports=[
         'rich',

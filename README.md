@@ -392,11 +392,6 @@ helowrite/
 │   │   └── ratchet3.wav
 │   ├── config.py             # Configuration management
 │   ├── constants.py          # Constants and help text
-│   ├── css/                  # Stylesheets
-│   │   ├── __init__.py
-│   │   ├── app.tcss
-│   │   ├── screens.tcss
-│   │   └── widgets.tcss
 │   ├── file_watcher.py       # Event-based file watching (hot reload)
 │   ├── git_sync.py           # Git operations
 │   ├── pomodoro.py           # Pomodoro timer
@@ -441,7 +436,6 @@ helowrite/
 │   ├── test_typewriter_scroll_perf.py
 │   ├── test_utils.py
 │   └── test_widgets.py
-├── command_palette_template.md
 ├── requirements.txt
 ├── pyproject.toml
 ├── pytest.ini

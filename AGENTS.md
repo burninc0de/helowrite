@@ -55,12 +55,12 @@ pytest
 # Run a single test file
 pytest tests/test_utils.py -q
 
-# Type checking (must target the package; bare `mypy` errors)
-mypy src/
+# Type checking
+ty check --python venv
 
 # Linting / formatting
-ruff check src/
-ruff format --check src/
+ruff check src/ tests/
+ruff format --check src/ tests/
 ```
 
 Notes:
@@ -76,9 +76,9 @@ Notes:
 ## Code Style Guidelines
 
 ### Python Configuration
-- **Type Checking**: mypy with strict=false, ignore_missing_imports=true, warn_return_any=false, warn_unused_configs=true
+- **Type Checking**: ty (configured under `[tool.ty]` in `pyproject.toml`, targeting `src/`)
 - **Linting**: ruff with select rules: E, W, F, I, B, C4, UP; ignore: E501, B008, C901
-- **Formatting**: ruff (line-length=88, target-version=py38, quote-style=double, indent-style=space)
+- **Formatting**: ruff (line-length=88, target-version=py39, quote-style=double, indent-style=space)
 
 ### Import Organization
 ```python
@@ -121,7 +121,7 @@ class HeloWrite(App):
 - **Modules**: `snake_case.py` (e.g., `config.py`, `widgets.py`)
 - **Packages**: `snake_case/` (e.g., `src/`, `tests/`)
 - **Test Files**: `test_*.py` (e.g., `test_config.py`)
-- **Directories**: `lowercase/` (e.g., `src/`, `css/`)
+- **Directories**: `lowercase/` (e.g., `src/`, `widgets/`, `screens/`)
 
 #### Code Elements
 - **Classes**: `PascalCase` (e.g., `HeloWrite`, `StatusBar`, `Config`)
@@ -224,10 +224,9 @@ def compose(self) -> ComposeResult:
 - `src/app.py` — entry point and main coordinator class (`HeloWrite`). Large but cohesive; contains all `action_*` handlers, mounting, theming glue, and git/pomodoro orchestration. Don't split it into mixins just to shrink it.
 - `src/screens/` — modal UI screens (settings, help, save-as, pomodoro, recent-files, welcome, quit-confirm, ...)
 - `src/widgets/` — custom widgets; `editor.py` holds the markdown-highlighting TextArea, find bar, status bar, file-open panel
-- `src/css/` — Textual stylesheets (`.tcss`)
 - `src/audio/` — sound assets (`.wav`)
 - Feature modules: `config.py` (persistence), `themes.py`/`styles.py`, `search.py` (find), `snippets.py`, `git_sync.py`, `pomodoro.py`, `audio_playback.py`, `file_watcher.py` (event-based file watching for hot reload), `utils.py`, `constants.py`
-- `tests/` — pytest suite; `test_lint.py`/`test_typecheck.py` shell out to ruff/mypy
+- `tests/` — pytest suite; `test_lint.py`/`test_typecheck.py` shell out to ruff/ty
 
 ### Performance Considerations
 
@@ -286,5 +285,4 @@ chore: update dependencies
 - **Textual Documentation**: Check examples in the Textual repository
 - **Rich Documentation**: Reference for styling and console output
 - **Python Documentation**: For language features and standard library
-- **Existing Code**: Look at `src/app.py`, `src/widgets/editor.py`, and `src/screens/` for examples</content>
-<parameter name="filePath">/home/zeno/Dev/eloscribe/AGENTS.md
+- **Existing Code**: Look at `src/app.py`, `src/widgets/editor.py`, and `src/screens/` for examples

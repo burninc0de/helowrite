@@ -5,7 +5,7 @@ import os
 import re
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from app import HeloWrite
@@ -650,7 +650,7 @@ class HeloWriteTextArea(TextArea):
         if not replacement:
             return None
 
-        parts: List[str] = []
+        parts: list[str] = []
         index = 0
         while index < len(replacement):
             if replacement.startswith("\\\\", index):

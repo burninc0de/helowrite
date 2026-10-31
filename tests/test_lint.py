@@ -10,7 +10,7 @@ from pathlib import Path
 def test_ruff_check():
     """Test that code passes ruff linting checks."""
     result = subprocess.run(
-        [sys.executable, "-m", "ruff", "check", "src/"],
+        [sys.executable, "-m", "ruff", "check", "src/", "tests/"],
         capture_output=True,
         text=True,
         cwd=Path(__file__).parent.parent,
@@ -23,7 +23,7 @@ def test_ruff_check():
 def test_ruff_format():
     """Test that code is properly formatted."""
     result = subprocess.run(
-        [sys.executable, "-m", "ruff", "format", "--check", "src/"],
+        [sys.executable, "-m", "ruff", "format", "--check", "src/", "tests/"],
         capture_output=True,
         text=True,
         cwd=Path(__file__).parent.parent,

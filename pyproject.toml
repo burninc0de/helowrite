@@ -57,11 +57,14 @@ helowrite = "app:main"
 [tool.setuptools]
 py-modules = ["app", "audio_playback", "config", "constants", "file_watcher", "git_sync", "pomodoro", "search", "snippets", "styles", "themes", "utils"]
 package-dir = {"" = "src"}
-packages = ["css", "audio", "widgets", "screens"]
+packages = ["audio", "widgets", "screens"]
+
+[tool.setuptools.package-data]
+audio = ["*.wav"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
